@@ -292,6 +292,8 @@ function buildMesasLogicas({ detalle, agrupaciones, id_grupo }) {
 
 // CLAVE PARA GUARDAR ESTADO ENTRE PANTALLAS
 const STORAGE_KEY = "mesasExamenUI_v1";
+// Flag en sessionStorage para saber si volvemos de Editar
+const STORAGE_FLAG_FROM_EDIT = "mesasExamen_from_edit";
 
 const MesasExamen = () => {
   const navigate = useNavigate();
@@ -356,12 +358,37 @@ const MesasExamen = () => {
   const dataLoadedRef = useRef(false);
   const scrollRestoredRef = useRef(false);
 
-  // Restaurar estado (vista, filtros, scroll) al montar
+  // Restaurar estado (vista, filtros, scroll) SOLO si volvemos de Editar
   useEffect(() => {
     if (initialStateLoadedRef.current) return;
     initialStateLoadedRef.current = true;
 
     if (typeof window === "undefined") return;
+
+    let shouldRestore = false;
+
+    try {
+      const flag = window.sessionStorage.getItem(STORAGE_FLAG_FROM_EDIT);
+      if (flag === "1") {
+        shouldRestore = true;
+        // Consumimos el flag para que no se reaplique en el futuro
+        window.sessionStorage.removeItem(STORAGE_FLAG_FROM_EDIT);
+      }
+    } catch (e) {
+      console.warn("No se pudo leer flag de from_edit:", e);
+    }
+
+    // Si NO venimos de editar => limpiar cualquier estado viejo y salir
+    if (!shouldRestore) {
+      try {
+        window.localStorage.removeItem(STORAGE_KEY);
+      } catch (e) {
+        console.warn("No se pudo limpiar estado antiguo MesasExamen:", e);
+      }
+      return;
+    }
+
+    // Si SÍ venimos de editar => restaurar estado guardado
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (!raw) return;
@@ -406,7 +433,7 @@ const MesasExamen = () => {
     persistState();
   }, [vista, q, fechaSel, turnoSel, persistState]);
 
-  // Guardar también al desmontar (por ejemplo, cuando vas a Editar)
+  // Guardar también al desmontar (por ejemplo, cuando vas a Editar o a otro lado)
   useEffect(() => {
     return () => {
       persistState();
@@ -578,10 +605,10 @@ const MesasExamen = () => {
         setMesasDetalle([]);
         setDetalleCache({});
 
-        const datasetDB = vista === "grupos" ? gruposDB : noAgrupadasDB;
-        if (!datasetDB || !datasetDB.length) return;
+        const datasetDBLocal = vista === "grupos" ? gruposDB : noAgrupadasDB;
+        if (!datasetDBLocal || !datasetDBLocal.length) return;
 
-        const agrupaciones = datasetDB
+        const agrupaciones = datasetDBLocal
           .map((g) =>
             [
               g.numero_mesa_1,
@@ -1027,12 +1054,12 @@ const MesasExamen = () => {
   // RESTAURAR SCROLL CUANDO YA CARGÓ TODO - CORREGIDO
   useEffect(() => {
     if (cargandoVista || loadingDetalle) return;
-    
+
     // Pequeño delay para asegurar que el DOM esté completamente renderizado
     const timer = setTimeout(() => {
       const el = pdfScrollRef.current;
       if (!el) return;
-      
+
       // Solo restaurar el scroll si no se ha restaurado antes y hay una posición guardada
       if (!scrollRestoredRef.current && scrollPosRef.current > 0) {
         el.scrollTop = scrollPosRef.current;
@@ -1686,7 +1713,23 @@ const MesasExamen = () => {
                           title="Editar (primera mesa de la agrupación)"
                           onClick={() => {
                             if (!primerNumero) return;
-                            // Guardar posición actual antes de navegar
+
+                            // Marcamos que vamos a Editar: cuando volvamos, se restaurará estado
+                            try {
+                              if (typeof window !== "undefined") {
+                                window.sessionStorage.setItem(
+                                  STORAGE_FLAG_FROM_EDIT,
+                                  "1"
+                                );
+                              }
+                            } catch (e) {
+                              console.warn(
+                                "No se pudo setear flag from_edit:",
+                                e
+                              );
+                            }
+
+                            // Guardar posición y filtros antes de navegar
                             persistState();
                             navigate(`/mesas/editar/${primerNumero}`);
                           }}
@@ -1724,7 +1767,18 @@ const MesasExamen = () => {
         <div className="glob-down-container">
           <button
             className="glob-profesor-button glob-hover-effect glob-volver-atras"
-            onClick={() => navigate("/panel")}
+            onClick={() => {
+              // Si vuelvo al panel principal, limpio TODO el estado guardado
+              try {
+                if (typeof window !== "undefined") {
+                  window.localStorage.removeItem(STORAGE_KEY);
+                  window.sessionStorage.removeItem(STORAGE_FLAG_FROM_EDIT);
+                }
+              } catch (e) {
+                console.warn("No se pudo limpiar estado al volver:", e);
+              }
+              navigate("/panel");
+            }}
             aria-label="Volver"
             title="Volver"
           >
@@ -1839,7 +1893,7 @@ const MesasExamen = () => {
               tipo: "exito",
               mensaje: "Mesas creadas y grupos actualizados.",
             });
-            
+
             // Restaurar scroll después de crear
             restaurarScroll();
           }}
@@ -1865,7 +1919,7 @@ const MesasExamen = () => {
               tipo: "exito",
               mensaje: "Mesas eliminadas correctamente",
             });
-            
+
             // Restaurar scroll después de eliminar
             restaurarScroll();
           }}
@@ -1890,7 +1944,7 @@ const MesasExamen = () => {
             await fetchGrupos();
             await fetchNoAgrupadas();
             notify({ tipo: "exito", mensaje: "Mesa eliminada." });
-            
+
             // Restaurar scroll después de eliminar individual
             restaurarScroll();
           }}
