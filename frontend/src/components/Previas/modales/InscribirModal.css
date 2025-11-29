@@ -1,0 +1,539 @@
+/* ===========================
+   Overlay
+=========================== */
+.inscrib-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+  font-family: var(--mi-font, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
+}
+
+/* ===========================
+   Contenedor principal
+=========================== */
+.inscrib-container {
+  position: relative;
+  width: 750px;
+  max-width: none;
+  max-height: 90vh;
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.28);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  padding: 72px 24px 18px; /* espacio para la banda azul */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Banda azul */
+.inscrib-container::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 64px;
+  background: #17459f;
+  border-radius: 18px 18px 0 0;
+}
+
+/* ===========================
+   Icono y título
+=========================== */
+.inscrib-icon {
+  position: absolute;
+  top: 18px;
+  left: 22px;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #17459f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.25);
+}
+
+.inscrib-title {
+  position: absolute;
+  top: 18px;
+  left: 68px;
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: #ffffff;
+}
+
+/* ===========================
+   Texto y secciones
+=========================== */
+.inscrib-text {
+  margin: 0 0 10px;
+  font-size: 0.98rem;
+  line-height: 1.45;
+  color: #0f172a;
+}
+
+.inscrib-item {
+  margin-top: 8px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.inscrib-item strong {
+  display: inline-block;
+  margin-bottom: 2px;
+}
+
+.inscrib-field {
+  margin-top: 14px;
+}
+
+.inscrib-label {
+  font-size: 0.9rem;
+  color: #111827;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.inscrib-help-text {
+  display: block;
+  margin-top: 4px;
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+/* Input base */
+.inscrib-input {
+  width: 100%;
+  border-radius: 8px;
+  border: 2px solid #d1d5db;
+  padding: 9px 12px;
+  font-size: 0.95rem;
+  background: #f9fafb;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.inscrib-input:focus {
+  border-color: #17459f;
+  box-shadow: 0 0 0 3px rgba(23, 69, 159, 0.18);
+  background: #ffffff;
+}
+
+/* Error */
+.inscrib-error {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* ===========================
+   Layout en dos columnas (genérico)
+=========================== */
+.inscrib-fields-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 16px;
+  align-items: flex-start;
+}
+
+.inscrib-field-col {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===========================
+   LISTA DE MATERIAS + CARDS
+=========================== */
+
+.inscrib-materias-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+}
+
+/* Cada tarjeta de materia (label) */
+.inscrib-materia-card {
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  padding: 10px 12px;
+  background: #f9fafb;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    border-color 0.12s ease,
+    background-color 0.12s ease;
+}
+
+.inscrib-materia-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+  border-color: #cbd5e1;
+}
+
+/* Checkbox grande dentro de la card */
+.inscrib-materia-card input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
+  margin-top: 2px;
+  flex-shrink: 0;
+  accent-color: #17459f;
+  cursor: pointer;
+}
+
+/* Texto dentro de la card */
+.inscrib-materia-card div {
+  font-size: 0.9rem;
+  color: #111827;
+}
+
+/* Responsive: en mobile las materias pasan a una sola columna */
+@media (max-width: 640px) {
+  .inscrib-materias-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===========================
+   Responsive general
+=========================== */
+@media (max-width: 640px) {
+  .inscrib-fields-row {
+    grid-template-columns: 1fr;
+  }
+
+  .inscrib-container {
+    width: 96vw;
+    border-radius: 16px;
+    padding-inline: 18px;
+  }
+
+  .inscrib-container::before {
+    height: 60px;
+  }
+
+  .inscrib-title {
+    left: 64px;
+    font-size: 1rem;
+  }
+}
+
+/* ===========================
+   Checkboxes custom (para otros casos)
+=========================== */
+
+.inscrib-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: #111827;
+  cursor: pointer;
+  user-select: none;
+  margin-bottom: 6px;
+}
+
+/* texto + cajita inline */
+.inscrib-text-inline {
+  display: flex;
+  align-items: center;
+}
+
+/* escondemos el checkbox nativo pero sigue siendo accesible */
+.inscrib-check input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* cajita del checkbox */
+.inscrib-check .inscrib-text-inline::before {
+  content: "";
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  border: 2px solid #cbd5e1;
+  background: #ffffff;
+  margin-right: 10px;
+  flex-shrink: 0;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.1s ease;
+}
+
+/* tilde cuando está chequeado */
+.inscrib-check input[type="checkbox"]:checked + .inscrib-text-inline::before {
+  background: #17459f;
+  border-color: #17459f;
+  box-shadow: 0 0 0 2px rgba(23, 69, 159, 0.25);
+  transform: scale(1.03);
+}
+
+/* foco accesible (cuando se navega con teclado) */
+.inscrib-check input[type="checkbox"]:focus-visible + .inscrib-text-inline::before {
+  box-shadow: 0 0 0 3px rgba(23, 69, 159, 0.4);
+}
+
+/* estado disabled (opacidad manejada en el label padre) */
+.inscrib-check input[type="checkbox"]:disabled + .inscrib-text-inline::before {
+  background: #e5e7eb;
+  border-color: #cbd5e1;
+  box-shadow: none;
+}
+
+/* ===========================
+   Botones
+=========================== */
+.inscrib-buttons {
+  margin-top: 18px;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.inscrib-btn {
+  appearance: none;
+  border-radius: 10px;
+  padding: 9px 18px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.1s ease,
+    border-color 0.15s ease;
+}
+
+.inscrib-btn--ghost {
+  background: #ffffff;
+  color: #475569;
+  border-color: #cbd5e1;
+}
+
+.inscrib-btn--ghost:hover:not(:disabled) {
+  background: #f8fafc;
+  box-shadow: 0 4px 10px rgba(148, 163, 184, 0.35);
+  transform: translateY(-1px);
+}
+
+.inscrib-btn--solid-success {
+  background: #1dbf73;
+  color: #ffffff;
+  border-color: #16a263;
+  box-shadow: 0 4px 14px rgba(22, 162, 99, 0.45);
+}
+
+.inscrib-btn--solid-success:hover:not(:disabled) {
+  background: #16a263;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 18px rgba(22, 162, 99, 0.6);
+}
+
+.inscrib-btn:disabled {
+  opacity: 0.7;
+  cursor: default;
+  box-shadow: none;
+  transform: none;
+}
+/* ===========================
+   LISTA DE MATERIAS + CARDS
+=========================== */
+
+/* ===========================
+   LISTA DE MATERIAS + CARDS
+=========================== */
+
+.inscrib-materias-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+}
+
+/* Card de cada materia */
+.inscrib-materia-card {
+  position: relative;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, #f9fafb, #f3f4f6);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    border-color 0.12s ease,
+    background-color 0.12s ease;
+}
+
+/* Borde lateral suave (decorativo) */
+.inscrib-materia-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border-left: 3px solid rgba(148, 163, 184, 0.7);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Hover sutil */
+.inscrib-materia-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12);
+  border-color: #cbd5e1;
+  background: #f9fafb;
+}
+
+/* Card cuando está seleccionada (VERDE) */
+.inscrib-materia-card--checked {
+  border-color: #16a263;
+  background: #ecfdf5;
+  box-shadow: 0 6px 16px rgba(22, 162, 99, 0.28);
+}
+
+/* Borde lateral verde cuando está seleccionada */
+.inscrib-materia-card--checked::before {
+  border-left-color: #16a263;
+  opacity: 1;
+}
+
+/* Card deshabilitada */
+.inscrib-materia-card--disabled {
+  opacity: 0.7;
+  cursor: default;
+  box-shadow: none;
+}
+
+/* Wrapper del checkbox en la card */
+.inscrib-materia-checkwrap {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+/* Checkbox real (oculto visualmente) */
+.inscrib-materia-checkbox {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Caja visible del checkbox */
+.inscrib-materia-checkbox-ui {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px; /* redondito tipo toggle */
+  border: 2px solid #cbd5e1;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.18);
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.08s ease;
+  position: relative;
+}
+
+
+
+/* Estado checked -> VERDE */
+.inscrib-materia-checkbox:checked + .inscrib-materia-checkbox-ui {
+  background: #16a263;
+  border-color: #16a263;
+  box-shadow: 0 0 0 3px rgba(22, 162, 99, 0.22);
+  transform: scale(1.02);
+}
+
+.inscrib-materia-checkbox:checked + .inscrib-materia-checkbox-ui::after {
+  opacity: 1;
+  transform: rotate(-45deg) scale(1);
+}
+
+/* Foco accesible (teclado) */
+.inscrib-materia-checkbox:focus-visible + .inscrib-materia-checkbox-ui {
+  box-shadow: 0 0 0 3px rgba(22, 162, 99, 0.45);
+}
+
+/* Info de la materia */
+.inscrib-materia-info {
+  font-size: 0.9rem;
+  color: #111827;
+}
+
+.inscrib-materia-title {
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.inscrib-materia-sub {
+  font-size: 0.8rem;
+  color: #4b5563;
+  margin-top: 2px;
+}
+
+/* Pill "Principal" */
+.inscrib-materia-pill {
+  font-size: 0.68rem;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #16a263;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Responsive: en mobile las materias pasan a una sola columna */
+@media (max-width: 640px) {
+  .inscrib-materias-list {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,440 @@
+/* ====== :root AZUL (aliasando reg-* a blue-inst-*) ====== */
+:root {
+  /* Colores principales */
+  --reg-primary:            var(--blue-inst-primary);
+  --reg-primary-light:      var(--blue-inst-primary-light);
+  --reg-primary-dark:       var(--blue-inst-primary-dark);
+
+  --reg-secondary:          var(--blue-inst-secondary);
+  --reg-accent:             var(--blue-inst-accent);
+
+  --reg-success:            var(--blue-inst-success);
+  --reg-warning:            var(--blue-inst-warning);
+  --reg-danger:             var(--blue-inst-danger);
+
+  --reg-light:              var(--blue-inst-light);
+  --reg-dark:               var(--blue-inst-dark);
+
+  /* Grises */
+  --reg-gray-100:           var(--blue-inst-gray-100);
+  --reg-gray-200:           var(--blue-inst-gray-200);
+  --reg-gray-300:           var(--blue-inst-gray-300);
+  --reg-gray-400:           var(--blue-inst-gray-400);
+  --reg-gray-500:           var(--blue-inst-gray-500);
+  --reg-gray-600:           var(--blue-inst-gray-600);
+  --reg-gray-700:           var(--blue-inst-gray-700);
+  --reg-gray-800:           var(--blue-inst-gray-800);
+  --reg-gray-900:           var(--blue-inst-gray-900);
+
+  /* Radios */
+  --reg-border-radius:      var(--blue-inst-radius, 12px);
+  --reg-border-radius-lg:   var(--blue-inst-radius-lg, 16px);
+  --reg-border-radius-xl:   var(--blue-inst-radius-xl, 20px);
+
+  /* Transición */
+  --reg-transition:         var(--blue-inst-transition, all 0.3s cubic-bezier(0.4, 0, 0.2, 1));
+
+  /* Sombras (usa las institucionales si existen, si no cae a las originales) */
+  --reg-shadow-sm:          var(--blue-inst-shadow-sm, 0 1px 3px rgba(2, 6, 23, 0.06));
+  --reg-shadow-md:          var(--blue-inst-shadow-md, 0 6px 18px rgba(2, 6, 23, 0.08));
+  --reg-shadow-lg:          var(--blue-inst-shadow-lg, 0 20px 40px rgba(2, 6, 23, 0.10));
+  --reg-shadow-xl:          var(--blue-inst-shadow-xl, 0 32px 60px rgba(2, 6, 23, 0.12));
+}
+
+/* =========================
+   FONDO estilo “dribbble”
+   ========================= */
+.config-page-bg {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+}
+
+/* Contenedor principal con borde redondeado grueso como la imagen */
+.shell {
+  width: 100%;
+  max-width: 1100px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: saturate(120%) blur(8px);
+  border-radius: 24px;
+  box-shadow: var(--reg-shadow-lg);
+  border: 1px solid rgba(2, 6, 23, 0.06);
+  overflow: hidden;
+}
+
+/* =========================
+   TOPBAR (título + estado)
+   ========================= */
+.topbar {
+  background: var(--accent-red);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--reg-gray-200);
+}
+
+.topbar-left h1 {
+  margin: 0;
+  font-size: 1.6rem;
+  color: white;
+  letter-spacing: 0.2px;
+}
+
+.topbar-left p {
+  margin: 4px 0 0;
+  color: white;
+  font-size: 0.95rem;
+}
+
+.topbar-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--reg-gray-100);
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--reg-gray-200);
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--reg-gray-400);
+  box-shadow: 0 0 0 3px rgba(2, 6, 23, 0.05) inset;
+}
+.status-dot.ok { background: var(--reg-success); }
+.status-dot.off { background: var(--reg-danger); }
+.status-text { color: var(--reg-gray-700); font-weight: 600; }
+
+/* =========================
+   GRID contenido principal
+   ========================= */
+.content-grid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 20px;
+  padding: 20px;
+}
+
+@media (max-width: 980px) {
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================
+   PANEL principal (form)
+   ========================= */
+.panel {
+  background: #fff;
+  border-radius: 18px;
+  border: 1px solid var(--reg-gray-200);
+  box-shadow: var(--reg-shadow-md);
+  padding: 18px;
+}
+
+.stack { display: grid; gap: 8px; margin-bottom: 8px; }
+.notice {
+  background: var(--reg-gray-100);
+  border: 1px solid var(--reg-gray-200);
+  color: var(--reg-gray-700);
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+}
+.notice.success {
+  background: #ECFDF5;
+  border-color: #A7F3D0;
+  color: #065F46;
+}
+.notice.danger {
+  background: #FEF2F2;
+  border-color: #FECACA;
+  color: #7F1D1D;
+}
+
+/* =========================
+   FORM: grid + campos
+   ========================= */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 14px;
+}
+
+.field { display: grid; gap: 6px; }
+.col-12 { grid-column: 1 / -1; }
+.col-6  { grid-column: span 6; }
+
+@media (max-width: 720px) {
+  .col-6 { grid-column: 1 / -1; }
+}
+
+.label {
+  font-weight: 600;
+  color: var(--reg-gray-700);
+  font-size: 0.92rem;
+}
+
+/* Inputs estilo “pill / glassy” */
+.input {
+  border: 1px solid var(--reg-gray-200);
+  background: #fff;
+  color: var(--reg-dark);
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 1rem;
+  line-height: 1.1;
+  outline: none;
+  transition: var(--reg-transition);
+  box-shadow: var(--reg-shadow-sm);
+}
+.input:hover {
+  border-color: var(--reg-gray-300);
+}
+.input:focus {
+  border-color: var(--reg-primary);
+  box-shadow: 0 0 0 4px rgba(183, 28, 28, 0.18);
+}
+.input::placeholder { color: var(--reg-gray-400); }
+
+.input-click { cursor: pointer; }
+
+/* =========================
+   GRUPO FECHA + HORA/MIN (24h)
+   ========================= */
+.row-when {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Ancho cómodo para selects de hora/min, con texto centrado */
+.row-when select.input {
+  min-width: 84px;          /* 2 dígitos + flecha */
+  max-width: 110px;
+  padding-right: 34px;      /* espacio para flecha custom */
+  text-align: center;
+  text-align-last: center;  /* Chrome */
+  -moz-text-align-last: center; /* Firefox */
+}
+
+/* Date input consistente con pills */
+.row-when input[type="date"].input {
+  min-width: 180px;
+}
+
+/* Separador ":" y sufijo "hs" */
+.row-when .sep {
+  font-weight: 700;
+  color: var(--reg-gray-500);
+  user-select: none;
+}
+.row-when .suffix {
+  margin-left: 2px;
+  color: var(--reg-gray-500);
+  font-weight: 600;
+  user-select: none;
+}
+
+/* Quitar estilos nativos fuertes de select y poner flecha custom */
+.row-when select.input {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 20 20' fill='none'><path d='M5 7l5 5 5-5' stroke='%23808AA0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 18px;
+}
+
+/* Indicador calendario más alineado */
+input[type="date"].input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.75;
+  transition: opacity .2s ease;
+}
+input[type="date"].input::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Focus consistente también en select */
+.row-when select.input:focus,
+.row-when input[type="date"].input:focus {
+  border-color: var(--reg-primary);
+  box-shadow: 0 0 0 4px rgba(183, 28, 28, 0.18);
+}
+
+/* En pantallas angostas, que no se rompa el layout */
+@media (max-width: 540px) {
+  .row-when {
+    gap: 8px;
+  }
+  .row-when input[type="date"].input {
+    min-width: 160px;
+    flex: 1 1 auto;
+  }
+  .row-when select.input {
+    min-width: 72px;
+  }
+}
+
+/* =========================
+   Switch custom matching UI
+   ========================= */
+.switch {
+  display: inline-grid;
+  grid-auto-flow: column;
+  align-items: center;
+  gap: 10px;
+  user-select: none;
+}
+.switch input { display: none; }
+
+.switch-track {
+  width: 50px;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--reg-gray-300);
+  position: relative;
+  box-shadow: inset 0 2px 6px rgba(2, 6, 23, 0.08);
+  transition: var(--reg-transition);
+}
+.switch-thumb {
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: var(--reg-shadow-sm);
+  transition: var(--reg-transition);
+}
+.switch input:checked + .switch-track {
+  background: var(--reg-secondary);
+}
+.switch input:checked + .switch-track .switch-thumb {
+  transform: translateX(22px);
+}
+.switch-text { color: var(--reg-gray-700); font-weight: 600; }
+
+/* =========================
+   Footer del panel (botones)
+   ========================= */
+.panel-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+/* Botones pill */
+.btn {
+  appearance: none;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--reg-transition);
+  box-shadow: var(--reg-shadow-sm);
+}
+.btn-ghost {
+  background: #fff;
+  color: var(--reg-gray-800);
+  border-color: var(--reg-gray-300);
+}
+.btn-ghost:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--reg-shadow-md);
+  background: var(--reg-gray-100);
+}
+
+.btn-primary {
+  background: var(--reg-primary);
+  color: white;
+}
+.btn-primary:hover {
+  background: var(--reg-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--reg-shadow-md);
+}
+
+/* =========================
+   ASIDE (preview a la derecha)
+   ========================= */
+.aside {
+  display: grid;
+  gap: 16px;
+}
+
+.aside-card {
+  border: 1px solid var(--reg-gray-200);
+  border-radius: 18px;
+  background: linear-gradient(180deg, #ffffff 0%, #FBFBFF 100%);
+  box-shadow: var(--reg-shadow-md);
+  padding: 16px;
+}
+
+.aside-title {
+  font-weight: 800;
+  color: var(--reg-gray-800);
+  margin-bottom: 8px;
+}
+
+.meta {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.meta li {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  align-items: center;
+  gap: 8px;
+  color: var(--reg-gray-700);
+}
+.meta b { color: var(--reg-gray-600); font-weight: 700; }
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  box-shadow: var(--reg-shadow-sm);
+  border: 1px solid transparent;
+}
+.chip-ok {
+  background: rgba(16,185,129,.1);
+  color: #065F46;
+  border-color: #A7F3D0;
+}
+.chip-off {
+  background: rgba(211,47,47,.08);
+  color: #7F1D1D;
+  border-color: #FECACA;
+}
+
+.aside-tip {
+  border-radius: 16px;
+  background: linear-gradient(90deg, rgba(29,66,138,.08), rgba(183,28,28,.06));
+  border: 1px solid var(--reg-gray-200);
+  color: var(--reg-gray-700);
+  padding: 12px 14px;
+  box-shadow: var(--reg-shadow-sm);
+}
+
+/* Pequeñas mejoras de tipografía */
+body, button, input, select {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}

@@ -1,0 +1,189 @@
+/* AgregarProfesor.css */
+/* ===== Vars ===== */
+:root{
+  --primary-500:#ef4444; --primary-600:#dc2626; --primary-700:#b91c1c;
+  --secondary-500:#3b82f6; --secondary-600:#2563eb;
+  --gray-50:#f8fafc; --gray-100:#f1f5f9; --gray-200:#e2e8f0; --gray-700:#334155; --gray-900:#0f172a;
+
+  --primary-color: var(--primary-700);
+  --text-primary: var(--gray-900);
+  --text-secondary:#475569;
+  --text-on-primary:#fff;
+
+  --surface-color:#fff;
+  --border-color:var(--gray-200);
+  --border-focus:var(--secondary-500);
+
+  --gradient-primary: linear-gradient(135deg, var(--secondary-600), #1f3d8f);
+  --gradient-accent: linear-gradient(90deg, var(--primary-500), var(--primary-700));
+
+  --shadow-lg:0 12px 30px -12px rgba(15,23,42,.25);
+  --shadow-xl:0 20px 32px -18px rgba(15,23,42,.35);
+
+  --radius:12px;
+}
+
+/* ===== Layout ===== */
+.add-alumno-container{
+  display:flex; justify-content:center; align-items:center; /* Cambiado de 'start' a 'center' */
+  min-height:100vh; width:100%;
+  background:linear-gradient(135deg, var(--gray-100) 30%, var(--secondary-600) 70%);
+  padding:24px 0;
+}
+.add-alumno-box{
+  width:90%; max-height:90vh; /* Cambiado de min-height a max-height */
+  background:#fff; border-radius:var(--radius);
+  box-shadow:var(--shadow-lg); display:flex; flex-direction:column; overflow:hidden;
+  position: relative;
+}
+
+/* Header */
+.add-header{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:1.25rem 2rem 1rem; color:var(--text-on-primary);
+  background:var(--gradient-primary);
+}
+.add-icon-title{display:flex; align-items:center; gap:.75rem}
+.add-icon{font-size:1.75rem}
+.add-icon-title h1{margin:0; font-weight:800}
+.add-icon-title p{margin:0; opacity:.95}
+.add-back-btn{
+  display:inline-flex; align-items:center; gap:.5rem; padding:.55rem 1rem;
+  border-radius:10px; background:rgb(255 255 255 / .14); color:#fff;
+  border:1px solid rgb(255 255 255 / .25); cursor:pointer; transition:.2s;
+}
+.add-back-btn:hover{background:rgb(255 255 255 / .24)}
+
+/* Tabs */
+.tabs-bar{
+  display:flex; gap:6px; align-items:flex-end; background:#fff; padding:0 12px;
+  border-bottom:1px solid var(--gray-200); overflow-x:auto;
+}
+.tab-btn{
+  appearance:none; border:0; background:transparent; color:#3b4758;
+  font-weight:800; font-size:16px; padding:14px 16px; border-radius:8px 8px 0 0;
+  position:relative; cursor:pointer; transition:.15s; white-space:nowrap;
+}
+.tab-btn:hover{background:#f4f7fb; color:#273246}
+.tab-btn.active{color:#113a85}
+.tab-btn::after{content:""; position:absolute; left:12px; right:12px; bottom:-1px; height:3px; background:transparent; border-radius:3px}
+.tab-btn.active::after{background:#1f51c6}
+
+/* Form container (scroll) */
+.add-alumno-form{
+  flex:1; display:flex; flex-direction:column;
+  padding:14px 16px 80px;
+  scroll-behavior:smooth;
+  position: relative;
+  overflow-y: auto; /* Agregado para permitir scroll interno */
+}
+
+/* Grids */
+.datos-grid, .indisp-grid{
+  display:grid; grid-template-columns:1.6fr 1fr; gap:20px 18px; align-items:start;
+  padding:12px;
+}
+.datos-col{display:grid; gap:16px}
+.indisp-right{display:grid; gap:14px; align-content:start}
+@media (max-width: 900px){ .datos-grid, .indisp-grid{grid-template-columns:1fr} }
+
+/* Inputs + spacing */
+.add-group{
+  display:grid; grid-template-columns:repeat(2, minmax(0,1fr));
+  gap:18px 20px; margin-bottom:12px;
+}
+@media (max-width: 640px){ .add-group{grid-template-columns:1fr} }
+
+.add-input-wrapper{position:relative; width:100%}
+.add-label{
+  position:absolute; top:.85rem; left:1rem; font-size:.9rem; color:var(--text-secondary);
+  pointer-events:none; transition:.2s; background:transparent;
+}
+.add-input{
+  width:100%; padding:.9rem 1rem; font-size:.95rem; border-radius:10px;
+  border:1px solid var(--border-color); background:#fff; color:var(--text-primary);
+  transition:.2s; box-shadow:0 1px 0 rgba(0,0,0,.02);
+}
+.add-input:focus{outline:none; border-color:var(--border-focus); box-shadow:0 0 0 3px rgb(59 130 246 / .22)}
+.add-input-highlight{position:absolute; bottom:0; left:0; width:0; height:2px; background:var(--gradient-accent); transition:.25s}
+.add-input:focus ~ .add-input-highlight{width:100%}
+
+.add-input-wrapper.has-value .add-label,
+.add-input:focus ~ .add-label{
+  transform:translateY(-1.35rem) scale(.85);
+  background:linear-gradient(135deg, rgb(255 255 255 /.98) 0%, rgb(248 250 252 /.98) 100%);
+  color:#113a85; font-weight:700; padding:0 .45rem; left:.8rem; z-index:1;
+}
+
+/* Select always-active */
+.add-input-wrapper.always-active .add-label{
+  transform:translateY(-1.35rem) scale(.85);
+  background:#fff; color:#113a85; font-weight:800; padding:0 .45rem; left:.8rem; z-index:2;
+}
+.add-input-wrapper select.add-input{
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat:no-repeat; background-position:right .75rem center; background-size:1rem;
+  padding-right:2.5rem;
+}
+
+/* Panels */
+.add-panel{
+  background:#fff; border:1px solid var(--gray-200); border-radius:12px;
+  box-shadow:0 4px 14px rgba(17,24,39,.06); padding:12px 14px;
+}
+.add-panel-header{display:flex; align-items:center; gap:8px; margin-bottom:6px}
+.add-panel-title{margin:0; font-weight:800; letter-spacing:-.02em; color:#113a85}
+.add-panel-body{line-height:1.55; font-size:.96rem}
+.panel-footnote{margin-top:8px; font-size:.86rem; opacity:.9}
+
+/* ===== Botón fijo en la parte inferior (ajustado más chico) ===== */
+.add-save-bottom{
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  left: 16px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  z-index: 10;
+}
+.add-alumno-button {
+  display:inline-flex; align-items:center; gap:.5rem;
+  padding:.75rem 1.6rem;   /* 🔹 un poco más alto y ancho */
+  font-size:.95rem;        /* 🔹 texto ligeramente más grande */
+  font-weight:700;
+  border-radius:999px;
+  border:1px solid var(--primary-600);
+  background:var(--primary-600);
+  color:#fff;
+  box-shadow: var(--shadow-xl);
+  transition:.2s;
+  line-height:1.1;
+}
+
+
+.add-alumno-button:hover{
+  background:#fff;
+  color:var(--primary-600);
+}
+.add-alumno-button:disabled{
+  opacity:.75;
+  cursor:not-allowed;
+}
+.add-icon-button{
+  font-size:.85rem;
+}
+
+/* Datepicker */
+.add-input[type="date"]::-webkit-calendar-picker-indicator{cursor:pointer}
+.add-input-wrapper.always-active .add-label{pointer-events:none}
+
+/* Responsive */
+@media (max-width: 992px){
+  .add-alumno-box{width:96%}
+}
+@media (max-width: 640px){
+  .add-save-bottom{justify-content:center;}
+  .add-alumno-button{width:100%; justify-content:center;}
+}

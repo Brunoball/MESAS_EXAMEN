@@ -1,0 +1,745 @@
+/* ====== :root AZUL (aliasando pro-* a blue-inst-*) ====== */
+:root {
+  /* 🎨 PALETA AZUL (alias) */
+  --pro-primary:            var(--blue-inst-primary);
+  --pro-primary-light:      var(--blue-inst-primary-light);
+  --pro-primary-dark:       var(--blue-inst-primary-dark);
+  --pro-primary-darker:     var(--blue-inst-dark);
+
+  --pro-secondary:          var(--blue-inst-secondary);
+  --pro-accent:             var(--blue-inst-accent);
+  --pro-accent-light:       var(--blue-inst-gray-100);
+  --pro-accent-dark:        var(--blue-inst-primary-dark);
+
+  /* Nombres extra reubicados a tonos azules coherentes */
+  --pro-coral:              var(--blue-inst-secondary);
+  --pro-crimson:            var(--blue-inst-primary);
+  --pro-burgundy:           var(--blue-inst-primary-dark);
+  --pro-rose:               var(--blue-inst-primary-light);
+
+  /* Estados */
+  --pro-success:            var(--blue-inst-success);
+  --pro-warning:            var(--blue-inst-warning);
+  --pro-danger:             var(--blue-inst-danger);
+
+  /* Neutros */
+  --pro-light:              var(--blue-inst-light);
+  --pro-dark:               var(--blue-inst-dark);
+
+  --pro-gray-50:            var(--blue-inst-light);
+  --pro-gray-100:           var(--blue-inst-gray-100);
+  --pro-gray-200:           var(--blue-inst-gray-200);
+  --pro-gray-300:           var(--blue-inst-gray-300);
+  --pro-gray-400:           var(--blue-inst-gray-400);
+  --pro-gray-500:           var(--blue-inst-gray-500);
+  --pro-gray-600:           var(--blue-inst-gray-600);
+  --pro-gray-700:           var(--blue-inst-gray-700);
+  --pro-gray-800:           var(--blue-inst-gray-800);
+  --pro-gray-900:           var(--blue-inst-gray-900);
+
+  /* “Tonos rojos” → equivalentes en azul/gris */
+  --pro-red-50:             var(--blue-inst-light);
+  --pro-red-100:            var(--blue-inst-gray-100);
+  --pro-red-200:            var(--blue-inst-gray-200);
+  --pro-red-300:            var(--blue-inst-gray-300);
+  --pro-red-400:            var(--blue-inst-gray-400);
+  --pro-red-500:            var(--blue-inst-primary-light);
+  --pro-red-600:            var(--blue-inst-primary);
+  --pro-red-700:            var(--blue-inst-primary-dark);
+  --pro-red-800:            var(--blue-inst-gray-800);
+  --pro-red-900:            var(--blue-inst-gray-900);
+
+  /* Radios / transición / sombras (alias a tu set azul) */
+  --pro-border-radius:      var(--blue-inst-radius);
+  --pro-border-radius-lg:   var(--blue-inst-radius-lg);
+  --pro-border-radius-xl:   var(--blue-inst-radius-xl);
+
+  --pro-transition:         var(--blue-inst-transition);
+
+  --pro-shadow-sm:          var(--blue-inst-shadow-sm);
+  --pro-shadow-md:          var(--blue-inst-shadow-md);
+  --pro-shadow-lg:          var(--blue-inst-shadow-lg);
+  --pro-shadow-xl:          var(--blue-inst-shadow-xl);
+
+  /* ===== Asignación/alias (mantienen nombres, ahora en azul) ===== */
+  --primary-500:            var(--pro-primary);
+  --primary-600:            var(--pro-primary-dark);
+  --primary-700:            var(--pro-primary-darker);
+  --primary-400:            var(--pro-primary-light);
+  --primary-50:             var(--pro-red-50);
+  --primary-200:            var(--pro-red-200);
+
+  --secondary-50:           var(--blue-inst-gray-100);
+  --secondary-100:          var(--blue-inst-gray-200);
+  --secondary-300:          var(--blue-inst-gray-300);
+  --secondary-500:          var(--pro-burgundy);        /* = primary-dark azul */
+  --secondary-600:          var(--pro-primary-darker);  /* = dark azul */
+
+  --success-500:            var(--pro-success);
+  --success-600:            #1B5E20;
+
+  --warning-500:            var(--pro-warning);
+  --warning-600:            #E65100;
+
+  --danger-500:             var(--pro-danger);
+  --danger-600:             var(--pro-primary-dark);
+  --danger-200:             var(--pro-red-200);
+  --danger-50:              var(--pro-red-50);
+
+  --text-primary:           var(--pro-gray-800);
+  --text-secondary:         var(--pro-gray-600);
+  --text-muted:             var(--pro-gray-500);
+  --text-on-primary:        #FFFFFF;
+
+  --background-color:       #FFFFFF;
+  --surface-color:          #FFFFFF;
+  --surface-secondary:      var(--pro-red-50);          /* ahora azul claro */
+
+  --border-color:           var(--pro-red-200);         /* ahora gris/azul 200 */
+
+  /* Gradientes azules */
+  --gradient-background:    linear-gradient(135deg, var(--pro-primary) 0%, var(--pro-primary-dark) 50%, var(--pro-burgundy) 100%);
+  --gradient-accent:        linear-gradient(135deg, var(--pro-accent) 0%, var(--pro-crimson) 50%, var(--pro-primary) 100%);
+  --gradient-primary:       linear-gradient(135deg, var(--pro-primary) 0%, var(--pro-primary-dark) 100%);
+
+  /* Botones */
+  --btn-agregar-profesor:   var(--pro-success);
+  --btn-dados-bajas:        var(--pro-danger);
+
+  /* Otros */
+  --transition-fast:        0.15s ease;
+  --transition-normal:      0.3s ease;
+  --spacing-xs:             0.5rem;
+
+  --border-radius:          var(--pro-border-radius);
+  --border-radius-sm:       8px;
+}
+
+
+/* ====== Wrapper LOCAL para centrar vertical sin globales ====== */
+.editar-mesa-page{
+  min-height: 100vh;
+  display: flex;
+  align-items: center;       /* centra vertical */
+  justify-content: center;   /* centra horizontal */
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+/* ============ Shell & background ============ */
+.ecourse-shell{
+background-color: white;
+  border-radius: 18px;
+  width:100%;
+  max-width: 1200px;
+  overflow: hidden;
+}
+
+/* ============ Header ============ */
+.ecourse-header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 14px; 
+}
+
+/* Variante primaria: fondo primario, texto blanco */
+.header-primary{
+  background: var(--gradient-primary, linear-gradient(135deg, #64748b, #334155));
+  color: var(--text-on-primary);
+  box-shadow: var(--pro-shadow-lg);
+}
+.header-primary .title-inverted{ color: var(--text-on-primary); }
+.header-primary .ecourse-ghost,
+.header-primary .ecourse-pill{
+  color: var(--text-on-primary);
+}
+
+/* Botón Volver invertido (borde suave blanco) */
+.ghost-inverted{
+  display:inline-flex; gap:8px; align-items:center;
+  border:1px solid rgba(255,255,255,.35); background:transparent; color:var(--text-on-primary);
+  padding:10px 12px; border-radius:12px; font-weight:700; cursor:pointer;
+  box-shadow:none;
+}
+.ghost-inverted:hover{ background: rgba(255,255,255,.08); }
+
+/* Acciones del header con variantes invertidas */
+.ecourse-actions{ display:flex; align-items:center; gap:10px; }
+.ecourse-pill{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:10px 14px; border-radius:18px; border:0; cursor:pointer;
+  font-weight:700; letter-spacing:.2px;
+  background:var(--primary-50); color:var(--primary-600);
+  transition: var(--pro-transition);
+}
+
+.ecourse-pill.primary.inverted:hover{
+  background: rgba(255,255,255,.25);
+}
+
+.ecourse-pill.danger.inverted-outline:hover{
+  background: rgba(255,255,255,.12);
+}
+
+.ecourse-header-left{ display:flex; align-items:center; gap:12px; }
+.ecourse-title{
+  font-size:1.6rem; font-weight:800; color:var(--primary-700); letter-spacing:.2px;
+}
+
+/* ============ Panel blanco con sombra suave ============ */
+.ecourse-panel{
+
+  box-shadow: var(--pro-shadow-lg);
+  padding:18px;
+}
+.ecourse-empty{ margin:0; padding:36px; text-align:center; color:var(--text-secondary); }
+
+/* Meta materia */
+.ecourse-meta{ margin-bottom:8px; }
+.ecourse-subtle{ font-size:.8rem; color:var(--text-muted); font-weight:700; }
+.ecourse-materia{ font-size:1.05rem; font-weight:800; color:var(--text-primary); }
+
+/* ============ Filter bar (pills) ============ */
+.ecourse-filterbar{
+  display:grid; grid-template-columns: repeat(2, minmax(180px, 240px) );
+  gap:12px; align-items:end; margin:12px 0 8px;
+}
+.ecourse-filter{ display:flex; flex-direction:column; gap:6px; }
+.ecourse-filter .label{
+  display:inline-flex; align-items:center; gap:6px;
+  font-size:.88rem; font-weight:700; color:var(--primary-600);
+}
+.ecourse-filter input, .ecourse-filter select{
+  padding:10px 12px; border:1px solid var(--border-color); border-radius:12px;
+  background:#fff; outline:none; color:var(--text-primary);
+  transition: var(--pro-transition);
+}
+.ecourse-filter input:focus, .ecourse-filter select:focus{
+  border-color:var(--primary-400);
+  box-shadow:0 0 0 3px rgba(198, 40, 40, .15);
+}
+
+/* ============ Cards estilo “My Courses” ============ */
+.ecourse-section-title{
+  margin:12px 0 10px; color:var(--primary-600); font-weight:800; font-size:1rem;
+}
+.ecourse-cards{
+  display:grid; grid-template-columns:repeat(3, minmax(240px, 1fr));
+  gap:14px;
+}
+.ecourse-card{
+  position:relative; display:flex; gap:14px; align-items:stretch;
+  padding:16px; border-radius:16px; border:1px solid var(--border-color);
+  background: var(--surface-secondary);
+  box-shadow: var(--pro-shadow-md);
+}
+.ecourse-card.add{
+  justify-content:center; align-items:center; font-weight:700; color:var(--primary-700);
+  background:var(--primary-50); border:1px dashed var(--primary-200); cursor:pointer;
+}
+.ecourse-card.add:hover{ filter:brightness(0.98); }
+.ecourse-card-media{
+  width:110px; min-width:110px; border-radius:12px;
+  background: linear-gradient(135deg, rgba(244,67,54,.12), rgba(220,20,60,.12));
+}
+.ecourse-card-body{ display:flex; justify-content:space-between; width:100%; }
+.ecourse-card-title h4{ margin:6px 0 2px; font-size:1rem; color:var(--text-primary); font-weight:800; }
+.ecourse-card-title .badge{
+  display:inline-block; font-size:.75rem; font-weight:800; color:var(--primary-600);
+  background:var(--primary-50); padding:4px 8px; border-radius:999px;
+}
+.ecourse-card-title .muted{ color:var(--text-secondary); font-size:.88rem; }
+
+.ecourse-card-actions{ display:flex; gap:10px; align-items:flex-start; }
+.iconchip{
+  width:38px; height:38px; border-radius:999px; display:grid; place-items:center;
+  border:0; cursor:pointer; background:var(--primary-50); color:var(--primary-600);
+  box-shadow: var(--pro-shadow-sm);
+  transition: var(--pro-transition);
+}
+.iconchip.edit{ background:#ecfeff; color:#0891b2; }
+.iconchip.danger{ background:var(--danger-50); color:var(--danger-600); }
+
+/* Variantes de tono */
+.tone-1{ background:linear-gradient(180deg,#ffffff 0%, var(--primary-50) 100%); }
+.tone-2{ background:linear-gradient(180deg,#ffffff 0%, #fff5f5 100%); }
+.tone-3{ background:linear-gradient(180deg,#ffffff 0%, #fff9f9 100%); }
+
+/* Responsive */
+@media (max-width: 1100px){
+  .ecourse-cards{ grid-template-columns:repeat(2, minmax(220px, 1fr)); }
+}
+@media (max-width: 760px){
+  .ecourse-shell{ padding:14px; }
+  .ecourse-header{ gap:8px; flex-direction:column; align-items:stretch; }
+  .ecourse-actions{ justify-content:space-between; }
+  .ecourse-cards{ grid-template-columns:1fr; }
+  .ecourse-filterbar{ grid-template-columns:1fr; }
+}
+
+/* ======================= Interacciones y hovers ======================= */
+.ecourse-ghost,
+.ecourse-pill,
+.iconchip,
+.ecourse-card,
+.ecourse-filter input,
+.ecourse-filter select {
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-normal),
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    filter var(--transition-fast),
+    opacity var(--transition-fast);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ecourse-ghost,
+  .ecourse-pill,
+  .iconchip,
+  .ecourse-card,
+  .ecourse-filter input,
+  .ecourse-filter select { transition: none; }
+}
+
+.ghost-inverted:hover { transform: translateY(-1px); }
+.ghost-inverted:active { transform: translateY(0); filter: brightness(0.96); }
+
+.ecourse-actions .ecourse-pill:hover {
+  filter: brightness(1.02);
+  transform: translateY(-1px);
+  box-shadow: var(--pro-shadow-lg);
+}
+.ecourse-actions .ecourse-pill:active {
+  transform: translateY(0);
+  filter: brightness(0.98);
+}
+.ecourse-actions .ecourse-pill[disabled]{
+  opacity:.6; cursor:not-allowed; box-shadow:none; transform:none;
+}
+
+/* Ripple */
+.ecourse-ghost,
+.ecourse-pill,
+.iconchip {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.ecourse-ghost::after,
+.ecourse-pill::after,
+.iconchip::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(120px 120px at var(--x,50%) var(--y,50%), rgba(0,0,0,.12), transparent 60%);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  pointer-events: none;
+}
+.ecourse-ghost:active::after,
+.ecourse-pill:active::after,
+.iconchip:active::after { opacity: 1; }
+
+/* Inputs focus */
+.ecourse-filter input:hover,
+.ecourse-filter select:hover { border-color: var(--primary-400); }
+.ecourse-filter input:focus-visible,
+.ecourse-filter select:focus-visible {
+  outline:none; border-color:var(--primary-600);
+  box-shadow:0 0 0 4px rgba(198,40,40,.18);
+}
+
+/* Cards hover */
+.ecourse-card { transform: translateY(0); }
+@media (hover: hover) {
+  .ecourse-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 26px -12px rgba(183,28,28,.18), 0 8px 12px -8px rgba(183,28,28,.08);
+  }
+  .ecourse-card:hover .ecourse-card-media {
+    transform: translateY(-2px) scale(1.02);
+    filter: contrast(1.02) saturate(1.03);
+  }
+}
+.ecourse-card:active { transform: translateY(0); }
+
+.ecourse-card.add{ border-style:dashed; }
+.ecourse-card.add:hover{
+  background: linear-gradient(180deg,#ffffff 0%, var(--primary-50) 100%);
+  border-color: var(--primary-400);
+}
+
+/* Accesibilidad focus */
+.ghost-inverted:focus-visible,
+.ecourse-pill:focus-visible,
+.iconchip:focus-visible,
+.ecourse-card.add:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 4px rgba(255,255,255,.25),
+    0 0 0 1px rgba(255,255,255,.6) inset;
+}
+
+/* Estados disabled */
+.ecourse-pill.primary[disabled] {
+  background: rgba(255,255,255,.25);
+  opacity: .85;
+  cursor: not-allowed;
+}
+.iconchip[disabled] {
+  opacity: .6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ============ Footer de acciones (al fondo) ============ */
+.ecourse-shell{
+  /* Para que el footer quede realmente abajo cuando el contenido es corto */
+  display: flex;
+  flex-direction: column;
+}
+
+.ecourse-panel{
+  flex: 1; /* empuja el footer hacia abajo si hay poco contenido */
+}
+
+.ecourse-footer-actions{
+  padding: 14px;
+  background: #fff;
+  border-top: 1px solid var(--border-color);
+}
+
+.ecourse-footer-actions__inner{
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+/* Responsivo: botones en columna en pantallas muy chicas */
+@media (max-width: 480px){
+  .ecourse-footer-actions__inner{
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+  .ecourse-footer-actions .ecourse-pill{
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+
+/* Reutilizamos el theme de Previas (prev-add-*) importado arriba.
+   Acá solo damos estilo a las tarjetas de slots para que "calcen" en el look. */
+
+/* Grid de tarjetas */
+.mesa-cards{
+  display: grid;
+  grid-template-columns: repeat(3, minmax(220px, 1fr));
+  gap: 14px 16px;
+}
+
+@media (max-width: 1100px){
+  .mesa-cards{ grid-template-columns: repeat(2, minmax(220px, 1fr)); }
+}
+@media (max-width: 640px){
+  .mesa-cards{ grid-template-columns: 1fr; }
+}
+
+/* Tarjeta base */
+.mesa-card{
+  background: var(--surface-color, #fff);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: var(--border-radius, 8px);
+  padding: 14px 12px;
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,.06));
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Tarjeta "agregar" como botón */
+.mesa-card.add{
+  background: var(--danger-50, #ffe4e6);
+  border-style: dashed;
+  color: var(--danger-600, #dc2626);
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.mesa-card.add[disabled]{
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+/* Cabecera y acciones */
+.mesa-card-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.mesa-badge{
+  display:inline-block;
+  font-size:.78rem;
+  font-weight:800;
+  color: var(--danger-700, #b91c1c);
+  background: var(--danger-50, #ffe4e6);
+  padding: 4px 8px;
+  border-radius: 999px;
+}
+.mesa-card-actions{
+  display:flex; gap:8px; align-items:center;
+}
+.mesa-chip{
+  width:36px; height:36px; border-radius:999px;
+  display:grid; place-items:center;
+  border:1px solid var(--border-color, #e2e8f0);
+  background: #fff;
+  cursor:pointer;
+}
+.mesa-chip.info{
+  background: #ecfeff;
+  border-color: #bae6fd;
+}
+.mesa-chip.danger{
+  background: var(--danger-50, #ffe4e6);
+  border-color: var(--danger-200, #fecaca);
+  color: var(--danger-700, #b91c1c);
+}
+
+/* Título y subtítulo */
+.mesa-card-title{
+  margin: 2px 0 0;
+  font-weight: 800;
+  color: var(--text-primary, #0f172a);
+}
+.mesa-card-sub{
+  margin: 0;
+  color: var(--text-secondary, #475569);
+  font-size: .92rem;
+}
+
+/* Texto sutil reutilizable */
+.mesa-muted{
+  color: var(--text-secondary, #475569);
+}
+
+.mesa-two-col{
+  display:flex;
+  gap:16px;
+justify-content: space-between;
+}
+@media (max-width: 900px){
+  .mesa-two-col{ grid-template-columns: 1fr; }
+}
+
+/* === Layout principal de dos columnas === */
+.mesa-two-col{
+  display: grid;
+  grid-template-columns: 1fr 360px;   /* izquierda fluida, derecha fija */
+  gap: 24px;
+  align-items: start;
+}
+
+/* Un poco más ancho en pantallas grandes */
+@media (min-width: 1300px){
+  .mesa-two-col{ grid-template-columns: 1fr 400px; }
+}
+
+/* Columnas en stack en mobile */
+@media (max-width: 900px){
+  .mesa-two-col{ grid-template-columns: 1fr; }
+}
+
+/* Sidebar de Programación con look de tarjeta y sticky */
+
+
+/* Bloques dentro de Programación (calendario/turno) */
+.prog-block{ margin:auto; min-width: 350px; max-width: 350px; }
+.prog-block:last-child{ display: flex; justify-content: center; }
+
+/* El calendario ocupa el ancho de la sidebar */
+.cal-inline{ width: 100%; max-width: none; }
+
+/* Reducimos un poco márgenes verticales globales para compactar */
+
+/* === Grid de slots: ocupa huecos automáticamente === */
+.mesa-cards{
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+/* En pantallas muy anchas, que no quede demasiado chico */
+@media (min-width: 1400px){
+  .mesa-cards{ grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+}
+
+/* Botonera alineada a la derecha y con respiración */
+.prev-add-buttons{
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* ===== Programación: título + turno en la misma fila ===== */
+.programacion-card .prog-head{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* Contenedor del floating label */
+.programacion-card .float-field{
+  position: relative;
+  width: 220px;            /* ajustá si lo querés más ancho/angosto */
+}
+
+/* Label flotante SIEMPRE visible (activo) */
+.programacion-card .float-field .float-label{
+  position: absolute;
+  top: 0;                  /* fijo arriba */
+  left: 12px;
+  transform: translateY(-50%);   /* queda “sobre” el borde superior */
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--primary-600, #b71c1c);
+  background: #fff;        /* para que se “corte” el borde debajo */
+  padding: 0 6px;
+  pointer-events: none;     /* no interfiere con el select */
+}
+
+/* Le damos espacio arriba al select para que no tape el label */
+
+
+/* Mantener el highlight si ya lo usás */
+.programacion-card .float-field .prev-input:focus-visible{
+  outline: none;
+}
+
+/* Responsive: si no entra, el turno baja debajo del título */
+@media (max-width: 560px){
+  .programacion-card .prog-head{
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .programacion-card .float-field{
+    width: 100%;
+  }
+}
+
+#turno-select{padding: .7rem 1rem;}
+
+/* === Layout principal de dos columnas (Programación izq angosta | Slots der fluida) === */
+.mesa-two-col{
+  padding: 10px 0 0;
+  display: grid;
+  grid-template-columns: 360px 1fr;   /* antes: 1fr 360px */
+  gap: 24px;
+  align-items: start;
+}
+
+/* Un poco más ancho en pantallas grandes */
+@media (min-width: 1300px){
+  .mesa-two-col{ grid-template-columns: 400px 1fr; }
+}
+
+/* Columnas en stack en mobile */
+@media (max-width: 900px){
+  .mesa-two-col{ grid-template-columns: 1fr; }
+}
+
+#form-wrapper{padding: 0;}
+#v-add-buttons{padding: 0 1rem 1rem;}
+#prev-section-program{padding-bottom: 0;}
+
+/* === Variables para alinear calendario con altura de 2 tarjetas === */
+:root{
+  /* altura mínima de cada tarjeta de slot y gap del grid */
+  --slot-card-minh: 150px;   /* subí/bajá para ajustar */
+  --slot-gap: 16px;          /* mismo gap que uses en .mesa-cards */
+}
+
+/* Asegurá que las tarjetas respeten esa altura mínima */
+.mesa-card{
+  min-height: var(--slot-card-minh);
+}
+
+/* Usa el mismo gap que la variable (si ya tenés otro, podés omitir esto) */
+.mesa-cards{
+  gap: var(--slot-gap);
+}
+
+/* === Contenedor del calendario con altura ≈ 2 tarjetas === */
+
+
+/* El calendario ocupa el ancho del contenedor */
+.cal-inline, 
+.programacion-card .calendar-block > *{
+  width: 100%;
+}
+
+/* Sidebar “Programación” sigue fija en 360px (ya lo tenías) */
+.prog-block{ min-width: 350px; max-width: 350px; margin: auto; }
+@media (min-width: 1300px){
+  .mesa-two-col{ grid-template-columns: 400px 1fr; }
+}
+
+/* Si querés que en móviles el calendario no quede gigante */
+@media (max-width: 900px){
+  :root{
+    --slot-card-minh: 140px;
+  }
+  .programacion-card .calendar-block{
+    max-height: calc((var(--slot-card-minh) * 2) + var(--slot-gap));
+  }
+}
+
+
+.prog-head, .prev-section-title{
+  min-height: 38px;
+}
+
+.prev-section-title::after{
+  bottom: 6px;
+}
+#prev-add-boxs{transform: scale(.9);}
+
+/* Asegurá esto en tu CSS global del modal */
+.logout-modal-overlay{
+  position: fixed;
+  inset: 0;            /* top/right/bottom/left: 0 */
+  background: rgba(15, 23, 42, .55); /* oscurecimiento */
+  z-index: 10000;      /* por encima de todo */
+  display: grid;
+  place-items: center;
+}

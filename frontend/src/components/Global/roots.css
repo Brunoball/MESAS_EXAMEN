@@ -1,0 +1,220 @@
+/* =========================
+   :root UNIFICADO (AZUL)
+   ========================= */
+:root {
+  /* ===== PALETA AZUL INSTITUCIONAL (base) ===== */
+  --blue-inst-primary: #1D428A;
+  --blue-inst-primary-light: #2E5CBF;
+  --blue-inst-primary-dark: #102E6A;
+
+  --blue-inst-secondary: #0B5ED7;
+  --blue-inst-accent: #0B5ED7;
+
+  --blue-inst-success: #10B981;
+  --blue-inst-warning: #F59E0B;
+  --blue-inst-danger:  #D32F2F;
+
+  --blue-inst-light: #F8FAFC;
+  --blue-inst-dark:  #0F172A;
+
+  --blue-inst-gray-100: #F1F5F9;
+  --blue-inst-gray-200: #E2E8F0;
+  --blue-inst-gray-300: #CBD5E1;
+  --blue-inst-gray-400: #94A3B8;
+  --blue-inst-gray-500: #64748B;
+  --blue-inst-gray-600: #475569;
+  --blue-inst-gray-700: #334155;
+  --blue-inst-gray-800: #1E293B;
+  --blue-inst-gray-900: #0F172A;
+
+  --blue-inst-radius: 12px;
+  --blue-inst-radius-lg: 18px;
+  --blue-inst-radius-xl: 24px;
+
+  --blue-inst-transition: all .25s cubic-bezier(.4,0,.2,1);
+
+  --blue-inst-shadow-sm: 0 1px 3px rgba(0,0,0,.06);
+  --blue-inst-shadow-md: 0 6px 18px rgba(0,0,0,.10);
+  --blue-inst-shadow-lg: 0 16px 36px -10px rgba(0,0,0,.20);
+  --blue-inst-shadow-xl: 0 28px 64px -24px rgba(0,0,0,.28);
+
+  /* ===== Alias pro-* a paleta azul ===== */
+  --pro-primary:            var(--blue-inst-primary);
+  --pro-primary-light:      var(--blue-inst-primary-light);
+  --pro-primary-dark:       var(--blue-inst-primary-dark);
+  --pro-primary-darker:     var(--blue-inst-dark);
+
+  --pro-secondary:          var(--blue-inst-secondary);
+  --pro-accent:             var(--blue-inst-accent);
+  --pro-accent-light:       var(--blue-inst-gray-100);
+  --pro-accent-dark:        var(--blue-inst-primary-dark);
+
+  /* Nombres extra coherentes en azul */
+  --pro-coral:              var(--blue-inst-secondary);
+  --pro-crimson:            var(--blue-inst-primary);
+  --pro-burgundy:           var(--blue-inst-primary-dark);
+  --pro-rose:               var(--blue-inst-primary-light);
+
+  /* Estados */
+  --pro-success:            var(--blue-inst-success);
+  --pro-warning:            var(--blue-inst-warning);
+  --pro-danger:             var(--blue-inst-danger);
+
+  /* Neutros */
+  --pro-light:              var(--blue-inst-light);
+  --pro-dark:               var(--blue-inst-dark);
+
+  --pro-gray-50:            var(--blue-inst-light);
+  --pro-gray-100:           var(--blue-inst-gray-100);
+  --pro-gray-200:           var(--blue-inst-gray-200);
+  --pro-gray-300:           var(--blue-inst-gray-300);
+  --pro-gray-400:           var(--blue-inst-gray-400);
+  --pro-gray-500:           var(--blue-inst-gray-500);
+  --pro-gray-600:           var(--blue-inst-gray-600);
+  --pro-gray-700:           var(--blue-inst-gray-700);
+  --pro-gray-800:           var(--blue-inst-gray-800);
+  --pro-gray-900:           var(--blue-inst-gray-900);
+
+  /* “Tonos rojos” usados en el CSS → equivalentes azul/gris */
+  --pro-red-50:             var(--blue-inst-light);
+  --pro-red-100:            var(--blue-inst-gray-100);
+  --pro-red-200:            var(--blue-inst-gray-200);
+  --pro-red-300:            var(--blue-inst-gray-300);
+  --pro-red-400:            var(--blue-inst-gray-400);
+  --pro-red-500:            var(--blue-inst-primary-light);
+  --pro-red-600:            var(--blue-inst-primary);
+  --pro-red-700:            var(--blue-inst-primary-dark);
+  --pro-red-800:            var(--blue-inst-gray-800);
+  --pro-red-900:            var(--blue-inst-gray-900);
+
+  /* Radios / transición / sombras */
+  --pro-border-radius:      var(--blue-inst-radius);
+  --pro-border-radius-lg:   var(--blue-inst-radius-lg);
+  --pro-border-radius-xl:   var(--blue-inst-radius-xl);
+
+  --pro-transition:         var(--blue-inst-transition);
+
+  --pro-shadow-sm:          var(--blue-inst-shadow-sm);
+  --pro-shadow-md:          var(--blue-inst-shadow-md);
+  --pro-shadow-lg:          var(--blue-inst-shadow-lg);
+  --pro-shadow-xl:          var(--blue-inst-shadow-xl);
+
+  /* ===== Asignación/alias genéricos (compat) ===== */
+  --primary-500:            var(--pro-primary);
+  --primary-600:            var(--pro-primary-dark);
+  --primary-700:            var(--pro-primary-darker);
+  --primary-400:            var(--pro-primary-light);
+  --primary-50:             var(--pro-red-50);
+  --primary-200:            var(--pro-red-200);
+
+  --secondary-50:           var(--blue-inst-gray-100);
+  --secondary-100:          var(--blue-inst-gray-200);
+  --secondary-300:          var(--blue-inst-gray-300);
+  --secondary-500:          var(--pro-burgundy);
+  --secondary-600:          var(--pro-primary-darker);
+
+  --success-500:            var(--pro-success);
+  --success-600:            #1B5E20;
+
+  --warning-500:            var(--pro-warning);
+  --warning-600:            #E65100;
+
+  --danger-500:             var(--pro-danger);
+  --danger-600:             var(--pro-primary-dark);
+  --danger-200:             var(--pro-red-200);
+  --danger-50:              var(--pro-red-50);
+
+  --text-primary:           var(--pro-gray-800);
+  --text-secondary:         var(--pro-gray-600);
+  --text-muted:             var(--pro-gray-500);
+  --text-on-primary:        #FFFFFF;
+
+  --background-color:       #FFFFFF;
+  --surface-color:          #FFFFFF;
+  --surface-secondary:      var(--pro-red-50);   /* azul claro equivalente */
+
+  --border-color:           var(--pro-red-200);  /* gris/azul 200 */
+
+  /* Gradientes azules */
+  --gradient-background:    linear-gradient(135deg, var(--pro-primary) 0%, var(--pro-primary-dark) 50%, var(--pro-burgundy) 100%);
+  --gradient-accent:        linear-gradient(135deg, var(--pro-accent) 0%, var(--pro-crimson) 50%, var(--pro-primary) 100%);
+  --gradient-primary:       linear-gradient(135deg, var(--pro-primary) 0%, var(--pro-primary-dark) 100%);
+
+  /* Botones (compat) */
+  --btn-agregar-profesor:   var(--pro-success);
+  --btn-dados-bajas:        var(--pro-danger);
+
+  /* Otros tokens globales */
+  --transition-fast:        0.15s ease;
+  --transition-normal:      0.3s ease;
+  --spacing-xs:             0.5rem;
+
+  --border-radius:          var(--pro-border-radius);
+  --border-radius-sm:       8px;
+
+  /* ===== Variables extra usadas en PDF/detalles ===== */
+  --docente-box-color:      var(--pro-primary-dark);
+  --docente-box-thickness:  1px;   /* podés subir a 3-4px si querés más grosor */
+
+  --materia-box-color:      var(--pro-primary-dark);
+  --materia-box-thickness:  1px;
+
+  /* Compat: algunas hojas usan este nombre */
+  --accent-red:             #1D428A; /* ahora azul institucional */
+}
+
+/* src/components/MesasExamen/modales/ModalCrearMesas.css */
+/* MISMA estética que ModalInfoPrevia.css — Tema AZUL (alias reg-* a blue-inst-*) */
+
+:root{
+  /* ===== Paleta base (alias a azul institucional) ===== */
+  --reg-primary:             var(--blue-inst-primary);
+  --reg-primary-light:       var(--blue-inst-primary-light);
+  --reg-primary-dark:        var(--blue-inst-primary-dark);
+
+  --reg-success:             var(--blue-inst-success);
+  --reg-warning:             var(--blue-inst-warning);
+  --reg-danger:              var(--blue-inst-danger);
+
+  --reg-gray-100:            var(--blue-inst-gray-100);
+  --reg-gray-200:            var(--blue-inst-gray-200);
+  --reg-gray-300:            var(--blue-inst-gray-300);
+  --reg-gray-400:            var(--blue-inst-gray-400);
+  --reg-gray-500:            var(--blue-inst-gray-500);
+  --reg-gray-600:            var(--blue-inst-gray-600);
+  --reg-dark:                var(--blue-inst-dark);
+
+  /* Radios / transición / sombra (con fallback por si no existen) */
+  --reg-border-radius:       var(--blue-inst-radius, 10px);
+  --reg-border-radius-lg:    var(--blue-inst-radius-lg, 14px);
+  --reg-transition:          var(--blue-inst-transition, all .25s cubic-bezier(.4,0,.2,1));
+  --reg-shadow-lg:           var(--blue-inst-shadow-lg,
+                                0 10px 15px -3px rgba(0,0,0,.1),
+                                0 4px 6px -2px rgba(0,0,0,.05));
+
+  /* ===== Aliases mi-* (idénticos a ModalInfoPrevia) ===== */
+  --mi-primary:              var(--reg-primary);
+  --mi-primary-600:          var(--reg-primary-light);
+  --mi-primary-700:          var(--reg-primary-dark);
+
+  --mi-bg:                   #fff;
+  --mi-bg-soft:              var(--blue-inst-gray-100); /* antes #fafbff */
+  --mi-border:               var(--reg-gray-200);
+  --mi-text:                 var(--reg-dark);
+  --mi-muted:                var(--reg-gray-600);
+  --mi-shadow:               var(--reg-shadow-lg);
+  --mi-radius-lg:            var(--reg-border-radius-lg);
+  --mi-radius-md:            var(--reg-border-radius);
+
+  /* Densidad / tamaños */
+  --mi-space-xxs:            4px;
+  --mi-space-xs:             6px;
+  --mi-space-sm:             10px;
+  --mi-space-md:             12px;
+  --mi-space-lg:             14px;
+
+  --mi-fs-xs:                .8rem;
+  --mi-fs-sm:                .88rem;
+  --mi-fs-md:                .95rem;
+  --mi-fs-lg:                1.15rem;
+}

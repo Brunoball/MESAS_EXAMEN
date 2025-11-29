@@ -1,0 +1,1466 @@
+/* =========================
+   RESET BÁSICO
+   ========================= */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* =========================
+   VARIABLES (TEMA ROJO)
+   ========================= */
+:root {
+  --reg-primary: #B71C1C;
+  --reg-primary-light: #E53935;
+  --reg-primary-dark: #7F0000;
+
+  --reg-secondary: #1D428A;
+  --reg-accent: #C62828;
+
+  --reg-success: #10B981;
+  --reg-warning: #F59E0B;
+  --reg-danger: #D32F2F;
+
+  --reg-light: #F8FAFC;
+  --reg-dark: #0F172A;
+
+  --reg-gray-100: #F1F5F9;
+  --reg-gray-200: #E2E8F0;
+  --reg-gray-300: #CBD5E1;
+  --reg-gray-400: #94A3B8;
+  --reg-gray-500: #64748B;
+  --reg-gray-600: #475569;
+  --reg-gray-700: #334155;
+  --reg-gray-800: #1E293B;
+  --reg-gray-900: #0F172A;
+
+  --reg-border-radius: 12px;
+  --reg-border-radius-lg: 16px;
+  --reg-border-radius-xl: 20px;
+
+  --reg-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  --reg-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --reg-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --reg-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --reg-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+  /* Alias / puente */
+  --radius-lg: var(--reg-border-radius-lg);
+  --radius: var(--reg-border-radius);
+
+  --violet-500: var(--reg-primary-light);
+  --violet-600: var(--reg-primary);
+  --violet-700: var(--reg-primary-dark);
+  --indigo-500: var(--reg-primary-light);
+  --indigo-600: var(--reg-primary);
+
+  --ink-900: var(--reg-gray-900);
+  --ink-700: var(--reg-gray-700);
+  --ink-500: var(--reg-gray-500);
+
+  --border: var(--reg-gray-200);
+  --card: #ffffff;
+
+  --shadow-xl: var(--reg-shadow-xl);
+  --shadow-md: var(--reg-shadow-md);
+}
+
+/* =========================
+   LAYOUT RAÍZ (opcional si usás una vista root)
+   ========================= */
+.app-root {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background-image: url("../../imagenes/img_fondo.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* =========================
+   PÁGINA / CARD
+   ========================= */
+.auth-page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding-bottom: 68px; /* para que no tape la nav-bar fija */
+}
+
+.auth-card {
+  width: min(980px, 100%);
+  min-height: 520px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-radius: 24px;
+  background: var(--card);
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+}
+
+/* Importante: que hijos del grid puedan encogerse */
+.auth-hero,
+.auth-body { min-width: 0; }
+
+/* =========================
+   HERO (LADO IZQUIERDO ROJO)
+   ========================= */
+.auth-hero {
+  position: relative;
+  padding: 28px;
+  display: grid;
+  place-items: start;
+  color: #fff;
+  isolation: isolate;
+  background: var(--reg-primary);
+}
+
+.auth-hero::before,
+.auth-hero::after {
+  content: "";
+  position: absolute;
+  inset: auto;
+  border-radius: 999px;
+  pointer-events: none;
+  opacity: .18;
+}
+.auth-hero::before {
+  width: 520px; height: 520px;
+  top: -140px; right: -120px;
+  background: #fff;
+  filter: blur(90px);
+}
+.auth-hero::after {
+  width: 420px; height: 420px;
+  bottom: -120px; left: -100px;
+  background: #fff;
+  filter: blur(80px);
+}
+
+.hero-inner{
+  width: 100%;
+  max-width: 420px;
+  display: grid;
+  align-items: start;
+  z-index: 1;
+}
+.hero-top { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.hero-logo{
+  object-fit: contain;
+  width: 52px;
+  height: 52px;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,.25));
+}
+.hero-title{
+  margin: 0;
+  line-height: .98;
+  font-weight: 500;
+  letter-spacing: .2px;
+}
+.hero-sub{
+  margin: 0;
+  opacity: .95;
+}
+
+/* ======= FORM SOLO LECTURA EN HERO ======= */
+.hero-form{
+  margin: auto;
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.08);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.22);
+  backdrop-filter: blur(2px);
+  min-width: 0;
+}
+.hf-field{ display: grid; gap: 6px; min-width: 0; }
+.hf-label{
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .3px;
+  opacity: .9;
+}
+.hf-input{
+  height: 40px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.35);
+  background: rgba(255,255,255,.2);
+  color: #fff;
+  outline: none;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hf-input[readonly]{ cursor: not-allowed; user-select: text; }
+.hf-hint{ font-size: 12px; opacity: .9; }
+
+/* Fila de 3 columnas (Año / Curso / División) */
+.hf-row-3{
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  min-width: 0;
+}
+.ACD-field{ width: 100%; max-width: none; }
+
+/* =========================
+   BODY (LADO DERECHO)
+   ========================= */
+.auth-body{
+  padding: clamp(22px, 3vw, 36px);
+  display: grid;
+  align-content: start;
+  background: #fff;
+}
+.auth-title{
+  margin: 0 0 6px 0;
+  font-size: clamp(22px, 2.4vw, 28px);
+  font-weight: 800;
+  color: var(--ink-900);
+}
+.auth-sub{ margin: 0; color: var(--ink-500); }
+
+/* ------- Form (login) ------- */
+.auth-form{
+  display: grid;
+  gap: 14px;
+  margin-top: 6px;
+}
+.field{ display: grid; gap: 6px; padding-top: 1.2rem;}
+.field-label{
+  font-weight: 700;
+  color: var(--ink-700);
+  font-size: 14px;
+}
+.field-input{
+  height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  outline: none;
+  transition: box-shadow .2s ease, border-color .2s ease;
+  width: 100%;
+}
+.field-input:focus{
+  border-color: var(--reg-primary-light);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--reg-primary) 25%, transparent);
+}
+.form-extra{
+  margin-top: 2px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-500);
+  font-size: 14px;
+}
+.remember{ display: inline-flex; gap: 8px; align-items: center; }
+
+.btn-cta{
+  margin-top: 4px;
+  height: 46px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  background: var(--reg-primary);
+  box-shadow: var(--shadow-md);
+  transition: transform .06s ease, filter .2s ease, background-color .2s ease;
+}
+.btn-cta:hover{ background: var(--reg-primary-dark); filter: brightness(1.02); }
+.btn-cta:active{ transform: translateY(1px); }
+
+/* =========================
+   MATERIAS (TARJETAS)
+   ========================= */
+.materias-grid{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  max-width: 520px;
+  margin: 8px 0;
+  padding: 2px;
+}
+
+.materia-card{
+  --mc: var(--reg-primary);
+  --mc-bg: color-mix(in oklab, var(--mc) 14%, #fff);
+  --mc-border: color-mix(in oklab, var(--mc) 60%, #0000);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: 5px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--mc-bg);
+  position: relative;
+  cursor: pointer;
+  box-shadow: var(--reg-shadow-sm);
+  transition: box-shadow .2s, border-color .2s, transform .06s, background-color .25s;
+  overflow: hidden;
+}
+
+/* (ELIMINAMOS LA BARRA LATERAL QUE TAPABA EL CHECK) */
+/* No hay estilo base para ::before aquí; se usa solo para la tilde del seleccionado */
+
+.materia-card input{ margin-top: 2px; accent-color: var(--mc); }
+.materia-card .nombre{
+  width: 100%;
+  font-weight: 800;
+  color: var(--ink-900);
+  line-height: 1.2;
+  display: flex;
+  justify-content: space-between;
+}
+.materia-card .sub{
+  color: var(--ink-500);
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+}
+.materia-card:hover{
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+  border-color: var(--mc-border);
+}
+.materia-card.selected{
+  border-color: var(--mc);
+  box-shadow: 0 10px 24px color-mix(in oklab, var(--mc) 18%, #0000);
+  background: color-mix(in oklab, var(--mc) 20%, #fff);
+}
+
+/* Paleta rotativa por posición (10 colores) */
+.materias-grid > .materia-card:nth-child(10n + 1){ --mc:#B71C1C; }
+.materias-grid > .materia-card:nth-child(10n + 2){ --mc:#1D4ED8; }
+.materias-grid > .materia-card:nth-child(10n + 3){ --mc:#059669; }
+.materias-grid > .materia-card:nth-child(10n + 4){ --mc:#9333EA; }
+.materias-grid > .materia-card:nth-child(10n + 5){ --mc:#D97706; }
+.materias-grid > .materia-card:nth-child(10n + 6){ --mc:#0EA5E9; }
+.materias-grid > .materia-card:nth-child(10n + 7){ --mc:#DC2626; }
+.materias-grid > .materia-card:nth-child(10n + 8){ --mc:#16A34A; }
+.materias-grid > .materia-card:nth-child(10n + 9){ --mc:#7C3AED; }
+.materias-grid > .materia-card:nth-child(10n + 10){ --mc:#CA8A04; }
+
+/* Acciones de confirmación (cuando se use) */
+.actions{
+  margin-top: 14px;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+.btn-primary{
+  height: 42px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 800;
+  color: #fff;
+  cursor: pointer;
+  background: var(--reg-primary);
+  transition: background-color .2s ease;
+}
+.btn-primary:hover{ background: var(--reg-primary-dark); }
+
+/* =========================
+   RESPONSIVE BÁSICO
+   ========================= */
+@media (max-width: 860px){
+  .auth-card{
+    grid-template-columns: 1fr;
+    min-height: 100vh;
+    border-radius: 0;
+  }
+  .auth-hero{ min-height: 220px; }
+  .hf-row-3{ grid-template-columns: 1fr; }
+}
+
+/* --- 1) Sub debajo del nombre del alumno --- */
+.hero-title { margin: 0; }
+.hero-sub {
+  width: 100%;
+  margin: 6px 0 0 0;
+  line-height: 1.2;
+}
+
+/* Subtexto de cada materia (curso/div) */
+.materia-card .sub{
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--ink-500);
+  line-height: 1.15;
+}
+
+/* --- 2) Checklist custom en tarjetas --- */
+.materia-card { position: relative; padding-left: 44px; }
+.materia-card input[type="checkbox"]{
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+  opacity: 0;
+  margin: 0;
+  z-index: 2;
+  cursor: pointer;
+}
+.materia-card::after{
+  content: "";
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 2px solid var(--mc);
+  background: #fff;
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--mc) 25%, transparent);
+  transition: var(--reg-transition);
+}
+.materia-card:hover::after{
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--mc) 40%, transparent),
+    0 2px 6px rgba(0,0,0,.05);
+}
+
+/* Asegurar que el texto del botón quede centrado siempre */
+.btn-cta { text-align: center; }
+
+/* Tilde (usa ::before SOLO cuando está seleccionada) */
+.materia-card.selected::after{
+  background: var(--mc);
+  border-color: var(--mc);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, #fff 55%, transparent),
+    0 2px 8px color-mix(in oklab, var(--mc) 30%, transparent);
+}
+.materia-card.selected::before{
+  content: "";
+  position: absolute;
+  left: 20px;
+  top: calc(50% - 1px);
+  transform: translateY(-50%) rotate(45deg);
+  width: 6px;
+  height: 12px;
+  border-right: 3px solid #fff;
+  border-bottom: 3px solid #fff;
+  z-index: 3;
+}
+.materia-card input[type="checkbox"]:focus-visible{ outline: none; }
+.materia-card:has(input[type="checkbox"]:focus-visible)::after{
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--mc) 35%, transparent);
+}
+
+/* --- 3) Alineación de acciones / ergonomía --- */
+.auth-hero{ display: flex; flex-direction: column; }
+.hero-inner{
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  width: 100%;
+  max-width: 420px;
+  flex: 1 1 auto;
+}
+.hero-actions{ margin-top: auto; display: flex; gap: 10px; }
+.auth-body{
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 28px;
+  background: #fff;
+}
+.materias-grid{ overflow: auto; }
+.actions{ margin-top: auto; display: flex; gap: 10px; justify-content: flex-end; }
+.btn-hero-secondary{
+  height: 46px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.5);
+  background: transparent;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btn-hero-secondary:hover{ background: rgba(255,255,255,.12); }
+.btn-primary{ height: 46px; padding: 0 16px; border-radius: 12px; font-weight: 800; }
+
+@media (max-width: 860px){
+  .auth-card{ grid-template-columns: 1fr; }
+  .auth-hero{ min-height: 220px; }
+  .materias-grid{ max-height: 40vh; }
+}
+
+/* ===== Login: logo grande (base) ===== */
+.hero-logo--big{
+  object-fit: contain;
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  padding: 4px;
+  box-shadow:0 8px 24px rgba(0, 0, 0, .2), inset 0 0 0 1px rgb(255 255 255 / 0%);
+}
+.auth-hero.is-login .hero-title{
+  font-size: clamp(22px, 3vw, 30px);
+  margin-top: 10px;
+}
+.auth-hero.is-login .hero-sub{
+  opacity: .95;
+  margin-top: 6px;
+  font-weight: 200;
+}
+
+/* Estados de tarjeta inscripta */
+.materia-card.inscripto { opacity: .55; filter: grayscale(0.8); cursor: not-allowed; }
+.badge-inscripto { margin-left:.5rem; font-size:.72rem; padding:.08rem .4rem; border-radius:.5rem; border:1px solid currentColor; }
+
+/* Ventana abierta/cerrada pill */
+.ventana-pill {
+  display: inline-block;
+  margin-top: .5rem;
+  padding:  .6rem;
+  border-radius: 12px 14px;
+  font-size: .9rem;
+  line-height: 1;
+  border: 1px solid transparent;
+}
+.ventana-pill.is-open {
+  background: #e7f6ee;
+  color: #0f6e3d;
+  border-color: #bfe8d1;
+}
+.ventana-pill.is-closed {
+  background: #fdecea;
+  color: #9f2a1a;
+  border-color: #f5c6c1;
+}
+
+/* Grid deshabilitada si cerrada */
+.materias-grid.is-disabled { opacity: .7; pointer-events: none; }
+
+/* Pantalla cerrada */
+.closed-box {
+  padding: .8rem 1rem;
+  background: #f7f7f9;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+.closed-list {
+  margin: .5rem 0 0;
+  padding-left: 1.2rem;
+}
+.loading-center {
+  min-height: 60vh;
+  display: grid;
+  place-items: center;
+  gap: .75rem;
+  color: #444;
+}
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #ddd;
+  border-top-color: #444;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ===== Ventana de inscripción (look claro con variables) ===== */
+.closed-box{
+  --accent: var(--reg-primary, #B71C1C);
+  --accent-light: var(--reg-primary-light, #E53935);
+  --ink-900: var(--reg-gray-900, #0F172A);
+  --ink-700: var(--reg-gray-700, #334155);
+  --bd: var(--reg-gray-200, #E2E8F0);
+  --bg: #fff;
+
+  padding: 1rem 1rem 1.1rem;
+  border: 1px solid var(--bd);
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, #fff, #fff) padding-box,
+    radial-gradient(1000px 160px at 0% 0%,
+      color-mix(in oklab, var(--accent-light) 8%, transparent),
+      transparent
+    ) border-box;
+  box-shadow: 0 6px 18px rgba(0,0,0,.05);
+}
+.closed-box > p:first-child{
+  margin: 0 0 .6rem 0;
+  font-weight: 800;
+  color: var(--ink-900);
+  letter-spacing: .2px;
+}
+.closed-list{
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: .6rem;
+}
+.closed-list li{
+  position: relative;
+  display: grid;
+  gap: .25rem;
+  padding: .75rem .9rem .75rem 2.6rem;
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  background: var(--reg-gray-100, #F1F5F9);
+  box-shadow: 0 1px 2px rgba(0,0,0,.04);
+  transition: transform .06s, box-shadow .2s, border-color .2s, background-color .2s;
+}
+.closed-list li:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0,0,0,.06);
+  border-color: color-mix(in oklab, var(--accent) 18%, var(--bd));
+  background: color-mix(in oklab, var(--reg-gray-100) 70%, #fff);
+}
+.closed-list li strong{
+  display: block;
+  font-size: .78rem;
+  line-height: 1.1;
+  letter-spacing: .3px;
+  text-transform: uppercase;
+  color: var(--ink-700);
+}
+.closed-list li{
+  --pill-bg: color-mix(in oklab, var(--accent-light) 10%, #fff);
+  --pill-bd: color-mix(in oklab, var(--accent-light) 26%, #fff);
+  color: var(--reg-gray-700);
+  font-weight: 700;
+}
+.closed-list li > :not(strong){
+  display: inline-block;
+  background: var(--pill-bg);
+  border: 1px solid var(--pill-bd);
+  border-radius: 999px;
+  padding: .22rem .5rem;
+  line-height: 1.05;
+}
+
+/* =========================
+   AJUSTE DE LOGIN PEDIDO:
+   LOGO ARRIBA Y BLOQUE CENTRADO
+   ========================= */
+.auth-hero.is-login { display: flex; flex-direction: column; }
+.auth-hero.is-login .hero-inner {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;      
+  gap: 10px;
+  height: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  text-align: center;
+}
+.auth-hero.is-login .hero-inner .hero-logo--big { order: 1; }
+.auth-hero.is-login .hero-inner .her-container   { order: 2; }
+.auth-hero.is-login .hero-logo--big { margin-bottom: 6px; }
+.auth-hero.is-login .hero-title{ font-size: clamp(22px, 3vw, 30px); margin: 0; }
+.auth-hero.is-login .hero-sub{ margin-top: 4px; opacity: .95; }
+@media (max-width: 860px){
+  .auth-hero.is-login .hero-inner{ padding-block: 12px; }
+}
+
+/* =========================
+   Checkbox "Recordarme" estilizado
+   ========================= */
+.remember{
+  --cb-size: 20px;
+  --cb-radius: 6px;
+  --cb-bd: var(--border, #E2E8F0);
+  --cb-ink: var(--ink-700, #334155);
+  --cb-accent: var(--reg-primary, #B71C1C);
+  --cb-accent-ghost: color-mix(in oklab, var(--cb-accent) 20%, transparent);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.remember input{
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: var(--cb-size);
+  height: var(--cb-size);
+  transform: translateY(-50%);
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.remember span{
+  color: var(--ink-500, #64748B);
+  padding-left: calc(var(--cb-size) + 8px);
+  line-height: 1.1;
+}
+.remember span::before{
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: var(--cb-size);
+  height: var(--cb-size);
+  transform: translateY(-50%);
+  border: 2px solid var(--cb-bd);
+  border-radius: var(--cb-radius);
+  background: #fff;
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--cb-bd) 60%, transparent);
+  transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease, transform .06s ease;
+}
+.remember span::after{
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 50%;
+  width: 6px;
+  height: 12px;
+  transform: translateY(-58%) rotate(45deg) scale(0.9);
+  border-right: 3px solid transparent;
+  border-bottom: 3px solid transparent;
+  transition: border-color .2s ease, transform .15s ease;
+}
+.remember:hover span::before{
+  border-color: color-mix(in oklab, var(--cb-bd) 40%, var(--cb-accent));
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--cb-bd) 70%, transparent), 0 2px 6px rgba(0,0,0,.04);
+}
+.remember:has(input:focus-visible) span::before{
+  box-shadow: 0 0 0 3px var(--cb-accent-ghost);
+  border-color: var(--cb-accent);
+}
+.remember input:checked + span{ color: var(--cb-ink); }
+.remember input:checked + span::before{
+  background: var(--cb-accent);
+  border-color: var(--cb-accent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, #fff 55%, transparent), 0 2px 10px color-mix(in oklab, var(--cb-accent) 25%, transparent);
+}
+.remember input:checked + span::after{
+  transform: translateY(-58%) rotate(45deg) scale(1);
+}
+.remember input:disabled + span{ opacity: .6; cursor: not-allowed; }
+.remember input:disabled + span::before{
+  background: #f9fafb; border-color: #e5e7eb; box-shadow: none;
+}
+@media (prefers-reduced-motion: reduce){
+  .remember span::before, .remember span::after{ transition: none; }
+}
+
+/* =========================
+   Tipografía minimal (scope local)
+   ========================= */
+.auth-page, .auth-card {
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto,
+               "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: .005em;
+  text-rendering: optimizeLegibility;
+}
+.auth-title{ font-weight: 800; letter-spacing: 0; }
+.field-label, .hf-label{ font-weight: 600; }
+.field-input, .hf-input, .closed-list li{ font-variant-numeric: tabular-nums; }
+
+
+/* ===== PARCHE MOBILE: forzar scroll de toda la pantalla ===== */
+@media (max-width: 860px){
+
+  /* Si usás un wrapper .app-root alrededor del Formulario, dejalo estático */
+  .app-root{
+    position: static !important;
+    inset: auto !important;
+    height: auto !important;
+    min-height: 100dvh !important;
+    overflow: visible !important;
+    display: block !important;
+  }
+  .auth-hero::before{width: 0;}
+
+  #root, #app, .app, .page{
+    height: auto !important;
+    min-height: 100dvh !important;
+    overflow: visible !important;
+  }
+
+  .auth-page{
+    min-height: 100dvh !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding-bottom: 68px !important;
+  }
+  .auth-card{
+    grid-template-columns: 1fr !important;
+    height: auto !important;
+    max-height: none !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+  }
+
+  .auth-hero,
+  .auth-body,
+  .hero-scroll,
+  .materias-scroll{
+    min-height: unset !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .auth-body{padding: 28px 10px;}
+
+  .auth-page *{
+    overflow: visible !important;
+  }
+}
+
+
+/* === Tercera materia (solo visual): sin checkbox y sin foco clickeable === */
+.materia-card.only-visual{
+  padding-left: 14px;
+  cursor: default;
+}
+
+.materia-card.only-visual::after,
+.materia-card.only-visual.selected::after,
+.materia-card.only-visual.selected::before{
+  display: none !important;
+}
+
+.materia-card.only-visual:focus,
+.materia-card.only-visual:focus-visible{
+  outline: none !important;
+}
+
+.materia-card.only-visual{
+  pointer-events: none;
+}
+
+
+/* ===========================================
+   Icono calendario tintado (en closed-list)
+   =========================================== */
+.closed-list li{ padding-left: 3.2rem; }
+.closed-list li::before{
+  content: "";
+  position: absolute;
+  left: .9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  background: var(--reg-primary);
+  opacity: .95;
+  -webkit-mask: url("data:image/svg+xml;utf8,\
+  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'>\
+    <rect x='3' y='4' width='18' height='17' rx='3' ry='3' fill='%23000'/>\
+    <rect x='3' y='8' width='18' height='1.8' fill='%23fff'/>\
+    <rect x='7' y='2' width='2' height='4' rx='1' fill='%23000'/>\
+    <rect x='15' y='2' width='2' height='4' rx='1' fill='%23000'/>\
+    <rect x='6.5' y='12' width='3' height='3' rx='0.6' fill='%23fff'/>\
+    <rect x='10.5' y='12' width='3' height='3' rx='0.6' fill='%23fff'/>\
+    <rect x='14.5' y='12' width='3' height='3' rx='0.6' fill='%23fff'/>\
+    <rect x='6.5' y='16' width='3' height='3' rx='0.6' fill='%23fff'/>\
+    <rect x='10.5' y='16' width='3' height='3' rx='0.6' fill='%23fff'/>\
+    <rect x='14.5' y='16' width='3' height='3' rx='0.6' fill='%23fff'/>\
+  </svg>") center / contain no-repeat;
+  mask: url("data:image/svg+xml;utf8,\
+  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'>\
+    <rect x='3' y='4' width='18' height='17' rx='3' ry='3' fill='%23000'/>\
+    <rect x='3' y='8' width='18' height='1.8' fill='%23fff'/>\
+    <rect x='7' y='2' width='2' height='4' rx='1' fill='%23000'/>\
+    <rect x='15' y='2' width='2' height='4' rx='1' fill='%23000'/>\
+    <rect x='6.5' y='12' width='3' height='3' rx='0.6' fill='%23fff'/>\
+    <rect x='10.5' y='12' width='3' height='3' rx='0.6' fill='%23fff'/>\
+    <rect x='14.5' y='12' width='3' height='3' rx='0.6' fill='%23fff'/>\
+    <rect x='6.5' y='16' width='3' height='3' rx='0.6' fill='%23fff'/>\
+    <rect x='10.5' y='16' width='3' height='3' rx='0.6' fill='%23fff'/>\
+    <rect x='14.5' y='16' width='3' height='3' rx='0.6' fill='%23fff'/>\
+  </svg>") center / contain no-repeat;
+
+}
+
+/* =========================
+   Layout “panel derecho” con header sticky y scroll interno
+   (para escritorio / tablet)
+   ========================= */
+.auth-body{
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-height: 0;
+  overflow: hidden;
+}
+.auth-header--sticky{
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding-block: 6px 10px;
+  background:
+    linear-gradient(#fff, #fff) padding-box,
+    radial-gradient(800px 100px at 0% 0%, color-mix(in oklab, var(--reg-primary-light) 6%, transparent), transparent) border-box;
+  border-bottom: 1px solid color-mix(in oklab, var(--border) 80%, #fff);
+}
+.materias-section{
+  min-height: 0;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: 12px;
+}
+.materias-scroll{
+  min-height: 0;
+  overflow: auto;
+  padding-right: 4px;
+}
+.materias-scroll.is-disabled{ opacity: .7; pointer-events: none; }
+.actions--sticky{
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  padding-top: 8px;
+  background: linear-gradient(180deg, #ffffff, #ffffff 65%, #ffffffcc 100%);
+  backdrop-filter: blur(2px);
+  border-top: 1px solid color-mix(in oklab, var(--border) 80%, #fff);
+}
+
+/* Grid de materias fluida escritorio/tablet */
+.materias-grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+  max-width: unset;
+  margin: 8px 0;
+  padding: 2px;
+}
+
+/* Tarjetas más compactas en móviles chicos */
+@media (max-width: 420px){
+  .materia-card{ padding: 10px 12px 10px 44px; }
+  .materia-card .nombre{ font-weight: 700; }
+  .materia-card .sub{ font-size: 11.5px; }
+}
+
+/* Campos del HERO responsivos (3 → 2 → 1) */
+@media (max-width: 1024px){
+  .hf-row-3{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
+@media (max-width: 600px){
+  .hf-row-3{ grid-template-columns: 1fr; }
+}
+
+/* Inputs y tipografías más “tranquilas” en pantallas chicas */
+@media (max-width: 600px){
+  .hero-title{ font-size: clamp(18px, 4.5vw, 24px); font-weight: 600; }
+  .hero-sub{ font-size: clamp(13px, 3.7vw, 14px); }
+  .hf-label{ font-size: 11.5px; font-weight: 600; }
+  .hf-input{ height: 38px; padding: 8px 10px; font-size: 14px; }
+  .btn-hero-secondary{ height: 42px; }
+}
+
+/* Ergonomía táctil */
+.materia-card input[type="checkbox"]{ width: 24px; height: 24px; }
+.materia-card::after{ width: 24px; height: 24px; border-radius: 7px; }
+.materia-card.selected::before{ left: 21px; height: 12px; width: 6px; }
+
+/* Accesibilidad: foco visible */
+.materia-card:has(input[type="checkbox"]:focus-visible){
+  outline: 2px solid color-mix(in oklab, var(--mc) 35%, transparent);
+  outline-offset: 2px;
+}
+
+/* ===== NAV BAR FIJA (botones Volver / Confirmar) ===== */
+.nav-bar{
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: rgba(255,255,255,.92);
+  backdrop-filter: blur(6px);
+  border-top: 1px solid var(--border);
+}
+.btn-light{
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #fff;
+  font-weight: 600;
+  color: var(--ink-700);
+  cursor: pointer;
+}
+.btn-light:hover{ background: #fafafa; }
+
+/* =========================
+   Alturas contenedor principal (desktop)
+   ========================= */
+.auth-card{
+  height: 86svh;
+  max-height: 640px;
+}
+
+/* =========================
+   MODO MOBILE: UN SOLO SCROLL EN TODA LA PÁGINA
+   (une hero + body, desactiva scroll internos)
+   ========================= */
+@media (max-width: 860px){
+
+  .auth-card{
+    grid-template-columns: 1fr;
+    height: auto !important;
+    max-height: none !important;
+    border-radius: 0;
+  }
+
+  .auth-page{
+    min-height: 100dvh;
+    height: auto;
+    overflow: visible;
+    padding-bottom: 68px;
+  }
+
+  .auth-hero,
+  .auth-body{
+    min-height: unset !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .hero-scroll{
+    overflow: visible !important;
+    max-height: none !important;
+    padding-right: 0 !important;
+  }
+
+  .materias-scroll{
+    flex: initial !important;
+    min-height: unset !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding-right: 0 !important;
+  }
+
+  .materias-grid{ margin-bottom: 12px; }
+  .auth-sub{ display: none; }
+  .nav-bar{ position: fixed; }
+
+  .hf-row-3{
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    align-items: center;
+  }
+  .hf-label{
+    font-size: 11px !important;
+    font-weight: 600;
+    line-height: 1.1;
+  }
+  .hf-input{
+    height: 34px !important;
+    padding: 6px 8px !important;
+    font-size: 13px !important;
+    min-width: 0;
+    text-overflow: ellipsis;
+  }
+}
+
+
+/* ===== Desktop: ocultar barra de navegación y quitar espacio inferior ===== */
+@media (min-width: 861px){
+  .nav-bar{ display: none !important; }
+  .auth-page{ padding-bottom: 0 !important; }
+}
+
+/* ===== Móvil: bloquear scroll horizontal ===== */
+html, body{ overflow-x: hidden; }
+
+@media (max-width: 860px){
+  html, body, #root, .auth-page{
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
+  .auth-card, .auth-hero, .auth-body, .materias-scroll, .hero-scroll{
+    max-width: 100% !important;
+  }
+
+  img, svg, video, canvas{ max-width: 100%; height: auto; }
+
+  .auth-body{ padding-left: 12px; padding-right: 12px; }
+}
+/* Visibilidad por breakpoint */
+.only-desktop { display: none; }
+.only-mobile  { display: flex; }
+
+@media (min-width: 861px){
+  .only-desktop { display: flex; justify-content: center; align-items: center; }
+  .only-mobile  { display: none !important; }
+}
+
+/* Contenedor botón izq (debajo de datos) */
+.actions-left{
+  margin-top: 10px;
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+}
+
+/* Contenedor botón der (debajo de materias) */
+.actions-right{
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  border-top: 1px solid color-mix(in oklab, var(--border) 80%, #fff);
+}
+
+/* Botón del hero */
+.btn-hero-secondary{
+  height: 46px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.5);
+  background: transparent;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btn-hero-secondary:hover{ background: rgba(255,255,255,.12); }
+
+@media (min-width: 861px){
+  .nav-bar{ display: none !important; }
+  .auth-page{ padding-bottom: 0 !important; }
+}
+@media (max-width: 860px){
+  .nav-bar{ display: flex !important; }
+  .only-mobile{ display: flex; }
+  .only-desktop{ display: none !important; }
+  .auth-page{ padding-bottom: 68px !important; }
+}
+/* ===== Login móvil SIN SCROLL ===== */
+@media (max-width: 860px){
+  .auth-page.is-login-screen{
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    padding-bottom: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .auth-page.is-login-screen .auth-card{
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    grid-template-columns: 1fr !important;
+    border-radius: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .auth-page.is-login-screen .auth-hero.is-login{
+    min-height: 38dvh !important;
+    padding: 16px !important;
+  }
+  .auth-page.is-login-screen .auth-hero.is-login .hero-inner{ gap: 8px !important; }
+  .auth-page.is-login-screen .auth-hero.is-login .hero-sub{ display: none !important; }
+
+  .auth-page.is-login-screen .auth-body{
+    display: grid !important;
+    grid-template-rows: auto 1fr auto !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    padding: 16px 12px !important;
+  }
+  .auth-page.is-login-screen .auth-header{ margin-bottom: 6px !important; }
+  .auth-page.is-login-screen .auth-form{
+    min-height: 0 !important;
+    overflow: hidden !important;
+    gap: 10px !important;
+  }
+
+  .auth-page.is-login-screen .field-input{
+    height: 40px !important;
+    padding: 8px 10px !important;
+    font-size: 14px !important;
+  }
+  .auth-page.is-login-screen .btn-cta{ height: 44px !important; }
+}
+
+/* Asegurar que la nav fija solo aparezca en la vista de resumen (no login) */
+@media (max-width: 860px){
+  .auth-page.is-login-screen .nav-bar{ display: none !important; }
+}
+
+/* --- Forzar que el botón Volver quede abajo del todo (desktop) --- */
+.auth-hero{
+  display: flex;
+  flex-direction: column;
+}
+.hero-scroll{
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.hero-inner{
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+@media (max-width: 860px){
+  .actions-left{ display: none !important; }
+}
+
+/* ==== ESCRITORIO: compactar campos y fijar el botón abajo ==== */
+@media (min-width: 861px){
+  .auth-body{
+    display: grid;
+    grid-template-rows: auto 1fr;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .auth-form{
+    display: flex !important;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    align-content: flex-start;
+    gap: 10px;
+    height: 100%;
+  }
+  .auth-form .btn-cta{ margin-top: auto !important; }
+  .auth-form{ grid-auto-rows: max-content; }
+}
+/* ==== ESCRITORIO: centrar campos y mantener botón abajo ==== */
+@media (min-width: 861px){
+  .auth-body{
+    display: grid;
+    grid-template-rows: auto 1fr;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .auth-form{
+    display: flex !important;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    height: 100%;
+  }
+  .auth-form::before,
+  .auth-form::after{
+    content: "";
+    flex: 1 1 0;
+  }
+}
+
+/* ===== Botón "Continuar" siempre abajo (login) ===== */
+.auth-body{
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-height: 0;
+  overflow: hidden;
+}
+.auth-form{
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch;
+  gap: 10px;
+  height: 100% !important;
+  min-height: 0;
+}
+.auth-form .btn-cta{ margin-top: auto !important; }
+
+.auth-page.is-login-screen .auth-body{
+  display: grid !important;
+  grid-template-rows: auto 1fr !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+.auth-page.is-login-screen .auth-form{
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center;
+  height: 100% !important;
+  gap: 10px !important;
+}
+.auth-page.is-login-screen .auth-form .btn-cta{ margin-top: auto !important; }
+.auth-form::before,
+.auth-form::after{
+  content: none !important;
+  flex: 0 !important;
+}
+.auth-body{
+  display: grid !important;
+  grid-template-rows: auto 1fr !important;
+  min-height: 0 !important;
+}
+.auth-form{
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  gap: 10px;
+}
+.auth-form .btn-cta{ margin-top: auto !important; }
+
+@media (min-width: 861px){
+  .auth-body{
+    display: grid !important;
+    grid-template-rows: auto 1fr !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+  .auth-form{
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    gap: 10px;
+  }
+  .auth-form .btn-cta{ margin-top: 10px !important; }
+  .auth-form::after{ content: none !important; flex: 0 !important; }
+}
+
+/* Barra de navegación login (solo móvil, pantalla de inicio) */
+.nav-login-mobile {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 60;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: center;
+}
+.nav-login-mobile .btn-cta {
+  width: 100%;
+  max-width: 480px;
+  margin: 0;
+}
+@media (min-width: 861px) {
+  .nav-login-mobile { display: none !important; }
+}
+
+.auth-page.is-login-screen {
+  overflow: hidden !important;
+  padding-bottom: 0 !important;
+}
+/* Por defecto oculta */
+.nav-login-mobile { display: none; }
+@media (max-width: 860px) {
+  .nav-login-mobile {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 60;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(8px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: center;
+  }
+  .nav-login-mobile .btn-cta {
+    width: 100%;
+    max-width: 480px;
+    margin: 0;
+  }
+}
+/* Login móvil: dejar espacio para la barra fija y habilitar scroll */
+@media (max-width: 860px) {
+  .auth-page.is-login-screen {
+    min-height: 100dvh;
+    height: auto;
+    padding-bottom: 60px !important;
+    overflow-y: auto !important;
+  }
+  .auth-page.is-login-screen .auth-card {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+}
+
+/* (Eliminado: regla móvil que volvía a mostrar la barra izquierda) */
+
+@media (max-width: 860px) { .auth-form{justify-content: start !important;} }
+
+/* ============================================
+   MOBILE LOGIN: HERO MÁS CHICO + SIN SCROLL
+   ============================================ */
+@media (max-width: 860px) {
+  .auth-page.is-login-screen {
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    padding-bottom: 0 !important;
+    overflow: hidden !important;
+  }
+  .auth-page.is-login-screen .auth-card {
+    height: 100%;
+    max-height: 100%;
+    grid-template-columns: 1fr !important;
+    border-radius: 0 !important;
+    overflow: hidden !important;
+  }
+  .auth-page.is-login-screen .auth-hero.is-login {
+    min-height: 22dvh !important;
+    padding: 12px 12px 8px !important;
+  }
+  .auth-page.is-login-screen .auth-hero.is-login .hero-inner { gap: 4px !important; }
+  .auth-page.is-login-screen .auth-hero.is-login .hero-logo--big {
+    width: 60px !important; height: 60px !important; margin-bottom: 2px !important;
+  }
+  .auth-page.is-login-screen .auth-hero.is-login .hero-title { font-size: 18px !important; }
+  .auth-page.is-login-screen .auth-hero.is-login .hero-sub { display: none !important; }
+  .auth-page.is-login-screen .auth-body {
+    display: grid !important;
+    grid-template-rows: auto 1fr auto !important;
+    padding: 10px 14px 10px !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+  .auth-page.is-login-screen .auth-form {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+  .auth-page.is-login-screen .field-input { height: 38px !important; padding: 6px 8px !important; font-size: 14px !important; }
+  .auth-page.is-login-screen .btn-cta { height: 42px !important; margin-top: 8px !important; }
+  .auth-page.is-login-screen .nav-login-mobile {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+    padding: 10px 16px;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(8px);
+    border-top: 1px solid var(--border);
+    display: flex !important;
+    justify-content: center;
+  }
+  .auth-page.is-login-screen .nav-login-mobile .btn-cta {
+    width: 100%; max-width: 420px; margin: 0;
+  }
+}
+@media (max-width: 860px) {
+  .auth-form{justify-content: start !important;}
+}

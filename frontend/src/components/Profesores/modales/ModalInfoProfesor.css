@@ -1,0 +1,319 @@
+
+
+/* =============== OVERLAY Y CONTENEDOR ============ */
+.INFOPROF-modal__overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.55);
+  backdrop-filter: blur(2px);
+  display: grid;
+  place-items: center;
+  z-index: 1000;
+  animation: infoprof-fade 160ms ease-out;
+  font-family: var(--mi-font);
+}
+
+.INFOPROF-modal__container {
+  width: min(960px, 92vw);
+  max-height: 94vh;
+  background: var(--mi-bg);
+  border-radius: var(--mi-radius-lg);
+  box-shadow: var(--mi-shadow-lg);
+  overflow: hidden;
+  animation: infoprof-slide 220ms ease-out;
+  border: 1px solid rgba(2, 6, 23, 0.06);
+}
+
+/* =============== HEADER ========================== */
+.INFOPROF-modal__header {
+    background: var(--mi-primary);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: center;
+  padding: 18px 22px;
+  color: #fff;
+}
+
+.INFOPROF-modal__head-left { min-width: 0; }
+
+.INFOPROF-modal__title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+}
+
+.INFOPROF-modal__subtitle {
+  margin: 6px 0 0;
+  font-size: 0.92rem;
+  opacity: 0.95;
+  font-weight: 500;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.INFOPROF-modal__close {
+  appearance: none;
+  border: 0;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: transform .15s ease, background .15s ease, opacity .15s ease;
+}
+.INFOPROF-modal__close:hover { background: rgba(255,255,255,.22); transform: rotate(90deg); }
+
+/* =============== TABS ============================ */
+.INFOPROF-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 0 14px;
+  background: var(--mi-bg);
+  border-bottom: 1px solid var(--mi-border);
+}
+
+.INFOPROF-tab {
+  position: relative;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 14px 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--mi-muted);
+  cursor: pointer;
+  border-radius: 10px 10px 0 0;
+  transition: color .15s ease, background .15s ease;
+}
+.INFOPROF-tab:hover { color: var(--mi-primary-600); background: rgba(239, 68, 68, 0.06); }
+.INFOPROF-tab.is-active { color: var(--mi-primary-700); background: #fff; }
+.INFOPROF-tab.is-active::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: -1px;
+  height: 3px;
+  background: var(--mi-primary-600);
+  border-radius: 3px 3px 0 0;
+}
+
+/* =============== CONTENIDO ======================= */
+.INFOPROF-modal__content {
+  background: var(--mi-bg-soft);
+  overflow: hidden; /* el scroll va dentro de los paneles */
+}
+
+.INFOPROF-tabpanel {
+  display: none;
+  height: 100%;
+  overflow: auto;
+}
+.INFOPROF-tabpanel.is-active { display: block; }
+
+/* =============== CAJAS / TARJETAS =============== */
+.INFOPROF-section { margin-bottom: 18px; }
+
+.INFOPROF-grid { display: grid; gap: 16px; }
+
+.INFOPROF-card {
+  background: var(--mi-panel);
+  border: 1px solid var(--mi-border);
+  border-radius: var(--mi-radius);
+  box-shadow: var(--mi-shadow-sm);
+  padding: 16px;
+}
+
+.INFOPROF-card__title {
+  margin: 0 0 12px;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--mi-text);
+  letter-spacing: -0.01em;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--mi-border);
+}
+
+/* Variantes de grid (solo si las usás en otro lado) */
+@media (min-width: 900px) {
+  .INFOPROF-grid { grid-template-columns: repeat(12, 1fr); }
+  .INFOPROF-grid-mesa .INFOPROF-card:first-child { grid-column: span 7; }
+  .INFOPROF-grid-mesa .INFOPROF-card:last-child  { grid-column: span 5; }
+  .INFOPROF-grid-docentes .INFOPROF-card { grid-column: span 4; }
+}
+
+/* =============== FILAS LABEL / VALOR ============= */
+.INFOPROF-rows { display: grid; gap: 10px; }
+
+.INFOPROF-row {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 12px;
+  align-items: start;
+  padding: 8px 0;
+  border-top: 1px dashed rgba(15, 23, 42, 0.08);
+}
+.INFOPROF-row:first-child { border-top: 0; }
+
+.INFOPROF-label {
+  color: var(--mi-muted);
+  font-weight: 700;
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+
+.INFOPROF-value {
+  color: var(--mi-text);
+  font-weight: 600;
+  line-height: 1.5;
+  font-size: 0.96rem;
+}
+
+.INFOPROF-value.is-tribunal {
+  background: #fafafa;
+  border: 1px dashed var(--mi-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  line-height: 1.5;
+}
+
+.INFOPROF-muted { color: var(--mi-muted); }
+
+/* =============== TABLAS ========================== */
+.INFOPROF-table {
+  background: var(--mi-panel);
+  border: 1px solid var(--mi-border);
+  border-radius: var(--mi-radius);
+  box-shadow: var(--mi-shadow-sm);
+  overflow: hidden;
+}
+
+.INFOPROF-tbody {
+  max-height: 48vh;
+  overflow: auto;
+}
+
+.INFOPROF-thead, .INFOPROF-tr {
+  display: grid;
+  grid-template-columns: 1.4fr 0.9fr 1fr 0.7fr; /* Alumno / DNI / Curso/Div / Mesa */
+  gap: 12px;
+  align-items: center;
+}
+
+.INFOPROF-thead {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  border-bottom: 1px solid var(--mi-border-strong);
+  z-index: 1;
+}
+
+.INFOPROF-th {
+  padding: 12px 14px;
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: var(--mi-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.INFOPROF-tr { border-bottom: 1px solid var(--mi-border); }
+.INFOPROF-tr:last-child { border-bottom: 0; }
+
+.INFOPROF-td {
+  padding: 12px 14px;
+  font-size: 0.96rem;
+  color: var(--mi-text);
+  line-height: 1.45;
+  min-width: 0;
+}
+
+/* Zebra */
+.INFOPROF-tbody .INFOPROF-tr:nth-child(odd) .INFOPROF-td { background: #fcfdff; }
+
+/* Estados de tabla */
+.INFOPROF-row-empty {
+  padding: 18px 16px;
+  color: var(--mi-muted);
+  text-align: center;
+}
+
+/* =============== ESTADOS / FEEDBACK ============= */
+.INFOPROF-loader,
+.INFOPROF-error {
+  background: var(--mi-panel);
+  border: 1px solid var(--mi-border);
+  border-radius: var(--mi-radius);
+  padding: 16px;
+  margin: 10px 0;
+  box-shadow: var(--mi-shadow-sm);
+}
+
+.INFOPROF-loader { color: var(--mi-muted); font-weight: 600; }
+
+.INFOPROF-error {
+  color: #b91c1c;
+  border-color: #fecaca;
+  background: #fff1f2;
+}
+
+/* =============== RESPONSIVE ===================== */
+@media (max-width: 900px) {
+  .INFOPROF-modal__container { width: 96vw; max-height: 90vh; }
+
+  .INFOPROF-grid,
+  .INFOPROF-grid-mesa,
+  .INFOPROF-grid-docentes { grid-template-columns: 1fr; }
+
+  .INFOPROF-row { grid-template-columns: 1fr; gap: 6px; }
+
+  .INFOPROF-thead, .INFOPROF-tr {
+    grid-template-columns: 1.5fr 1fr 1.2fr 0.7fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .INFOPROF-thead, .INFOPROF-tr {
+    grid-template-columns: 1.6fr 1fr; /* 2 columnas */
+  }
+  .INFOPROF-td:nth-child(3),
+  .INFOPROF-td:nth-child(4) {
+    grid-column: 1 / -1;
+    padding-top: 4px;
+    color: var(--mi-muted);
+    font-size: 0.9rem;
+  }
+  .INFOPROF-modal__subtitle { white-space: normal; }
+}
+
+/* =============== ANIMACIONES ==================== */
+@keyframes infoprof-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes infoprof-slide { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+
+/* === Forzar 2 columnas de tarjetas === */
+.INFOPROF-grid--2cols {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+}
+
+@media (min-width: 720px) {
+  .INFOPROF-grid--2cols { grid-template-columns: 1fr 1fr; }
+}
+
+.INFOPROF-grid--2cols .INFOPROF-card { grid-column: auto !important; }
+
+
+
+/* ocupar 100% del grid */
+.INFOPROF-card--full { grid-column: 1 / -1; }
+.INFOPROF-value{text-align: end;}
+.INFOPROF-td,.INFOPROF-th{text-align: center; scrollbar-gutter: stable;}

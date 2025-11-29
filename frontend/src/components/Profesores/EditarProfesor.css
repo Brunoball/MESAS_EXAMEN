@@ -1,0 +1,351 @@
+.prev-rowsd {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;
+}
+/* ---- Tabs ---- */
+.tabs-bar {
+  display: flex;
+  gap: 6px;
+
+  overflow: hidden;
+
+}
+#panel-no{padding: 0 12px;}
+.tab-btn {
+  appearance: none;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--blue-inst-dark, #0f172a);
+  padding: 8px 12px;
+  border-radius: 10px 10px 0 0;
+  font-weight: 600;
+  cursor: pointer;
+  opacity: .8;
+  outline: none;
+}
+
+.tab-btn:hover { opacity: 1; }
+
+.tab-btn.active {
+  background: var(--blue-inst-light, #f8fafc);
+  border-color: var(--blue-inst-gray-200, #e2e8f0);
+  border-bottom-color: var(--blue-inst-light, #f8fafc);
+  opacity: 1;
+}
+
+/* Mantengo tu grid de filas dobles */
+.prev-rowsd {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;
+}
+
+/* Opcional: en mobile, 1 columna */
+@media (max-width: 640px) {
+  .prev-rowsd { grid-template-columns: 1fr; }
+  .tabs-bar { gap: 4px; }
+  .tab-btn { padding: 8px 10px; font-size: .95rem; }
+}
+/* ===== Layout de la pestaña Indisponibilidad (dos columnas) ===== */
+.indisp-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  align-items: center;
+}
+
+
+
+/* Compactar campos para que no ocupen todo el ancho */
+.prev-input-wrapper.slim {
+  max-width: 280px; /* ancho razonable */
+}
+
+.prev-input.compact {
+  width: 100%;
+  min-width: 180px;
+  max-width: 280px;
+}
+
+/* En pantallas chicas, todo a una columna y la ayuda pasa abajo */
+@media (max-width: 900px) {
+  .indisp-grid {
+    grid-template-columns: 1fr;
+  }
+  .indisp-help {
+    position: static;
+    grid-template-columns: 20px 1fr;
+    margin-top: 8px;
+  }
+  .prev-input-wrapper.slim,
+  .prev-input.compact {
+    max-width: 100%;
+    min-width: 0;
+  }
+}
+
+/* Mantengo tu grid de filas dobles */
+.prev-rowsd {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;
+}
+
+@media (max-width: 640px) {
+  .prev-rowsd { grid-template-columns: 1fr; }
+  .tabs-bar { gap: 4px; }
+  .tab-btn { padding: 8px 10px; font-size: .95rem; }
+}
+/* ====== Pestañas estilo “modal” de la captura ====== */
+
+/* Barra de pestañas: fondo claro y borde inferior suave */
+.tabs-bar {
+  display: flex;
+  gap: 6px;
+  align-items: flex-end;
+  background: #ffffff;
+  padding: 0 12px;
+  overflow-x: auto;
+}
+
+/* Botón de pestaña: texto plano, sin borde, con indicador inferior */
+.tab-btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: #3b4758;                /* gris oscuro */
+  font-weight: 700;              /* título más fuerte */
+  font-size: 16px;
+  line-height: 1;
+  padding: 14px 16px;            /* alto cómodo */
+  cursor: pointer;
+  position: relative;
+  border-radius: 8px 8px 0 0;    /* sutil redondeo arriba */
+  transition: color .15s ease, background-color .15s ease;
+  outline: none;
+  white-space: nowrap;
+}
+
+/* Hover sutil como en UI moderna */
+.tab-btn:hover {
+  background: #f4f7fb;           /* toque de azul muy claro */
+  color: #273246;
+}
+
+/* Estado activo: color azul + subrayado grueso */
+.tab-btn.active,
+.tab-btn[aria-selected="true"] {
+  color: #113a85;                /* azul título (match screenshot) */
+}
+
+/* Indicador inferior (subrayado) */
+.tab-btn::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: -1px;                  /* justo sobre el borde de la barra */
+  height: 3px;
+  background: transparent;
+  border-radius: 3px 3px 0 0;
+  transition: background-color .15s ease, left .15s ease, right .15s ease;
+}
+
+/* Subrayado azul visible sólo en la activa */
+.tab-btn.active::after,
+.tab-btn[aria-selected="true"]::after {
+  background: #1f51c6;          /* azul intenso del subrayado */
+}
+
+/* Focus accesible (teclado) */
+.tab-btn:focus-visible {
+  box-shadow: 0 0 0 3px rgba(31, 81, 198, .25);
+  border-radius: 8px;
+}
+
+/* Responsivo: pestañas un poco más compactas en pantallas chicas */
+@media (max-width: 640px) {
+  .tabs-bar { gap: 2px; padding: 0 6px; }
+  .tab-btn { padding: 12px 12px; font-size: 15px; }
+  .tab-btn::after { left: 10px; right: 10px; }
+}
+.prev-add-form-wrapper{ padding: 0; }
+/* Fila de título + tooltip a la derecha */
+.prev-section-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+}
+
+/* ============ Tooltip ============ */
+.tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip-trigger {
+  appearance: none;
+  border: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 14px;
+  line-height: 24px;
+  text-align: center;
+  cursor: pointer;
+  color: var(--blue-inst-primary-contrast, #1f51c6);
+  background: var(--blue-inst-light, #f0f5ff);
+  outline: none;
+}
+.tooltip-trigger:hover { filter: brightness(0.97); }
+.tooltip-trigger:focus-visible {
+  box-shadow: 0 0 0 3px rgba(31,81,198,.25);
+}
+
+/* Globo del tooltip (estilo acorde a tu paleta) */
+.tooltip-bubble {
+  position: absolute;
+  left: 50%;
+  bottom: 140%;
+  transform: translateX(-50%) translateY(-6px);
+  background: var(--blue-inst-primary, #1f51c6);
+  color: #fff;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 13.5px;
+  line-height: 1.25;
+  box-shadow: 0 8px 24px rgba(17, 24, 39, 0.18);
+  white-space: normal;
+  min-width: 380px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s ease, transform .15s ease;
+  z-index: 20;
+}
+.tooltip-bubble::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 8px;
+  border-style: solid;
+  border-color: var(--blue-inst-primary, #1f51c6) transparent transparent transparent;
+}
+
+/* Mostrar al hover o focus (accesible) */
+.tooltip:hover .tooltip-bubble,
+.tooltip-trigger:focus + .tooltip-bubble {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-12px);
+}
+
+/* Columna derecha ordenada */
+.indisp-right {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+/* Compactar inputs (ya los usabas) */
+.prev-input-wrapper.slim { max-width: 280px; }
+.prev-input.compact { width: 100%; min-width: 180px; max-width: 280px; }
+
+/* Responsive */
+@media (max-width: 900px) {
+  .prev-section-title-row { gap: 8px; }
+  .tooltip-bubble { max-width: 88vw; }
+}
+/* ====== Grilla 2 columnas para "Datos del profesor" ====== */
+.datos-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+  margin-top: 8px;
+}
+
+.datos-col {
+  display: grid;
+  gap: 12px;
+}
+
+/* Inputs ocupan todo el ancho de su columna */
+.datos-col .prev-input {
+  width: 100%;
+}
+
+/* Responsive: 1 columna en pantallas chicas */
+@media (max-width: 900px) {
+  .datos-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+#panel-datos{min-height: 200px;}
+.storngcompletadatos{margin-bottom: 6px;}
+/* ===== Panels unificados (mismo look para Configuración actual y Ayuda) ===== */
+.panel {
+  background: #fff;
+  border: 1px solid var(--blue-inst-gray-200, #e2e8f0);
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(17, 24, 39, 0.06);
+  padding: 10px 12px;
+}
+
+.panel-neutral {
+  /* Puedes dejarlo igual o darle un leve tinte */
+  background: #ffffff;
+}
+
+.panel-info {
+  /* Pedido: “al como configurar darle un borde” */
+  background: #ffffff;
+  border-color: var(--blue-inst-gray-300, #cbd5e1);
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;            /* Alineado con el título de la izquierda */
+  gap: 8px;
+  margin-bottom: 6px;             /* Misma separación que el bloque izquierdo */
+}
+
+.panel-body {
+  line-height: 1.5;
+  font-size: 0.95rem;
+}
+
+.panel-footnote {
+  margin-top: 8px;
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+/* Columna derecha ordenada y alineada arriba */
+.indisp-right {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+/* Asegura que ambos títulos (izq/der) “arranquen” alineados verticalmente */
+.indisp-grid {
+  align-items: start;
+}
+
+/* Ajustes de título para que luzca igual que “Indisponibilidad” */
+.prev-section-title {
+  margin: 0;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #113a85; /* mismo azul que pestaña activa */
+}
+
+/* En móviles, mantener la lectura cómoda */
+@media (max-width: 900px) {
+  .panel { padding: 10px; }
+  .panel-body { font-size: 0.95rem; }
+}

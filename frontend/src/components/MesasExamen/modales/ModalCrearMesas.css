@@ -1,0 +1,101 @@
+
+/* Overlay / Container / Header — idénticos */
+.mi-modal__overlay{
+  position:fixed; inset:0;
+  background:rgba(15,23,42,.55);
+  backdrop-filter:blur(2px);
+  display:flex; align-items:center; justify-content:center;
+  z-index:1000; animation:mi-fade .15s ease-out;
+}
+.mi-modal__container{
+  width:min(880px,94vw);
+  max-height:88vh;
+  background:var(--mi-bg);
+  border-radius:var(--mi-radius-lg);
+  box-shadow:var(--mi-shadow);
+  display:flex; flex-direction:column;
+  overflow:hidden; animation:mi-slide .2s ease-out;
+  border:1px solid rgba(0,0,0,.04);
+}
+.mi-modal__header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:var(--mi-space-lg) var(--mi-space-lg);
+  background:var(--mi-primary); color:#fff;
+}
+.mi-modal__title{ margin:0; font-size:var(--mi-fs-lg); font-weight:800; letter-spacing:-.02em; }
+.mi-modal__subtitle{ margin:var(--mi-space-xxs) 0 0; font-size:var(--mi-fs-sm); opacity:.95; font-weight:500; }
+.mi-modal__head-left{ flex:1; }
+.mi-modal__close{
+  appearance:none; border:0; background:transparent; color:#fff;
+  width:36px; height:36px; border-radius:999px; display:grid; place-items:center;
+  cursor:pointer; transition:transform .15s ease, background .15s ease;
+}
+.mi-modal__close:hover{ background:rgba(255,255,255,.12); transform:rotate(90deg); }
+
+/* Contenido con scroll */
+.mi-modal__content{
+  flex:1 1 auto; min-height:0; overflow:auto; background:var(--mi-bg-soft);
+}
+.mi-modal__content::-webkit-scrollbar{ width:8px; }
+.mi-modal__content::-webkit-scrollbar-track{ background:#f1f5f9; }
+.mi-modal__content::-webkit-scrollbar-thumb{ background:#cbd5e1; border-radius:8px; border:2px solid #f1f5f9; }
+.mi-modal__content::-webkit-scrollbar-thumb:hover{ background:#94a3b8; }
+
+/* Panel / Grid / Card */
+.mi-tabpanel{ display:block; padding:16px; background:linear-gradient(180deg,#fff 0%,#fbfcff 100%); }
+.mi-grid{ display:grid; grid-template-columns:repeat(12,1fr); gap:12px; }
+.mi-card{ grid-column:1 / -1; background:#fff; border:1px solid var(--mi-border); border-radius:var(--mi-radius-md); padding:12px; box-shadow:0 2px 10px rgba(15,23,42,.03); }
+.mi-card--full{ grid-column:1 / -1; }
+.mi-card__title{
+  margin:0 0 8px; font-size:var(--mi-fs-md);
+  font-weight:800; color:var(--mi-text); letter-spacing:-.01em;
+  padding-bottom:6px; border-bottom:1px solid var(--mi-border);
+}
+
+/* Form */
+.mi-form-grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+@media (max-width:720px){ .mi-form-grid-2{ grid-template-columns:1fr; } }
+.mi-form-row{ display:flex; flex-direction:column; gap:8px; }
+.mi-label-strong{ color:var(--mi-muted); font-weight:800; font-size:var(--mi-fs-sm); }
+.mi-input{
+  width:100%;
+  background:#fff;
+  color:var(--mi-text);
+  border:1px solid var(--mi-border);
+  border-radius:var(--mi-radius-md);
+  padding:10px 12px; outline:none;
+  transition:border-color .12s ease, box-shadow .12s ease, background .12s ease;
+}
+.mi-input:focus{
+  border-color:var(--mi-primary-600);
+  box-shadow:0 0 0 3px rgba(229,57,53,.12);
+}
+.mi-help{ margin-top:8px; color:var(--mi-muted); font-size:var(--mi-fs-sm); }
+
+/* Footer / Botones */
+.mi-modal__footer{
+  display:flex; justify-content:flex-end; gap:10px;
+  padding:12px 16px; border-top:1px solid var(--mi-border); background:#fff;
+}
+.mi-btn{
+  appearance:none; border:1px solid transparent;
+  padding:10px 14px; border-radius:12px;
+  font-weight:700; cursor:pointer;
+  transition:transform .08s ease, filter .12s ease, background .12s ease, border-color .12s ease;
+}
+.mi-btn:disabled{ opacity:.6; cursor:not-allowed; }
+.mi-btn--primary{ background:var(--mi-primary); border-color:var(--mi-primary-700); color:#fff; }
+.mi-btn--primary:hover{ filter:brightness(1.05); }
+.mi-btn--ghost{ background:#fff; color:var(--mi-text); border-color:var(--mi-border); }
+.mi-btn--ghost:hover{ background:#fafafa; border-color:#dfe6ef; }
+
+/* Animaciones */
+@keyframes mi-fade{ from{opacity:0} to{opacity:1} }
+@keyframes mi-slide{ from{opacity:0; transform:translateY(14px)} to{opacity:1; transform:translateY(0) } }
+
+/* Responsive */
+@media (max-width: 640px){
+  .mi-modal__container{ width:96vw; max-height:86vh; }
+  .mi-modal__title{ font-size:1.05rem; }
+  .mi-modal__subtitle{ font-size:.8rem; }
+}
