@@ -366,6 +366,9 @@
   margin: 0 auto;
   width: 100%;
   max-width: 360px;
+  display: flex;
+  justify-content: center;
+  padding-bottom: 10px;
 }
 
 .mesasexam-cal-inline{
@@ -629,3 +632,56 @@
 .mesasexam-mesa-card-sub{
   margin: 0;
 }
+/* ===== SLOT VACÍO: "Agregar número" ===== */
+
+.mesasexam-mesa-card-add,
+.mesasexam-mesa-card.mesa-card.add {
+  background: #f9fafb;
+  border: 1px dashed var(--border-color, #d1d5db);
+  border-radius: 14px;
+  min-height: 110px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text-secondary, #4b5563);
+  cursor: pointer;
+  box-shadow: var(--pro-shadow-sm, 0 1px 2px rgba(15,23,42,.06));
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.1s ease;
+}
+
+/* Icono "+" un poco más grande */
+.mesasexam-mesa-card-add svg {
+  font-size: 1.2rem;
+}
+
+/* Hover: cambia a fondo blanco y borde más marcado */
+.mesasexam-mesa-card-add:hover:not(:disabled),
+.mesasexam-mesa-card.mesa-card.add:hover:not(:disabled) {
+  background: #ffffff;
+  border-color: var(--primary-300, #93c5fd);
+  color:  var(--blue-inst-primary);
+  box-shadow: var(--pro-shadow-sm, 0 2px 4px rgba(15,23,42,.16));
+  transform: translateY(-1px);
+}
+
+/* Estado deshabilitado (cuando ya hay 4 números) */
+.mesasexam-mesa-card-add:disabled,
+.mesasexam-mesa-card.mesa-card.add:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+#blue-icons{  color: var(--blue-inst-primary); width: 50px;height: 50px; border-radius:8px ; margin:auto ;
+display: flex; justify-content: center; align-items: center; }

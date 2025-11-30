@@ -112,6 +112,9 @@ const EditarMesa = () => {
   const [loadingCrearGrupoUnico, setLoadingCrearGrupoUnico] = useState(false);
   const cancelarGrupoUnicoRef = useRef(null);
 
+  // 👉 Ref para el input de horario
+  const horaInputRef = useRef(null);
+
   useEffect(() => {
     if (openQuitar) setTimeout(() => cancelQuitarBtnRef.current?.focus(), 0);
   }, [openQuitar]);
@@ -384,6 +387,18 @@ const EditarMesa = () => {
     }
   };
 
+  // 👉 Handler para abrir el selector de hora al hacer click en el input
+  const handleHoraClick = () => {
+    const el = horaInputRef.current;
+    if (!el) return;
+
+    el.focus();
+
+    if (typeof el.showPicker === "function") {
+      el.showPicker();
+    }
+  };
+
   return (
     <>
       {toast && (
@@ -495,6 +510,8 @@ const EditarMesa = () => {
                           className="mesasexam-prev-input prev-input"
                           value={hora}
                           onChange={(e) => setHora(e.target.value)}
+                          ref={horaInputRef}
+                          onClick={handleHoraClick}
                         />
                         <span className="mesasexam-prev-input-highlight prev-input-highlight" />
                       </div>
@@ -689,7 +706,8 @@ const EditarMesa = () => {
 
                                     <p className="mesasexam-mesa-card-sub mesa-card-sub">
                                       {docentes.length
-                                        ? `Docentes: ${docentes.join(" | ")}`
+                                        ? `Docentes: ${docentes.join(" | ")}` +
+                                          ""
                                         : "Docentes: —"}
                                     </p>
                                   </article>
@@ -895,7 +913,7 @@ const EditarMesa = () => {
                   className="logout-modal-container"
                   onMouseDown={(e) => e.stopPropagation()}
                 >
-                  <div className="logout-modal__icon" aria-hidden="true">
+                  <div id="blue-icons" className="logout-modal__icon" aria-hidden="true">
                     <FaPlus />
                   </div>
 
