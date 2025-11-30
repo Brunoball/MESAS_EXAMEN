@@ -1180,3 +1180,17 @@ input:-webkit-autofill { background-color: transparent !important; }
 .contador-grups-noencontrado{width: 100%;}
 #detalle{ margin-left:auto ;}
 .col-dni{text-align: center !important;}
+/* Estado deshabilitado para los botones inferiores */
+.glob-profesor-button:disabled,
+.glob-profesor-button[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+  filter: grayscale(0.1);
+}
+
+/* Opcional: el ícono un poquito apagado también */
+.glob-profesor-button:disabled .glob-profesor-icon-button {
+  opacity: 0.8;
+}
