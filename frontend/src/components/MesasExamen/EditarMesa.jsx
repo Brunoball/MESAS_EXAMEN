@@ -1,5 +1,11 @@
 // src/components/MesasExamen/EditarMesa.jsx
-import React, { useEffect, useMemo, useState, useCallback, useRef } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+  useCallback,
+  useRef,
+} from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   FaArrowLeft,
@@ -10,7 +16,7 @@ import {
 } from "react-icons/fa";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare } from "@fortawesome/free-solid-svg-icons";
-import { createPortal } from "react-dom"; // ⬅️ Portal inline
+import { createPortal } from "react-dom";
 
 import BASE_URL from "../../config/config";
 import "../Global/section-ui.css";
@@ -18,7 +24,6 @@ import Toast from "../Global/Toast";
 import ModalEliminarMesa from "./modales/ModalEliminarMesa";
 import ModalAgregarMesas from "./modales/ModalAgregarMesas";
 import ModalMoverMesa from "./modales/ModalMoverMesa";
-import "../Previas/AgregarPrevia.css";
 import "./EditarMesa.css";
 import "./modales/ModalEliminarMesas.css";
 import InlineCalendar from "../Global/InlineCalendar";
@@ -79,7 +84,7 @@ const EditarMesa = () => {
 
   const [fecha, setFecha] = useState("");
   const [idTurno, setIdTurno] = useState("");
-  const [hora, setHora] = useState(""); // ⬅️ NUEVO: estado para horario HH:MM
+  const [hora, setHora] = useState("");
 
   const [toast, setToast] = useState(null);
   const notify = useCallback(
@@ -99,10 +104,10 @@ const EditarMesa = () => {
   const [loadingQuitar, setLoadingQuitar] = useState(false);
   const cancelQuitarBtnRef = useRef(null);
 
-  // NUEVO: estado para saber si la mesa está totalmente sin grupo
+  // Mesa sin grupo
   const [esMesaSinGrupo, setEsMesaSinGrupo] = useState(false);
 
-  // NUEVO: modal para "pasar a mesa única en mesas agrupadas"
+  // Modal “mesa única en mesas agrupadas”
   const [openCrearGrupoUnico, setOpenCrearGrupoUnico] = useState(false);
   const [loadingCrearGrupoUnico, setLoadingCrearGrupoUnico] = useState(false);
   const cancelarGrupoUnicoRef = useRef(null);
@@ -135,13 +140,14 @@ const EditarMesa = () => {
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [openQuitar, loadingQuitar, openCrearGrupoUnico, loadingCrearGrupoUnico]); // eslint-disable-line
+  }, [openQuitar, loadingQuitar, openCrearGrupoUnico, loadingCrearGrupoUnico]);
 
   const cargarTodo = useCallback(async () => {
     if (!numeroMesa || !Number.isFinite(numeroMesa)) {
       throw new Error("Número de mesa inválido.");
     }
 
+    // Turnos
     const resListas = await fetch(`${BASE_URL}/api.php?action=obtener_listas`, {
       cache: "no-store",
     });
@@ -155,6 +161,7 @@ const EditarMesa = () => {
       .filter((t) => t.id_turno && t.turno);
     setTurnos(ts);
 
+    // Grupos
     const rGr = await fetch(`${BASE_URL}/api.php?action=mesas_listar_grupos`, {
       cache: "no-store",
     });
@@ -169,7 +176,7 @@ const EditarMesa = () => {
     );
 
     if (!filaGrupo) {
-      setEsMesaSinGrupo(true); // ⬅️ no pertenece a ningún grupo
+      setEsMesaSinGrupo(true);
       setIdGrupo(null);
       setNumerosGrupo([numeroMesa]);
     } else {
@@ -213,7 +220,7 @@ const EditarMesa = () => {
         fecha: m.fecha ?? "",
         id_turno: m.id_turno ?? null,
         turno: m.turno ?? "",
-        hora: m.hora ?? "", // ⬅️ viene de PHP (mesas_grupos.hora)
+        hora: m.hora ?? "",
         docentes: Array.isArray(m.docentes) ? m.docentes.filter(Boolean) : [],
         alumnos: Array.isArray(m.alumnos) ? m.alumnos : [],
       })
@@ -234,7 +241,6 @@ const EditarMesa = () => {
     // Normalizar hora a HH:MM
     let horaInicial = "";
     if (actual.hora) {
-      // Puede venir "HH:MM:SS" desde MySQL
       const parts = String(actual.hora).split(":");
       if (parts.length >= 2) {
         horaInicial = `${parts[0].padStart(2, "0")}:${parts[1].padStart(
@@ -278,7 +284,6 @@ const EditarMesa = () => {
         notify({ tipo: "error", mensaje: "Completá fecha y turno." });
         return;
       }
-      // Hora puede ir vacía: en backend se guarda como NULL
       setGuardando(true);
       const resp = await fetch(`${BASE_URL}/api.php?action=mesa_actualizar`, {
         method: "POST",
@@ -287,7 +292,7 @@ const EditarMesa = () => {
           numero_mesa: numeroMesa,
           fecha_mesa: fecha,
           id_turno: Number(idTurno),
-          hora: hora || "", // HH:MM o ""
+          hora: hora || "",
         }),
       });
       const json = await resp.json().catch(() => ({}));
@@ -337,7 +342,6 @@ const EditarMesa = () => {
     }
   };
 
-  // NUEVO: confirma crear grupo único para esta mesa “no agrupada”
   const confirmarCrearGrupoUnico = async () => {
     try {
       if (!fecha || !idTurno) {
@@ -369,7 +373,7 @@ const EditarMesa = () => {
         mensaje: "Mesa movida a 'mesa única' en mesas agrupadas.",
       });
       setOpenCrearGrupoUnico(false);
-      await cargarTodo(); // ahora ya va a tener idGrupo
+      await cargarTodo();
     } catch (e) {
       notify({
         tipo: "error",
@@ -391,12 +395,15 @@ const EditarMesa = () => {
         />
       )}
 
-      <div className="prev-add-container">
-        <div className="prev-add-box" id="prev-add-boxs">
+      <div className="mesasexam-prev-add-container prev-add-container">
+        <div className="mesasexam-prev-add-box prev-add-box" id="prev-add-boxs">
           {/* Header */}
-          <div className="prev-add-header">
-            <div className="prev-add-icon-title">
-              <FontAwesomeIcon icon={faPenToSquare} className="prev-add-icon" />
+          <div className="mesasexam-prev-add-header prev-add-header">
+            <div className="mesasexam-prev-add-icon-title prev-add-icon-title">
+              <FontAwesomeIcon
+                icon={faPenToSquare}
+                className="mesasexam-prev-add-icon prev-add-icon"
+              />
               <div>
                 <h1>
                   Editar Mesa Nº {mesa?.numero_mesa ?? numeroMesa}
@@ -411,72 +418,96 @@ const EditarMesa = () => {
             </div>
             <button
               type="button"
-              className="prev-add-back-btn"
+              className="mesasexam-prev-add-back-btn prev-add-back-btn"
               onClick={() => navigate(-1)}
               title="Volver"
             >
-              <FaArrowLeft style={{ marginRight: 8 }} />
+              <FaArrowLeft />
               Volver
             </button>
           </div>
 
           {/* Body */}
-          <div className="prev-add-form-wrapper" id="form-wrapper">
-            <div className="mesa-two-col">
+          <div
+            className="mesasexam-prev-add-form-wrapper"
+            id="form-wrapper"
+          >
+            <div className="mesasexam-mesa-two-col mesa-two-col">
               {/* Programación */}
-              <aside className="col-prog programacion-card">
-                <div className="prev-section" id="prev-section-program">
-                  <div className="prog-head">
-                    <h3 className="prev-section-title">Programación</h3>
-                    {cargando ? (
-                      <Skeleton
-                        style={{ height: 40, width: 220, borderRadius: 12 }}
-                      />
-                    ) : (
-                      <>
-                        <div className="float-field">
-                          <label className="float-label" htmlFor="turno-select">
-                            Turno
-                          </label>
-                          <select
-                            id="turno-select"
-                            className="prev-input"
-                            value={idTurno}
-                            onChange={(e) => setIdTurno(e.target.value)}
-                          >
-                            <option value="">Seleccionar…</option>
-                            {turnos.map((t) => (
-                              <option key={t.id_turno} value={t.id_turno}>
-                                {t.turno}
-                              </option>
-                            ))}
-                          </select>
-                          <span className="prev-input-highlight" />
-                        </div>
-
-                        <div className="float-field" style={{ marginTop: 16 }}>
-                          <label className="float-label" htmlFor="hora-input">
-                            Horario
-                          </label>
-                          <input
-                            id="hora-input"
-                            type="time"
-                            className="prev-input"
-                            value={hora}
-                            onChange={(e) => setHora(e.target.value)}
-                          />
-                          <span className="prev-input-highlight" />
-                        </div>
-                      </>
-                    )}
+              <aside className="mesasexam-col-prog col-prog mesasexam-programacion-card programacion-card">
+                <div
+                  className="mesasexam-prev-section"
+                  id="prev-section-program"
+                >
+                  {/* Título */}
+                  <div className="mesasexam-prog-head prog-head">
+                    <h3 className="mesasexam-prev-section-title prev-section-title">
+                      Programación
+                    </h3>
                   </div>
 
-                  <div className="prog-block calendar-block">
+                  {/* Fila con Turno + Horario */}
+                  {cargando ? (
+                    <div className="mesasexam-program-fields">
+                      <Skeleton
+                        style={{ height: 40, borderRadius: 12, flex: 1 }}
+                      />
+                      <Skeleton
+                        style={{ height: 40, borderRadius: 12, flex: 1 }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="mesasexam-program-fields">
+                      {/* Turno */}
+                      <div className="mesasexam-float-field float-field">
+                        <label
+                          className="mesasexam-float-label float-label"
+                          htmlFor="turno-select"
+                        >
+                          Turno
+                        </label>
+                        <select
+                          id="turno-select"
+                          className="mesasexam-prev-input prev-input"
+                          value={idTurno}
+                          onChange={(e) => setIdTurno(e.target.value)}
+                        >
+                          <option value="">Seleccionar…</option>
+                          {turnos.map((t) => (
+                            <option key={t.id_turno} value={t.id_turno}>
+                              {t.turno}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Horario */}
+                      <div className="mesasexam-float-field float-field">
+                        <label
+                          className="mesasexam-float-label float-label"
+                          htmlFor="hora-input"
+                        >
+                          Horario
+                        </label>
+                        <input
+                          id="hora-input"
+                          type="time"
+                          className="mesasexam-prev-input prev-input"
+                          value={hora}
+                          onChange={(e) => setHora(e.target.value)}
+                        />
+                        <span className="mesasexam-prev-input-highlight prev-input-highlight" />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Calendario debajo de los campos */}
+                  <div className="mesasexam-prog-block prog-block mesasexam-calendar-block calendar-block">
                     {cargando ? (
                       <Skeleton style={{ height: 316, borderRadius: 12 }} />
                     ) : (
                       <InlineCalendar
-                        className="cal-inline"
+                        className="mesasexam-cal-inline cal-inline"
                         value={fecha}
                         onChange={(v) => setFecha(v)}
                         locale="es-AR"
@@ -487,15 +518,15 @@ const EditarMesa = () => {
                 </div>
               </aside>
 
-              {/* Columna derecha: depende si tiene grupo o no */}
-              <section className="col-materia">
+              {/* Columna derecha */}
+              <section className="mesasexam-col-materia col-materia">
                 {esMesaSinGrupo ? (
-                  /* ======== VISTA ESPECIAL PARA MESA NO AGRUPADA ======== */
-                  <div className="prev-section">
-                    <h3 className="prev-section-title">
+                  // ======== MESA NO AGRUPADA ========
+                  <div className="mesasexam-prev-section prev-section">
+                    <h3 className="mesasexam-prev-section-title prev-section-title">
                       Mesa no agrupada (individual)
                     </h3>
-                    <p className="mesa-single-info">
+                    <p className="mesasexam-mesa-single-info mesa-single-info">
                       Esta mesa todavía no forma parte de{" "}
                       <strong>mesas agrupadas</strong>. Podés mantenerla así o
                       crear un grupo nuevo donde será una{" "}
@@ -503,16 +534,19 @@ const EditarMesa = () => {
                     </p>
 
                     {detalleGrupo.length > 0 && (
-                      <article className="mesa-card mesa-card--single">
-                        <div className="mesa-card-head">
-                          <span className="mesa-badge">
-                            N° {detalleGrupo[0].numero_mesa}
-                          </span>
+                      <article className="mesasexam-mesa-card mesasexam-mesa-card--single mesa-card mesa-card--single">
+                        <div className="mesasexam-mesa-card-head mesa-card-head">
+                          <div className="mesasexam-mesa-card-main">
+                            <span className="mesasexam-mesa-badge mesa-badge">
+                              N° {detalleGrupo[0].numero_mesa}
+                            </span>
+                            <h4 className="mesasexam-mesa-card-title mesa-card-title">
+                              {detalleGrupo[0].materia || "Sin materia"}
+                            </h4>
+                          </div>
                         </div>
-                        <h4 className="mesa-card-title">
-                          {detalleGrupo[0].materia || "Sin materia"}
-                        </h4>
-                        <p className="mesa-card-sub">
+
+                        <p className="mesasexam-mesa-card-sub mesa-card-sub">
                           {detalleGrupo[0].docentes?.length
                             ? `Docentes: ${detalleGrupo[0].docentes.join(
                                 " | "
@@ -524,7 +558,7 @@ const EditarMesa = () => {
 
                     <button
                       type="button"
-                      className="prev-add-button"
+                      className="mesasexam-prev-add-button"
                       style={{ marginTop: 16 }}
                       onClick={() => setOpenCrearGrupoUnico(true)}
                       disabled={cargando || guardando}
@@ -535,16 +569,19 @@ const EditarMesa = () => {
                     </button>
                   </div>
                 ) : (
-                  /* ======== VISTA NORMAL DE SLOTS DEL GRUPO ======== */
-                  <div className="prev-section">
-                    <h3 className="prev-section-title">
+                  // ======== SLOTS DEL GRUPO ========
+                  <div className="mesasexam-prev-section prev-section">
+                    <h3 className="mesasexam-prev-section-title prev-section-title">
                       Slots del grupo (hasta 4)
                     </h3>
 
-                    <div className="mesa-cards">
+                    <div className="mesasexam-mesa-cards mesa-cards">
                       {cargando
                         ? Array.from({ length: 4 }).map((_, i) => (
-                            <div key={`sk-${i}`} className="mesa-card">
+                            <div
+                              key={`sk-${i}`}
+                              className="mesasexam-mesa-card mesa-card"
+                            >
                               <Skeleton
                                 style={{
                                   height: 18,
@@ -607,43 +644,50 @@ const EditarMesa = () => {
                                 return (
                                   <article
                                     key={`slot-ok-${slot.numero_mesa}`}
-                                    className="mesa-card"
+                                    className="mesasexam-mesa-card mesa-card"
                                   >
-                                    <div className="mesa-card-head">
-                                      <span className="mesa-badge">
-                                        N° {slot.numero_mesa}
-                                      </span>
-                                      <div className="mesa-card-actions">
-                                        <button
-                                          className="mesa-chip info"
-                                          title="Mover este número a otro grupo"
-                                          onClick={() => {
-                                            setNumeroParaMover(
-                                              slot.numero_mesa
-                                            );
-                                            setOpenMover(true);
-                                          }}
-                                        >
-                                          <FaExchangeAlt />
-                                        </button>
-                                        <button
-                                          className="mesa-chip danger"
-                                          title="Quitar del grupo (no borra la mesa)"
-                                          onClick={() =>
-                                            pedirQuitarNumero(
-                                              slot.numero_mesa
-                                            )
-                                          }
-                                          disabled={!idGrupo}
-                                        >
-                                          <FaTrash />
-                                        </button>
+                                    <div className="mesasexam-mesa-card-head mesa-card-head">
+                                      {/* Fila de arriba: número + acciones */}
+                                      <div className="mesasexam-mesa-card-header-row">
+                                        <span className="mesasexam-mesa-badge mesa-badge">
+                                          N° {slot.numero_mesa}
+                                        </span>
+
+                                        <div className="mesasexam-mesa-card-actions mesa-card-actions">
+                                          <button
+                                            className="mesasexam-mesa-chip mesasexam-mesa-chip-info mesa-chip info"
+                                            title="Mover este número a otro grupo"
+                                            onClick={() => {
+                                              setNumeroParaMover(
+                                                slot.numero_mesa
+                                              );
+                                              setOpenMover(true);
+                                            }}
+                                          >
+                                            <FaExchangeAlt />
+                                          </button>
+                                          <button
+                                            className="mesasexam-mesa-chip mesasexam-mesa-chip-danger mesa-chip danger"
+                                            title="Quitar del grupo (no borra la mesa)"
+                                            onClick={() =>
+                                              pedirQuitarNumero(
+                                                slot.numero_mesa
+                                              )
+                                            }
+                                            disabled={!idGrupo}
+                                          >
+                                            <FaTrash />
+                                          </button>
+                                        </div>
                                       </div>
+
+                                      {/* Debajo: nombre de la materia */}
+                                      <h4 className="mesasexam-mesa-card-title mesa-card-title">
+                                        {slot.materia || "Sin materia"}
+                                      </h4>
                                     </div>
-                                    <h4 className="mesa-card-title">
-                                      {slot.materia || "Sin materia"}
-                                    </h4>
-                                    <p className="mesa-card-sub">
+
+                                    <p className="mesasexam-mesa-card-sub mesa-card-sub">
                                       {docentes.length
                                         ? `Docentes: ${docentes.join(" | ")}`
                                         : "Docentes: —"}
@@ -654,7 +698,7 @@ const EditarMesa = () => {
                               return (
                                 <button
                                   key={`slot-free-${idx}`}
-                                  className="mesa-card add"
+                                  className="mesasexam-mesa-card mesasexam-mesa-card-add mesa-card add"
                                   onClick={() => setOpenAgregar(true)}
                                   disabled={numerosGrupo.length >= 4}
                                   title="Agregar número al grupo"
@@ -667,32 +711,35 @@ const EditarMesa = () => {
                     </div>
                   </div>
                 )}
+
+                {/* Botonera dentro de la columna derecha */}
+                <div
+                  className="mesasexam-prev-add-buttons"
+                  id="v-add-buttons"
+                >
+                  <button
+                    type="button"
+                    className="mesasexam-prev-add-button mesasexam-prev-add-button-back prev-add-button prev-add-button--back"
+                    onClick={() => setOpenDelete(true)}
+                    title="Eliminar mesa (alumno)"
+                    disabled={cargando}
+                  >
+                    <FaTrash style={{ marginRight: 8 }} />
+                    Eliminar
+                  </button>
+
+                  <button
+                    type="button"
+                    className="mesasexam-prev-add-button prev-add-button"
+                    disabled={guardando || cargando}
+                    onClick={onSave}
+                    title="Guardar"
+                  >
+                    <FaSave style={{ marginRight: 8 }} />
+                    {guardando ? "Guardando..." : "Guardar Cambios"}
+                  </button>
+                </div>
               </section>
-            </div>
-
-            {/* Botonera */}
-            <div className="prev-add-buttons" id="v-add-buttons">
-              <button
-                type="button"
-                className="prev-add-button prev-add-button--back"
-                onClick={() => setOpenDelete(true)}
-                title="Eliminar mesa (alumno)"
-                disabled={cargando}
-              >
-                <FaTrash style={{ marginRight: 8 }} />
-                Eliminar
-              </button>
-
-              <button
-                type="button"
-                className="prev-add-button"
-                disabled={guardando || cargando}
-                onClick={onSave}
-                title="Guardar"
-              >
-                <FaSave style={{ marginRight: 8 }} />
-                {guardando ? "Guardando..." : "Guardar Cambios"}
-              </button>
             </div>
           </div>
 
@@ -729,7 +776,10 @@ const EditarMesa = () => {
                 idTurnoObjetivo={idTurno ? Number(idTurno) : null}
                 onAdded={() => {
                   setOpenAgregar(false);
-                  notify({ tipo: "exito", mensaje: "Número agregado al grupo." });
+                  notify({
+                    tipo: "exito",
+                    mensaje: "Número agregado al grupo.",
+                  });
                   cargarTodo();
                 }}
                 onError={(mensaje) => notify({ tipo: "error", mensaje })}
@@ -748,7 +798,10 @@ const EditarMesa = () => {
                 onMoved={() => {
                   setOpenMover(false);
                   setNumeroParaMover(null);
-                  notify({ tipo: "exito", mensaje: "Número movido de grupo." });
+                  notify({
+                    tipo: "exito",
+                    mensaje: "Número movido de grupo.",
+                  });
                   cargarTodo();
                 }}
                 onError={(mensaje) => notify({ tipo: "error", mensaje })}
@@ -763,7 +816,9 @@ const EditarMesa = () => {
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="confirm-quitar-title"
-                onMouseDown={() => (!loadingQuitar ? setOpenQuitar(false) : null)}
+                onMouseDown={() =>
+                  !loadingQuitar ? setOpenQuitar(false) : null
+                }
               >
                 <div
                   className="logout-modal-container logout-modal--danger"
@@ -787,7 +842,10 @@ const EditarMesa = () => {
                     {`¿Quitar el número ${numeroQuitar} de este grupo? (no se borra la mesa)`}
                   </p>
 
-                  <div className="prev-modal-item" style={{ marginTop: 10 }}>
+                  <div
+                    className="mesasexam-prev-modal-item prev-modal-item"
+                    style={{ marginTop: 10 }}
+                  >
                     {(idGrupo ? `Grupo ${idGrupo}` : "Sin grupo") +
                       (fecha ? ` • Fecha: ${fecha}` : "") +
                       (idTurno ? ` • Turno ID: ${idTurno}` : "") +
@@ -820,7 +878,6 @@ const EditarMesa = () => {
             </Portal>
           )}
 
-          {/* NUEVO MODAL: pasar mesa suelta a “mesa única” en mesas agrupadas */}
           {openCrearGrupoUnico && (
             <Portal>
               <div
@@ -853,7 +910,10 @@ const EditarMesa = () => {
                     dejarla como mesa única.
                   </p>
 
-                  <div className="prev-modal-item" style={{ marginTop: 10 }}>
+                  <div
+                    className="mesasexam-prev-modal-item prev-modal-item"
+                    style={{ marginTop: 10 }}
+                  >
                     {`Mesa Nº ${numeroMesa}` +
                       (fecha ? ` • Fecha: ${fecha}` : "") +
                       (idTurno ? ` • Turno ID: ${idTurno}` : "") +

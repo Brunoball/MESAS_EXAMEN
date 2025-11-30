@@ -600,7 +600,7 @@ const EditarPrevia = () => {
               <div className="prev-add-buttons">
                 <button
                   type="submit"
-                  className="prev-add-button"
+                  className="prev-add-button add-alumno-button"
                   disabled={loading || listasLoading || materiasLoading}
                   title="Guardar"
                 >

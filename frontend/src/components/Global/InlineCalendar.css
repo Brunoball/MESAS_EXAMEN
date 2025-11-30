@@ -25,7 +25,7 @@
 
 .cal-weekdays{
   display: grid; grid-template-columns: repeat(7, 1fr);
-  gap: 4px; margin: 4px 0 6px;
+  gap: 4px; 
 }
 .cal-weekday{
   text-align: center; font-size: .8rem; font-weight: 700; color: var(--text-secondary, #475569);
@@ -33,7 +33,7 @@
 
 .cal-grid{
   display: grid; grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
+
 }
 .cal-cell{
   height: 40px;
