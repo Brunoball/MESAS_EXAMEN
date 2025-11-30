@@ -1004,7 +1004,7 @@ input:-webkit-autofill { background-color: transparent !important; }
 }
 .pdf-materia-cell { font-weight: 700; color: var(--pro-primary-dark); min-width: 220px; }
 .pdf-docente-cell { font-weight: 700; min-width: 180px; }
-.pdf-td-center { text-align: center; font-variant-numeric: tabular-nums; }
+.pdf-td-center { text-align: center !important; font-variant-numeric: tabular-nums; }
 .pdf-td-left { text-align: left; }
 
 /* Zebra sutil */
@@ -1179,3 +1179,4 @@ input:-webkit-autofill { background-color: transparent !important; }
 
 .contador-grups-noencontrado{width: 100%;}
 #detalle{ margin-left:auto ;}
+.col-dni{text-align: center !important;}

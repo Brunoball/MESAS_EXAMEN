@@ -1552,7 +1552,7 @@ const MesasExamen = () => {
                       celdas.push(
                         <td
                           key={`dni-${filaGlobal}`}
-                          className="pdf-td-center col-dni"
+                          className="col-dni"
                         >
                           {String(a.dni || "")}
                         </td>
@@ -1675,8 +1675,8 @@ const MesasExamen = () => {
                               <th>Hora</th>
                               <th>Espacio Curricular</th>
                               <th>Estudiante</th>
-                              <th>DNI</th>
-                              <th>Curso</th>
+                              <th className="col-dni" >DNI</th>
+                              <th className="pdf-td-center">Curso</th>
                               <th>Docentes</th>
                             </tr>
                           </thead>
