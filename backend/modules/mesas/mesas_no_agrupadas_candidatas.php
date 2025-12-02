@@ -2,20 +2,24 @@
 // backend/modules/mesas/mesas_no_agrupadas_candidatas.php
 // -----------------------------------------------------------------------------
 // Devuelve las mesas "no agrupadas" como candidatas para agregar a un grupo,
-// incluyendo metadata (materia, docentes, alumnos).
-//
-// ⚠ La validación antigua de PRIORIDAD=1 (bloquear si algún DNI tenía una
-//    mesa prioridad=1 con fecha_mesa > fecha_objetivo) fue ELIMINADA.
-//    Ahora todas las no-agrupadas son elegibles (salvo exclusiones explícitas).
+// incluyendo metadata (materia, docentes, alumnos) **y además** las PREVIAS
+// inscriptas (inscripcion = 1) que todavía no tienen ninguna mesa asociada.
 //
 // Entrada (POST JSON):
 //   {
-//     "fecha_objetivo": "YYYY-MM-DD" | null,   // hoy solo se usa para ordenar/compatibilidad
-//     "id_turno_objetivo": 1 | null,           // (no se usa en regla)
-//     "numero_mesa_actual": 123                // para excluirla si estuviera "no agrupada"
+//     "fecha_objetivo": "YYYY-MM-DD" | null,
+//     "id_turno_objetivo": 1 | null,
+//     "numero_mesa_actual": 123
 //   }
 //
-// Salida: { exito:true, data:[{ numero_mesa, materia, docentes[], alumnos[], elegible, motivo? }, ... ] }
+// Salida:
+//   {
+//     "exito": true,
+//     "data": {
+//        "mesas":   [ { numero_mesa, materia, docentes[], alumnos[], elegible, motivo? }, ... ],
+//        "previas": [ { id_previa, dni, alumno, materia, curso_div }, ... ]
+//     }
+//   }
 // -----------------------------------------------------------------------------
 
 declare(strict_types=1);
@@ -57,6 +61,10 @@ try {
     $id_turno_obj   = isset($in['id_turno_objetivo']) ? (int)$in['id_turno_objetivo'] : null;
     $numero_actual  = isset($in['numero_mesa_actual']) ? (int)$in['numero_mesa_actual'] : 0;
 
+    // ============================================================
+    // A) MESAS NO AGRUPADAS
+    // ============================================================
+
     // Traer todas las no-agrupadas actuales
     $sqlNoAgr = "
         SELECT na.numero_mesa, na.fecha_mesa, na.id_turno
@@ -65,111 +73,176 @@ try {
     ";
     $st   = $pdo->query($sqlNoAgr);
     $rows = $st->fetchAll(PDO::FETCH_ASSOC);
-    if (!$rows) {
-        respond_json(true, []);
-    }
 
-    // Pre-arma detalle por numero_mesa
-    $det = []; // numero => info base
-    foreach ($rows as $r) {
-        $nm = (int)$r['numero_mesa'];
-        if ($nm === 0) {
-            continue;
-        }
-        if ($numero_actual > 0 && $nm === $numero_actual) {
-            // evitar el actual si está en no_agrupadas
-            continue;
-        }
-
-        $det[$nm] = [
-            'numero_mesa' => $nm,
-            'fecha'       => (string)$r['fecha_mesa'],
-            'id_turno'    => (int)$r['id_turno'],
-            'materia'     => '',
-            'docentes'    => [],
-            'alumnos'     => [],
-            'elegible'    => true,   // <-- siempre elegible
-            'motivo'      => null,   // <-- ya no se usa texto de prioridad
-        ];
-    }
-    if (!$det) {
-        respond_json(true, []);
-    }
-
-    $nums = array_keys($det);
-    $ph   = implode(',', array_fill(0, count($nums), '?'));
-
-    // Materia y docentes (desde mesas/catedras/materias/docentes)
-    $sqlCab = "
-        SELECT m.numero_mesa,
-               MIN(mat.materia) AS materia,
-               GROUP_CONCAT(DISTINCT d.docente SEPARATOR '||') AS docentes_concat
-        FROM mesas m
-          LEFT JOIN catedras  c   ON c.id_catedra   = m.id_catedra
-          LEFT JOIN materias  mat ON mat.id_materia = c.id_materia
-          LEFT JOIN docentes  d   ON d.id_docente   = m.id_docente
-        WHERE m.numero_mesa IN ($ph)
-        GROUP BY m.numero_mesa
-    ";
-    $stCab = $pdo->prepare($sqlCab);
-    $stCab->execute($nums);
-    while ($r = $stCab->fetch(PDO::FETCH_ASSOC)) {
-        $nm = (int)$r['numero_mesa'];
-        if (!isset($det[$nm])) {
-            continue;
-        }
-        $det[$nm]['materia'] = (string)($r['materia'] ?? '');
-
-        $docs = [];
-        if (!empty($r['docentes_concat'])) {
-            $seen = [];
-            foreach (explode('||', (string)$r['docentes_concat']) as $dname) {
-                $k = mb_strtolower(trim((string)$dname));
-                if ($k === '' || isset($seen[$k])) {
-                    continue;
-                }
-                $seen[$k] = true;
-                $docs[]   = $dname;
+    $det = []; // numero_mesa => info base
+    if ($rows) {
+        foreach ($rows as $r) {
+            $nm = (int)$r['numero_mesa'];
+            if ($nm === 0) {
+                continue;
             }
+            if ($numero_actual > 0 && $nm === $numero_actual) {
+                // evitar el actual si está en no_agrupadas
+                continue;
+            }
+
+            $det[$nm] = [
+                'numero_mesa' => $nm,
+                'fecha'       => (string)$r['fecha_mesa'],
+                'id_turno'    => (int)$r['id_turno'],
+                'materia'     => '',
+                'docentes'    => [],
+                'alumnos'     => [],
+                'elegible'    => true,   // siempre elegible
+                'motivo'      => null,
+            ];
         }
-        $det[$nm]['docentes'] = $docs;
     }
 
-    // Alumnos (desde previas)
-    $sqlAlu = "
-        SELECT m.numero_mesa, p.alumno, p.dni
-        FROM mesas m
-          INNER JOIN previas p ON p.id_previa = m.id_previa
-        WHERE m.numero_mesa IN ($ph)
-        ORDER BY m.numero_mesa ASC, p.alumno ASC
+    $outMesas = [];
+    if ($det) {
+        $nums = array_keys($det);
+        $ph   = implode(',', array_fill(0, count($nums), '?'));
+
+        // Materia y docentes
+        $sqlCab = "
+            SELECT m.numero_mesa,
+                   MIN(mat.materia) AS materia,
+                   GROUP_CONCAT(DISTINCT d.docente SEPARATOR '||') AS docentes_concat
+            FROM mesas m
+              LEFT JOIN catedras  c   ON c.id_catedra   = m.id_catedra
+              LEFT JOIN materias  mat ON mat.id_materia = c.id_materia
+              LEFT JOIN docentes  d   ON d.id_docente   = m.id_docente
+            WHERE m.numero_mesa IN ($ph)
+            GROUP BY m.numero_mesa
+        ";
+        $stCab = $pdo->prepare($sqlCab);
+        $stCab->execute($nums);
+        while ($r = $stCab->fetch(PDO::FETCH_ASSOC)) {
+            $nm = (int)$r['numero_mesa'];
+            if (!isset($det[$nm])) {
+                continue;
+            }
+            $det[$nm]['materia'] = (string)($r['materia'] ?? '');
+
+            $docs = [];
+            if (!empty($r['docentes_concat'])) {
+                $seen = [];
+                foreach (explode('||', (string)$r['docentes_concat']) as $dname) {
+                    $k = mb_strtolower(trim((string)$dname));
+                    if ($k === '' || isset($seen[$k])) {
+                        continue;
+                    }
+                    $seen[$k] = true;
+                    $docs[]   = $dname;
+                }
+            }
+            $det[$nm]['docentes'] = $docs;
+        }
+
+        // Alumnos
+        $sqlAlu = "
+            SELECT m.numero_mesa, p.alumno, p.dni
+            FROM mesas m
+              INNER JOIN previas p ON p.id_previa = m.id_previa
+            WHERE m.numero_mesa IN ($ph)
+            ORDER BY m.numero_mesa ASC, p.alumno ASC
+        ";
+        $stAlu = $pdo->prepare($sqlAlu);
+        $stAlu->execute($nums);
+        while ($r = $stAlu->fetch(PDO::FETCH_ASSOC)) {
+            $nm  = (int)$r['numero_mesa'];
+            $al  = (string)($r['alumno'] ?? '');
+            if (!isset($det[$nm])) {
+                continue;
+            }
+            $det[$nm]['alumnos'][] = $al;
+        }
+
+        // salida ordenada por elegible y número
+        $outMesas = array_values($det);
+        usort($outMesas, function ($a, $b) {
+            if ($a['elegible'] === $b['elegible']) {
+                return $a['numero_mesa'] <=> $b['numero_mesa'];
+            }
+            return $a['elegible'] ? -1 : 1;
+        });
+    }
+
+    // ============================================================
+    // B) PREVIAS INSCRIPTAS SIN NINGUNA MESA ASOCIADA
+    // ============================================================
+
+    $anioActual = (int)date('Y');
+
+    $sqlPrev = "
+        SELECT
+            p.id_previa,
+            p.dni,
+            p.alumno,
+            p.id_materia,
+            p.materia_id_curso,
+            p.materia_id_division,
+            mat.materia,
+            c.nombre_curso,
+            d.nombre_division,
+            CONCAT(
+                COALESCE(c.nombre_curso, ''),
+                CASE
+                    WHEN c.nombre_curso IS NOT NULL
+                         AND d.nombre_division IS NOT NULL
+                    THEN ' '
+                    ELSE ''
+                END,
+                COALESCE(d.nombre_division, '')
+            ) AS curso_div
+        FROM previas AS p
+        INNER JOIN materias AS mat
+            ON mat.id_materia = p.id_materia
+        LEFT JOIN curso AS c
+            ON c.id_curso = p.materia_id_curso
+        LEFT JOIN division AS d
+            ON d.id_division = p.materia_id_division
+        LEFT JOIN mesas AS me
+            ON me.id_previa = p.id_previa
+        WHERE
+            p.inscripcion = 1
+            AND p.anio = :anio_actual
+            AND me.id_mesa IS NULL
+        ORDER BY
+            p.alumno ASC,
+            mat.materia ASC
     ";
-    $stAlu = $pdo->prepare($sqlAlu);
-    $stAlu->execute($nums);
-    while ($r = $stAlu->fetch(PDO::FETCH_ASSOC)) {
-        $nm  = (int)$r['numero_mesa'];
-        $dni = (string)($r['dni'] ?? '');
-        $al  = (string)($r['alumno'] ?? '');
-        if (!isset($det[$nm])) {
-            continue;
+
+    $stPrev = $pdo->prepare($sqlPrev);
+    $stPrev->execute([':anio_actual' => $anioActual]);
+    $rowsPrev = $stPrev->fetchAll(PDO::FETCH_ASSOC);
+
+    $outPrevias = [];
+    if ($rowsPrev) {
+        foreach ($rowsPrev as $r) {
+            $outPrevias[] = [
+                'id_previa'           => (int)$r['id_previa'],
+                'dni'                 => $r['dni'],
+                'alumno'              => $r['alumno'],
+                'id_materia'          => (int)$r['id_materia'],
+                'materia'             => $r['materia'],
+                'materia_id_curso'    => isset($r['materia_id_curso']) ? (int)$r['materia_id_curso'] : null,
+                'materia_id_division' => isset($r['materia_id_division']) ? (int)$r['materia_id_division'] : null,
+                'nombre_curso'        => $r['nombre_curso'] ?? null,
+                'nombre_division'     => $r['nombre_division'] ?? null,
+                'curso_div'           => trim($r['curso_div'] ?? ''),
+            ];
         }
-        $det[$nm]['alumnos'][] = $al;
-        // dejamos dni por si en el futuro querés otra validación
     }
 
-    // 🔴 VALIDACIÓN PRIORIDAD=1 ELIMINADA
-    // Antes acá se revisaba prioridad=1 con fecha_mesa > fecha_objetivo
-    // y se ponía elegible=false + motivo. Eso ya no se hace.
-
-    // Salida ordenada (elegibles primero, aunque ahora todos lo son)
-    $out = array_values($det);
-    usort($out, function ($a, $b) {
-        if ($a['elegible'] === $b['elegible']) {
-            return $a['numero_mesa'] <=> $b['numero_mesa'];
-        }
-        return $a['elegible'] ? -1 : 1;
-    });
-
-    respond_json(true, $out);
+    // ============================================================
+    // RESPUESTA
+    // ============================================================
+    respond_json(true, [
+        'mesas'   => $outMesas,
+        'previas' => $outPrevias,
+    ]);
 
 } catch (Throwable $e) {
     error_log('[mesas_no_agrupadas_candidatas] ' . $e->getMessage());

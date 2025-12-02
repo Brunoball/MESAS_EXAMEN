@@ -180,6 +180,13 @@ try {
         case 'mesas_reoptimizar':
             include_module($MODULES_DIR . '/mesas/reoptimizar_mesas.php'); break;
 
+        case 'mesa_previas_candidatas':
+            include_module($MODULES_DIR . '/mesas/mesa_previas_candidatas.php'); break;
+
+        case 'mesa_agregar_alumno':
+            include_module($MODULES_DIR . '/mesas/mesa_agregar_alumno.php'); break;
+        
+
         // ✅ Alias retrocompatible: obtener_info_mesa -> mesas_detalle
         case 'obtener_info_mesa':
             // Adaptador: soporta GET ?id_mesa=1 o ?numero_mesa=1

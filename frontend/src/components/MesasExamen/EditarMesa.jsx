@@ -24,6 +24,7 @@ import Toast from "../Global/Toast";
 import ModalEliminarMesa from "./modales/ModalEliminarMesa";
 import ModalAgregarMesas from "./modales/ModalAgregarMesas";
 import ModalMoverMesa from "./modales/ModalMoverMesa";
+import ModalAgregarAlumnosMesa from "./modales/ModalAgregarAlumnosMesa"; // 🆕 NUEVO
 import "./EditarMesa.css";
 import "./modales/ModalEliminarMesas.css";
 import InlineCalendar from "../Global/InlineCalendar";
@@ -114,6 +115,10 @@ const EditarMesa = () => {
 
   // 👉 Ref para el input de horario
   const horaInputRef = useRef(null);
+
+  // 🆕 Modal para agregar alumnos a una mesa
+  const [openAgregarAlumnos, setOpenAgregarAlumnos] = useState(false);
+  const [numeroMesaParaAlumnos, setNumeroMesaParaAlumnos] = useState(null);
 
   useEffect(() => {
     if (openQuitar) setTimeout(() => cancelQuitarBtnRef.current?.focus(), 0);
@@ -671,6 +676,21 @@ const EditarMesa = () => {
                                         </span>
 
                                         <div className="mesasexam-mesa-card-actions mesa-card-actions">
+                                          {/* 🆕 Botón para agregar alumnos */}
+                                          <button
+                                            className="mesasexam-mesa-chip mesasexam-mesa-chip-info mesa-chip"
+                                            title="Agregar alumnos a esta mesa"
+                                            onClick={() => {
+                                              setNumeroMesaParaAlumnos(
+                                                slot.numero_mesa
+                                              );
+                                              setOpenAgregarAlumnos(true);
+                                            }}
+                                          >
+                                            <FaPlus />
+                                          </button>
+
+                                          {/* Botón mover número */}
                                           <button
                                             className="mesasexam-mesa-chip mesasexam-mesa-chip-info mesa-chip info"
                                             title="Mover este número a otro grupo"
@@ -683,6 +703,8 @@ const EditarMesa = () => {
                                           >
                                             <FaExchangeAlt />
                                           </button>
+
+                                          {/* Botón quitar número del grupo */}
                                           <button
                                             className="mesasexam-mesa-chip mesasexam-mesa-chip-danger mesa-chip danger"
                                             title="Quitar del grupo (no borra la mesa)"
@@ -706,8 +728,7 @@ const EditarMesa = () => {
 
                                     <p className="mesasexam-mesa-card-sub mesa-card-sub">
                                       {docentes.length
-                                        ? `Docentes: ${docentes.join(" | ")}` +
-                                          ""
+                                        ? `Docentes: ${docentes.join(" | ")}`
                                         : "Docentes: —"}
                                     </p>
                                   </article>
@@ -823,6 +844,33 @@ const EditarMesa = () => {
                   cargarTodo();
                 }}
                 onError={(mensaje) => notify({ tipo: "error", mensaje })}
+              />
+            </Portal>
+          )}
+
+          {/* 🆕 Modal para agregar alumnos */}
+          {openAgregarAlumnos && (
+            <Portal>
+              <ModalAgregarAlumnosMesa
+                open={openAgregarAlumnos}
+                onClose={() => setOpenAgregarAlumnos(false)}
+                numeroMesa={numeroMesaParaAlumnos ?? numeroMesa}
+                fechaObjetivo={fecha}
+                idTurnoObjetivo={idTurno ? Number(idTurno) : null}
+                onAdded={() => {
+                  setOpenAgregarAlumnos(false);
+                  notify({
+                    tipo: "exito",
+                    mensaje: "Alumno(s) agregado(s) a la mesa.",
+                  });
+                  cargarTodo();
+                }}
+                onError={(mensaje) =>
+                  notify({
+                    tipo: "error",
+                    mensaje: mensaje || "No se pudieron agregar alumnos.",
+                  })
+                }
               />
             </Portal>
           )}
