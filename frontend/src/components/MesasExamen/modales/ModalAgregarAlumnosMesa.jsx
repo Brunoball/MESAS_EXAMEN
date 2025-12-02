@@ -1,3 +1,4 @@
+// src/components/MesasExamen/modales/ModalAgregarAlumnosMesa.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { FaTimes, FaPlus, FaSearch } from "react-icons/fa";
 import BASE_URL from "../../../config/config";
@@ -120,11 +121,9 @@ const ModalAgregarAlumnosMesa = ({
       <div className="agalum_modal">
         {/* HEADER */}
         <div className="agalum_header">
-          <h3 id="agalum_title">
-            Agregar alumno a la mesa N° {numeroMesa}
-          </h3>
+          <h3 id="agalum_title">Agregar alumno a la mesa N° {numeroMesa}</h3>
           <button
-            className="agalum_close"
+            className="agalum_close agmes_close"
             onClick={onClose}
             title="Cerrar"
             aria-label="Cerrar modal"
@@ -162,9 +161,7 @@ const ModalAgregarAlumnosMesa = ({
                 <div className="agalum_column agalum_col_dni">DNI</div>
                 <div className="agalum_column agalum_col_alumno">Alumno</div>
                 <div className="agalum_column agalum_col_materia">Materia</div>
-                <div className="agalum_column agalum_col_curso">
-                  Curso
-                </div>
+                <div className="agalum_column agalum_col_curso">Curso</div>
                 <div className="agalum_column agalum_col_accion">Acción</div>
               </div>
 

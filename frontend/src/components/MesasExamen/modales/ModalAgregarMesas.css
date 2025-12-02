@@ -13,7 +13,7 @@
   border-radius: 12px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
   width: 90%;
-  max-width: 820px;
+  max-width: 860px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -229,4 +229,68 @@ background:rgba(255,255,255,.12); transform:rotate(90deg);
 .agmes_column.docentes {
 
   text-align: right;
+}
+/* ---------- TABS TIPO BARRA (ESTILO CAPTURA) ---------- */
+.agmes_tabs {
+  display: flex;
+  align-items: flex-end;
+  gap: 32px;
+  padding: 10px 20px 0;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* Botón de tab: texto plano */
+.agmes_tab {
+  position: relative;
+  background: transparent;
+  border: none;
+  padding: 0 0 10px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #4b5563;           /* gris azulado para las inactivas */
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    opacity 0.15s ease;
+}
+
+/* Hover en tab inactiva */
+.agmes_tab:hover {
+  color: #1f2937;
+  opacity: 0.9;
+}
+
+/* Tab activa: texto azul + subrayado gordito */
+.agmes_tab.agmes_tab--active {
+  color: #0b3c82;           /* azul fuerte tipo institucional */
+  font-weight: 600;
+}
+
+/* Línea azul debajo de la tab activa */
+.agmes_tab.agmes_tab--active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 3px;
+  border-radius: 999px;
+  background: #0b63d1;      /* barrita azul */
+}
+
+/* Responsive: que no explote en pantallas chicas */
+@media (max-width: 600px) {
+  .agmes_tabs {
+    gap: 16px;
+    padding: 8px 12px 0;
+  }
+
+  .agmes_tab {
+    font-size: 0.85rem;
+    padding-bottom: 8px;
+  }
+}
+.agmes_column{
+  padding: 8px 10px 8px 0;
 }
