@@ -112,9 +112,9 @@ background:rgba(255,255,255,.12); transform:rotate(90deg);
   grid-template-columns:
     0.7fr   /* N° Mesa */
     2fr     /* Materia */
-    2fr     /* Docentes */
-    1.2fr   /* Elegible */
-    1.1fr;  /* Acción */
+    2.2fr     /* Docentes */
+    1fr   /* Elegible */
+    1fr;  /* Acción */
   align-items: center;
   border-bottom: 1px solid #e9e9e9;
 }
