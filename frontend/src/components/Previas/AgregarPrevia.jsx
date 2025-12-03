@@ -81,7 +81,7 @@ const AgregarPrevia = () => {
   // Ref para el input de fecha (abrir el almanaque programáticamente)
   const fechaRef = useRef(null);
 
-  // 🔹 Helper para agregar EGRESADO solo en esta pantalla
+  // 🔹 Helper para agregar EGRESADO (solo se usará para el curso actual)
   const agregarEgresado = (cursos) => {
     const yaExiste = cursos.some((c) => Number(c.id) === 8);
     if (yaExiste) return cursos;
@@ -99,10 +99,9 @@ const AgregarPrevia = () => {
         if (!json?.exito) throw new Error(json?.mensaje || 'No se pudieron obtener las listas');
 
         const cursosBase = json.listas?.cursos ?? [];
-        const cursosConEgresado = agregarEgresado(cursosBase);
 
         setListas({
-          cursos: cursosConEgresado,
+          cursos: cursosBase, // 👉 SIN EGRESADO acá, igual que en EditarPrevia
           divisiones: json.listas?.divisiones ?? [],
           condiciones: json.listas?.condiciones ?? [],
         });
@@ -115,6 +114,20 @@ const AgregarPrevia = () => {
     cargarListas();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // 🔹 Cursos de Cursado con EGRESADO al final (solo para "Curso actual")
+  const cursosConEgresado = useMemo(() => {
+    return agregarEgresado(listas.cursos || []);
+  }, [listas.cursos]);
+
+  // 🔹 ID de la condición "PREVIA"
+  const condicionPreviaId = useMemo(() => {
+    if (!Array.isArray(listas.condiciones)) return null;
+    const cond = listas.condiciones.find(
+      (c) => String(c.nombre || '').trim().toUpperCase() === 'PREVIA'
+    );
+    return cond ? Number(cond.id) : null;
+  }, [listas.condiciones]);
 
   // ---------- Fetch de materias dependiente de curso+división (materia) ----------
   const materiaComboKey = `${activePrevia.materia_id_curso}-${activePrevia.materia_id_division}`;
@@ -168,6 +181,17 @@ const AgregarPrevia = () => {
       return;
     }
 
+    // Curso actual: si es EGRESADO (8), vaciar división y bloquearla
+    if (name === 'cursando_id_curso') {
+      const nuevoCurso = value;
+      setAlumnoForm((f) => ({
+        ...f,
+        cursando_id_curso: nuevoCurso,
+        cursando_id_division: Number(nuevoCurso) === 8 ? '' : f.cursando_id_division,
+      }));
+      return;
+    }
+
     if (type !== 'select-one' && UPPERCASE_FIELDS.has(name)) {
       const upper = (value || '').toUpperCase();
       setAlumnoForm((f) => ({ ...f, [name]: upper }));
@@ -175,6 +199,8 @@ const AgregarPrevia = () => {
     }
     setAlumnoForm((f) => ({ ...f, [name]: value }));
   };
+
+  const esCursandoEgresado = Number(alumnoForm.cursando_id_curso) === 8;
 
   // ---------- Handlers Específicos (Previa Activa) ----------
   const onChangePrevia = (e) => {
@@ -189,7 +215,18 @@ const AgregarPrevia = () => {
         activePrev.id_materia = '';
       }
 
-      // Actualizar el valor
+      // Condición: solo PREVIA habilita Inscripción (igual que en EditarPrevia)
+      if (name === 'id_condicion') {
+        const nuevoCond = value;
+        const esPrevia =
+          condicionPreviaId !== null && Number(nuevoCond) === Number(condicionPreviaId);
+
+        activePrev.id_condicion = nuevoCond;
+        activePrev.inscripcion = esPrevia ? (activePrev.inscripcion ?? 0) : 0; // si no es PREVIA, forzar 0
+        return newPrevias;
+      }
+
+      // Actualizar el valor normal
       activePrev[name] = value;
       return newPrevias;
     });
@@ -244,7 +281,10 @@ const AgregarPrevia = () => {
     if (!String(alumnoForm.apellido || '').trim()) return 'El apellido es obligatorio';
     if (!String(alumnoForm.nombre || '').trim()) return 'El nombre es obligatorio';
     if (!String(alumnoForm.cursando_id_curso)) return 'Seleccioná el curso (cursando)';
-    if (!String(alumnoForm.cursando_id_division)) return 'Seleccioná la división (cursando)';
+    // Si NO es egresado, división es obligatoria
+    if (Number(alumnoForm.cursando_id_curso) !== 8 && !String(alumnoForm.cursando_id_division)) {
+      return 'Seleccioná la división (cursando)';
+    }
     return '';
   };
 
@@ -267,7 +307,8 @@ const AgregarPrevia = () => {
       dni: String(alumnoForm.dni || '').trim(),
       alumno,
       cursando_id_curso: toInt(alumnoForm.cursando_id_curso),
-      cursando_id_division: toInt(alumnoForm.cursando_id_division),
+      cursando_id_division:
+        Number(alumnoForm.cursando_id_curso) === 8 ? null : toInt(alumnoForm.cursando_id_division),
       id_materia: toInt(previa.id_materia),
       materia_id_curso: toInt(previa.materia_id_curso),
       materia_id_division: toInt(previa.materia_id_division),
@@ -391,7 +432,11 @@ const AgregarPrevia = () => {
   // --- Componente para una única Previa ---
   const PreviaSection = ({ previa, index }) => {
     const materiaSelectDisabled =
-      !puedeCargarMaterias || materiasLoading || materiasParaSelect.length === 0;
+      !String(previa.materia_id_curso) ||
+      !String(previa.materia_id_division) ||
+      materiasLoading ||
+      materiasParaSelect.length === 0;
+
     const comboKey = `${previa.materia_id_curso}-${previa.materia_id_division}`;
     const currentMaterias = materiasMap[comboKey] || [];
 
@@ -399,6 +444,9 @@ const AgregarPrevia = () => {
       index === activePreviaIndex
         ? { ref: fechaRef, onMouseDown: openCalendar, onFocus: openCalendar }
         : {};
+
+    const esPreviaCond =
+      condicionPreviaId !== null && Number(previa.id_condicion) === Number(condicionPreviaId);
 
     return (
       <div className="prev-add-grid">
@@ -419,6 +467,7 @@ const AgregarPrevia = () => {
                   disabled={listasLoading || previa.saved}
                 >
                   <option value="">Seleccionar…</option>
+                  {/* 👇 Acá usamos listas.cursos (sin EGRESADO) */}
                   {listas.cursos.map((c) => (
                     <option key={`mcur-${c.id}`} value={c.id}>
                       {c.nombre}
@@ -555,13 +604,15 @@ const AgregarPrevia = () => {
 
           {/* Inscripción */}
           <div className="prev-input-wrapper always-active">
-            <label className="prev-label">Inscripción</label>
+            <label className="prev-label">
+              Inscripción {esPreviaCond ? '' : '(solo PREVIA)'}
+            </label>
             <select
               className="prev-input"
               name="inscripcion"
               value={previa.inscripcion}
               onChange={onChangePrevia}
-              disabled={previa.saved}
+              disabled={previa.saved || !esPreviaCond}
             >
               <option value={0}>No</option>
               <option value={1}>Sí</option>
@@ -711,7 +762,7 @@ const AgregarPrevia = () => {
                               disabled={listasLoading}
                             >
                               <option value="">Seleccionar…</option>
-                              {listas.cursos.map((c) => (
+                              {cursosConEgresado.map((c) => (
                                 <option key={`cur-${c.id}`} value={c.id}>
                                   {c.nombre}
                                 </option>
@@ -730,7 +781,7 @@ const AgregarPrevia = () => {
                               name="cursando_id_division"
                               value={alumnoForm.cursando_id_division}
                               onChange={onChangeAlumno}
-                              disabled={listasLoading}
+                              disabled={listasLoading || esCursandoEgresado}
                             >
                               <option value="">Seleccionar…</option>
                               {listas.divisiones.map((d) => (
@@ -751,8 +802,6 @@ const AgregarPrevia = () => {
               {/* ============= TAB 2: Previas + Botones ============= */}
               {activeMainTab === 'previas' && (
                 <div className="prev-main-tab-panel">
-
-
                   {/* Tabs de materias */}
                   <div className="prev-tabs-header">
                     {previasForm.map((previa, index) => (

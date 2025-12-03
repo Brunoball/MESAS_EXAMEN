@@ -1,0 +1,226 @@
+/* Overlay del modal de mover previa */
+.modal-mover-previa-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 11010; /* un poquito por encima del de previas */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.55);
+}
+
+/* Contenedor principal */
+.modal-mover-previa-container {
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.35);
+  max-width: 900px;
+  width: 95%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+}
+
+/* Header */
+.modal-mover-previa-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+}
+
+.modal-mover-previa-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.modal-mover-previa-subtitle {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #4b5563;
+}
+
+.modal-mover-previa-close {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #6b7280;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 999px;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+}
+
+.modal-mover-previa-close:hover:not(:disabled) {
+  background: rgba(15, 23, 42, 0.06);
+  color: #111827;
+  transform: scale(1.05);
+}
+
+.modal-mover-previa-close:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* Body */
+.modal-mover-previa-body {
+  padding: 14px 20px 16px;
+  overflow: auto;
+  background: #f9fafb;
+}
+
+.modal-mover-previa-info {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #374151;
+}
+
+.modal-mover-previa-error {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+/* Tabla */
+.modal-mover-previa-table-wrapper {
+  margin-top: 8px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+.modal-mover-previa-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.modal-mover-previa-table thead {
+  background: #f3f4f6;
+}
+
+.modal-mover-previa-table th,
+.modal-mover-previa-table td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-mover-previa-table th {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.85rem;
+}
+
+.modal-mover-previa-table td {
+  color: #111827;
+}
+
+.modal-mover-previa-table tbody tr:nth-child(even) {
+  background: #f9fafb;
+}
+
+.modal-mover-previa-table tbody tr:hover {
+  background: #e5f1ff;
+}
+
+/* Radio buttons */
+.modal-mover-previa-table input[type="radio"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+/* Footer */
+.modal-mover-previa-footer {
+  padding: 12px 20px 14px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  background: #ffffff;
+}
+
+/* Botones */
+.modal-mover-previa-footer-btn {
+  border-radius: 999px;
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 8px 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease,
+    color 0.15s ease;
+}
+
+/* Cancelar */
+.modal-mover-previa-footer-btn.cancelar {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.modal-mover-previa-footer-btn.cancelar:hover:not(:disabled) {
+  background: #d1d5db;
+}
+
+/* Mover (primario) */
+.modal-mover-previa-footer-btn.mover {
+  background: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.35);
+}
+
+.modal-mover-previa-footer-btn.mover:hover:not(:disabled) {
+  background: #1d4ed8;
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.45);
+  transform: translateY(-0.5px);
+}
+
+.modal-mover-previa-footer-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Responsivo */
+@media (max-width: 640px) {
+  .modal-mover-previa-container {
+    width: 96%;
+    max-width: 96%;
+    max-height: 90vh;
+  }
+
+  .modal-mover-previa-header {
+    padding-right: 44px;
+  }
+
+  .modal-mover-previa-table-wrapper {
+    overflow-x: auto;
+  }
+
+  .modal-mover-previa-table th,
+  .modal-mover-previa-table td {
+    white-space: nowrap;
+  }
+}

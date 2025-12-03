@@ -185,6 +185,16 @@ try {
 
         case 'mesa_agregar_alumno':
             include_module($MODULES_DIR . '/mesas/mesa_agregar_alumno.php'); break;
+
+        
+        case 'mesas_previas_por_mesa':
+            include_module($MODULES_DIR . '/mesas/mesas_previas_por_mesa.php'); break;
+
+        case 'mesas_opciones_mover_previa':
+            include_module($MODULES_DIR . '/mesas/mesas_opciones_mover_previa.php'); break;
+
+        case 'mesas_mover_previa':
+            include_module($MODULES_DIR . '/mesas/mesas_mover_previa.php'); break;
         
 
         // ✅ Alias retrocompatible: obtener_info_mesa -> mesas_detalle

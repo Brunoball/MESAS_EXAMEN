@@ -13,6 +13,7 @@ import {
   FaTrash,
   FaExchangeAlt,
   FaPlus,
+  FaUser, // icono personita
 } from "react-icons/fa";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare } from "@fortawesome/free-solid-svg-icons";
@@ -24,9 +25,13 @@ import Toast from "../Global/Toast";
 import ModalEliminarMesa from "./modales/ModalEliminarMesa";
 import ModalAgregarMesas from "./modales/ModalAgregarMesas";
 import ModalMoverMesa from "./modales/ModalMoverMesa";
-import ModalAgregarAlumnosMesa from "./modales/ModalAgregarAlumnosMesa"; // 🆕 NUEVO
+import ModalAgregarAlumnosMesa from "./modales/ModalAgregarAlumnosMesa";
+import ModalPreviasMesa from "./modales/ModalPreviasMesa";
+
 import "./EditarMesa.css";
 import "./modales/ModalEliminarMesas.css";
+import "./modales/ModalPreviasMesa.css";
+
 import InlineCalendar from "../Global/InlineCalendar";
 
 /* ===== Portal inline ===== */
@@ -99,7 +104,7 @@ const EditarMesa = () => {
   const [openMover, setOpenMover] = useState(false);
   const [numeroParaMover, setNumeroParaMover] = useState(null);
 
-  // Modal integrado “Quitar número del grupo”
+  // Modal “Quitar número del grupo”
   const [openQuitar, setOpenQuitar] = useState(false);
   const [numeroQuitar, setNumeroQuitar] = useState(null);
   const [loadingQuitar, setLoadingQuitar] = useState(false);
@@ -113,12 +118,16 @@ const EditarMesa = () => {
   const [loadingCrearGrupoUnico, setLoadingCrearGrupoUnico] = useState(false);
   const cancelarGrupoUnicoRef = useRef(null);
 
-  // 👉 Ref para el input de horario
+  // Ref para el input de horario
   const horaInputRef = useRef(null);
 
-  // 🆕 Modal para agregar alumnos a una mesa
+  // Modal para agregar alumnos a una mesa
   const [openAgregarAlumnos, setOpenAgregarAlumnos] = useState(false);
   const [numeroMesaParaAlumnos, setNumeroMesaParaAlumnos] = useState(null);
+
+  // Modal para ver previas de una mesa
+  const [openPreviasMesa, setOpenPreviasMesa] = useState(false);
+  const [numeroMesaParaPrevias, setNumeroMesaParaPrevias] = useState(null);
 
   useEffect(() => {
     if (openQuitar) setTimeout(() => cancelQuitarBtnRef.current?.focus(), 0);
@@ -392,7 +401,7 @@ const EditarMesa = () => {
     }
   };
 
-  // 👉 Handler para abrir el selector de hora al hacer click en el input
+  // Handler para abrir el selector de hora al hacer click en el input
   const handleHoraClick = () => {
     const el = horaInputRef.current;
     if (!el) return;
@@ -676,7 +685,21 @@ const EditarMesa = () => {
                                         </span>
 
                                         <div className="mesasexam-mesa-card-actions mesa-card-actions">
-                                          {/* 🆕 Botón para agregar alumnos */}
+                                          {/* Ver previas de la mesa */}
+                                          <button
+                                            className="mesasexam-mesa-chip mesasexam-mesa-chip-info mesa-chip"
+                                            title="Ver previas (alumnos) de esta mesa"
+                                            onClick={() => {
+                                              setNumeroMesaParaPrevias(
+                                                slot.numero_mesa
+                                              );
+                                              setOpenPreviasMesa(true);
+                                            }}
+                                          >
+                                            <FaUser />
+                                          </button>
+
+                                          {/* Agregar alumnos a esta mesa */}
                                           <button
                                             className="mesasexam-mesa-chip mesasexam-mesa-chip-info mesa-chip"
                                             title="Agregar alumnos a esta mesa"
@@ -848,7 +871,7 @@ const EditarMesa = () => {
             </Portal>
           )}
 
-          {/* 🆕 Modal para agregar alumnos */}
+          {/* Modal para agregar alumnos */}
           {openAgregarAlumnos && (
             <Portal>
               <ModalAgregarAlumnosMesa
@@ -871,6 +894,26 @@ const EditarMesa = () => {
                     mensaje: mensaje || "No se pudieron agregar alumnos.",
                   })
                 }
+              />
+            </Portal>
+          )}
+
+          {/* Modal para ver previas de una mesa */}
+          {openPreviasMesa && (
+            <Portal>
+              <ModalPreviasMesa
+                open={openPreviasMesa}
+                onClose={() => setOpenPreviasMesa(false)}
+                numeroMesa={numeroMesaParaPrevias ?? numeroMesa}
+                onPreviaMoved={(mensaje) => {
+                  // Toast centralizado en EditarMesa
+                  notify({
+                    tipo: "exito",
+                    mensaje: mensaje || "Previa movida correctamente.",
+                  });
+                  // Refrescamos los datos de la mesa
+                  cargarTodo();
+                }}
               />
             </Portal>
           )}
@@ -961,7 +1004,11 @@ const EditarMesa = () => {
                   className="logout-modal-container"
                   onMouseDown={(e) => e.stopPropagation()}
                 >
-                  <div id="blue-icons" className="logout-modal__icon" aria-hidden="true">
+                  <div
+                    id="blue-icons"
+                    className="logout-modal__icon"
+                    aria-hidden="true"
+                  >
                     <FaPlus />
                   </div>
 

@@ -27,13 +27,6 @@ const splitAlumno = (alumno = '') => {
   return { apellido: parts[0], nombre: parts.slice(1).join(', ') };
 };
 
-// 🔹 Helper para agregar EGRESADO solo en esta pantalla
-const agregarEgresado = (cursos) => {
-  const yaExiste = cursos.some(c => Number(c.id) === 8);
-  if (yaExiste) return cursos;
-  return [...cursos, { id: 8, nombre: 'EGRESADO' }];
-};
-
 const EditarPrevia = () => {
   const navigate = useNavigate();
   const { id_previa } = useParams();
@@ -91,10 +84,9 @@ const EditarPrevia = () => {
         if (!json?.exito) throw new Error(json?.mensaje || 'No se pudieron obtener las listas');
 
         const cursosBase = json.listas?.cursos ?? [];
-        const cursosConEgresado = agregarEgresado(cursosBase);
 
         setListas({
-          cursos: cursosConEgresado,
+          cursos: cursosBase,                       // 👈 SIN EGRESADO, tal como viene del backend
           divisiones: json.listas?.divisiones ?? [],
           condiciones: json.listas?.condiciones ?? [],
         });
@@ -195,7 +187,25 @@ const EditarPrevia = () => {
 
     cargarMaterias();
     return () => { cancelado = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [puedeCargarMaterias, form.materia_id_curso, form.materia_id_division]);
+
+  // ---------- ID de la condición "PREVIA" ----------
+  const condicionPreviaId = useMemo(() => {
+    if (!Array.isArray(listas.condiciones)) return null;
+    const cond = listas.condiciones.find(
+      (c) => String(c.nombre || '').trim().toUpperCase() === 'PREVIA'
+    );
+    return cond ? Number(cond.id) : null;
+  }, [listas.condiciones]);
+
+  // 🔹 Cursos de Cursado con EGRESADO al final (solo para ese select)
+  const cursosConEgresado = useMemo(() => {
+    const base = listas.cursos || [];
+    const yaExiste = base.some(c => Number(c.id) === 8);
+    if (yaExiste) return base;
+    return [...base, { id: 8, nombre: 'EGRESADO' }];
+  }, [listas.cursos]);
 
   // ---------- Handlers ----------
   const UPPERCASE_FIELDS = new Set(['apellido', 'nombre']);
@@ -203,17 +213,45 @@ const EditarPrevia = () => {
   const onChange = (e) => {
     const { name, value, type } = e.target;
 
+    // DNI solo dígitos
     if (name === 'dni') {
       const digits = (value || '').replace(/\D+/g, '');
       setForm((f) => ({ ...f, dni: digits }));
       return;
     }
 
+    // Curso (cursando): si elijo EGRESADO (id=8), limpio y bloqueo división
+    if (name === 'cursando_id_curso') {
+      const nuevoCurso = value;
+      setForm((f) => ({
+        ...f,
+        cursando_id_curso: nuevoCurso,
+        cursando_id_division: Number(nuevoCurso) === 8 ? '' : f.cursando_id_division,
+      }));
+      return;
+    }
+
+    // Condición: solo PREVIA habilita "Inscripción"
+    if (name === 'id_condicion') {
+      const nuevoCond = value;
+      const esPrevia =
+        condicionPreviaId !== null && Number(nuevoCond) === Number(condicionPreviaId);
+
+      setForm((f) => ({
+        ...f,
+        id_condicion: nuevoCond,
+        inscripcion: esPrevia ? (f.inscripcion ?? 0) : 0, // fuerza 0 si NO es PREVIA
+      }));
+      return;
+    }
+
+    // Uppercase en algunos campos
     if (type !== 'select-one' && UPPERCASE_FIELDS.has(name)) {
       const upper = (value || '').toUpperCase();
       setForm((f) => ({ ...f, [name]: upper }));
       return;
     }
+
     setForm((f) => ({ ...f, [name]: value }));
   };
 
@@ -232,7 +270,10 @@ const EditarPrevia = () => {
     if (!String(form.nombre || '').trim()) return 'El nombre es obligatorio';
 
     if (!String(form.cursando_id_curso)) return 'Seleccioná el curso (cursando)';
-    if (!String(form.cursando_id_division)) return 'Seleccioná la división (cursando)';
+    // Si NO es egresado, división cursando sí es obligatoria
+    if (Number(form.cursando_id_curso) !== 8 && !String(form.cursando_id_division)) {
+      return 'Seleccioná la división (cursando)';
+    }
 
     if (!String(form.materia_id_curso)) return 'Seleccioná el curso de la materia';
     if (!String(form.materia_id_division)) return 'Seleccioná la división de la materia';
@@ -255,7 +296,8 @@ const EditarPrevia = () => {
       dni: String(obj.dni || '').trim(),
       alumno,
       cursando_id_curso: toInt(obj.cursando_id_curso),
-      cursando_id_division: toInt(obj.cursando_id_division),
+      cursando_id_division:
+        Number(obj.cursando_id_curso) === 8 ? null : toInt(obj.cursando_id_division),
       id_materia: toInt(obj.id_materia),
       materia_id_curso: toInt(obj.materia_id_curso),
       materia_id_division: toInt(obj.materia_id_division),
@@ -314,6 +356,10 @@ const EditarPrevia = () => {
     }
   };
 
+  const esCursandoEgresado = Number(form.cursando_id_curso) === 8;
+  const inscripcionHabilitada =
+    condicionPreviaId !== null && Number(form.id_condicion) === Number(condicionPreviaId);
+
   return (
     <>
       {/* 🔔 Toast global, flotante arriba */}
@@ -360,7 +406,7 @@ const EditarPrevia = () => {
             {err && <div className="prev-add-alert error">{err}</div>}
 
             <form onSubmit={guardar} className="prev-add-form">
-              {/* ================= Grid con 3 secciones (igual a Agregar) ================= */}
+              {/* ================= Grid con 3 secciones ================= */}
               <div className="prev-add-grid">
 
                 {/* ============ Col 1: Datos del alumno ============ */}
@@ -424,7 +470,7 @@ const EditarPrevia = () => {
                           disabled={listasLoading}
                         >
                           <option value="">Seleccionar…</option>
-                          {listas.cursos.map((c) => (
+                          {cursosConEgresado.map((c) => (
                             <option key={`cur-${c.id}`} value={c.id}>{c.nombre}</option>
                           ))}
                         </select>
@@ -440,7 +486,7 @@ const EditarPrevia = () => {
                           name="cursando_id_division"
                           value={form.cursando_id_division}
                           onChange={onChange}
-                          disabled={listasLoading}
+                          disabled={listasLoading || esCursandoEgresado}
                         >
                           <option value="">Seleccionar…</option>
                           {listas.divisiones.map((d) => (
@@ -580,12 +626,15 @@ const EditarPrevia = () => {
 
                   {/* Inscripción */}
                   <div className="prev-input-wrapper always-active">
-                    <label className="prev-label">Inscripción</label>
+                    <label className="prev-label">
+                      Inscripción {inscripcionHabilitada ? '' : '(solo PREVIA)'}
+                    </label>
                     <select
                       className="prev-input"
                       name="inscripcion"
                       value={form.inscripcion}
                       onChange={onChange}
+                      disabled={!inscripcionHabilitada}
                     >
                       <option value={0}>No</option>
                       <option value={1}>Sí</option>

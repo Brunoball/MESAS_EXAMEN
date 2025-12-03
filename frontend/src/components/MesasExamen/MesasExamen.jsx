@@ -154,23 +154,48 @@ const limpiarCurso = (s) =>
     .replace(/\s{2,}/g, " ")
     .trim();
 
-/** Construye “mesas lógicas” (igual que el PDF) a partir del detalle del backend */
-function buildMesasLogicas({ detalle, agrupaciones, id_grupo }) {
-  const subMesas = (Array.isArray(detalle) ? detalle : []).map((m) => ({
-    numero_mesa: m.numero_mesa ?? null,
-    fecha: m.fecha ?? "",
-    turno: m.turno ?? "",
-    hora: m.hora ?? "", // viene de la DB
-    materia: m.materia ?? "",
-    docentes: Array.isArray(m.docentes) ? m.docentes.filter(Boolean) : [],
-    alumnos: Array.isArray(m.alumnos)
-      ? m.alumnos.map((a) => ({
-          alumno: a.alumno ?? "",
-          dni: a.dni ?? "",
-          curso: a.curso ?? "",
-        }))
-      : [],
-  }));
+/**
+ * Construye “mesas lógicas” (igual que el PDF) a partir del detalle del backend.
+ *
+ * AHORA con fallbackPorNumero:
+ *  - Si en el detalle viene alguna mesa sin fecha/turno/hora,
+ *    se completan desde los grupos/no-agrupadas (dataset base).
+ */
+function buildMesasLogicas({ detalle, agrupaciones, id_grupo, fallbackPorNumero }) {
+  const subMesas = (Array.isArray(detalle) ? detalle : []).map((m) => {
+    const numero = m.numero_mesa ?? null;
+
+    let fecha = m.fecha ?? "";
+    let turno = m.turno ?? "";
+    let hora = m.hora ?? "";
+
+    // ✅ Fallback: si falta fecha/turno/hora en el detalle,
+    // usamos la info proveniente de los grupos/no-agrupadas.
+    if (fallbackPorNumero && Number.isFinite(Number(numero))) {
+      const fb = fallbackPorNumero.get(Number(numero));
+      if (fb) {
+        if (!fecha && fb.fecha) fecha = fb.fecha;
+        if (!turno && fb.turno) turno = fb.turno;
+        if (!hora && fb.hora) hora = fb.hora;
+      }
+    }
+
+    return {
+      numero_mesa: numero,
+      fecha,
+      turno,
+      hora, // viene de la DB o fallback
+      materia: m.materia ?? "",
+      docentes: Array.isArray(m.docentes) ? m.docentes.filter(Boolean) : [],
+      alumnos: Array.isArray(m.alumnos)
+        ? m.alumnos.map((a) => ({
+            alumno: a.alumno ?? "",
+            dni: a.dni ?? "",
+            curso: a.curso ?? "",
+          }))
+        : [],
+    };
+  });
 
   // Si viene id_grupo, la agrupación es la unión de todos los sub números.
   let agrupacionesEfectivas = [];
@@ -257,7 +282,7 @@ function buildMesasLogicas({ detalle, agrupaciones, id_grupo }) {
     return {
       fecha: fechaStar,
       turno: turnoStar,
-      hora: horaStar, // << hora principal del grupo
+      hora: horaStar, // << hora principal del grupo (ya con fallback)
       materia: materiaStar,
       subNumeros,
       bloques,
@@ -267,11 +292,9 @@ function buildMesasLogicas({ detalle, agrupaciones, id_grupo }) {
   const mesasLogicas = [];
   for (const nums of agrupacionesEfectivas) {
     const setNums = new Set(nums);
-    theArr: {
-      const arr = subMesas.filter((sm) => setNums.has(sm.numero_mesa));
-      if (!arr.length) break theArr;
-      mesasLogicas.push(buildMesaLogicaFrom(arr));
-    }
+    const arr = subMesas.filter((sm) => setNums.has(sm.numero_mesa));
+    if (!arr.length) continue;
+    mesasLogicas.push(buildMesaLogicaFrom(arr));
   }
 
   // Orden por fecha, turno (Mañana/Tarde), primer número
@@ -433,7 +456,7 @@ const MesasExamen = () => {
     persistState();
   }, [vista, q, fechaSel, turnoSel, persistState]);
 
-  // Guardar también al desmontar (por ejemplo, cuando vas a Editar o a otro lado)
+  // Guardar también al desmontar
   useEffect(() => {
     return () => {
       persistState();
@@ -495,6 +518,8 @@ const MesasExamen = () => {
           profesor: tribunalStr,
           _materia: normalizar(g.materia ?? ""),
           _turno: normalizar(g.turno ?? ""),
+          // si el backend más adelante manda hora, la podés mapear acá:
+          hora: g.hora ?? "",
         };
       });
 
@@ -544,6 +569,7 @@ const MesasExamen = () => {
         _materia: normalizar(r.materia ?? ""),
         _turno: normalizar(r.turno ?? ""),
         _esNoAgrupada: true,
+        hora: r.hora ?? "",
       }));
 
       setNoAgrupadas(procesadas);
@@ -608,6 +634,7 @@ const MesasExamen = () => {
         const datasetDBLocal = vista === "grupos" ? gruposDB : noAgrupadasDB;
         if (!datasetDBLocal || !datasetDBLocal.length) return;
 
+        // Agrupaciones por filas (igual que antes)
         const agrupaciones = datasetDBLocal
           .map((g) =>
             [
@@ -620,6 +647,29 @@ const MesasExamen = () => {
               .map(Number)
           )
           .filter((arr) => arr.length);
+
+        // ✅ Mapa de fallback: número de mesa -> {fecha, turno, hora}
+        const fallbackPorNumero = new Map();
+        for (const g of datasetDBLocal) {
+          const numeros = [
+            g.numero_mesa_1,
+            g.numero_mesa_2,
+            g.numero_mesa_3,
+            g.numero_mesa_4,
+          ]
+            .filter((n) => n != null)
+            .map(Number);
+
+          for (const n of numeros) {
+            if (!fallbackPorNumero.has(n)) {
+              fallbackPorNumero.set(n, {
+                fecha: g.fecha ?? "",
+                turno: g.turno ?? "",
+                hora: g.hora ?? "",
+              });
+            }
+          }
+        }
 
         const setNums = new Set();
         agrupaciones.forEach((arr) => arr.forEach((n) => setNums.add(n)));
@@ -647,10 +697,12 @@ const MesasExamen = () => {
           return;
         }
 
+        // ✅ ahora le pasamos también fallbackPorNumero
         const mesasLogicas = buildMesasLogicas({
           detalle,
           agrupaciones,
           id_grupo: null,
+          fallbackPorNumero,
         });
         setMesasDetalle(mesasLogicas);
 
@@ -1051,16 +1103,13 @@ const MesasExamen = () => {
     );
   }, [mesasDetalle, filasFiltradas]);
 
-  // RESTAURAR SCROLL CUANDO YA CARGÓ TODO - CORREGIDO
+  // RESTAURAR SCROLL CUANDO YA CARGÓ TODO
   useEffect(() => {
     if (cargandoVista || loadingDetalle) return;
 
-    // Pequeño delay para asegurar que el DOM esté completamente renderizado
     const timer = setTimeout(() => {
       const el = pdfScrollRef.current;
       if (!el) return;
-
-      // Solo restaurar el scroll si no se ha restaurado antes y hay una posición guardada
       if (!scrollRestoredRef.current && scrollPosRef.current > 0) {
         el.scrollTop = scrollPosRef.current;
         scrollRestoredRef.current = true;
@@ -1246,7 +1295,7 @@ const MesasExamen = () => {
                   <FaUsers className="glob-icono-profesor" />
                 </div>
 
-                {/* TABS vista datasets (SOLO grupos / no agrupadas) */}
+                {/* TABS vista datasets */}
                 <div
                   className="glob-tabs glob-tabs--inline"
                   role="tablist"
@@ -1258,7 +1307,6 @@ const MesasExamen = () => {
                     }`}
                     onClick={() => {
                       setVista("grupos");
-                      // Resetear flag de scroll al cambiar vista
                       scrollRestoredRef.current = false;
                     }}
                     title="Ver grupos armados"
@@ -1274,7 +1322,6 @@ const MesasExamen = () => {
                     }`}
                     onClick={() => {
                       setVista("no-agrupadas");
-                      // Resetear flag de scroll al cambiar vista
                       scrollRestoredRef.current = false;
                     }}
                     title="Ver mesas no agrupadas"
@@ -1550,10 +1597,7 @@ const MesasExamen = () => {
                         </td>
                       );
                       celdas.push(
-                        <td
-                          key={`dni-${filaGlobal}`}
-                          className="col-dni"
-                        >
+                        <td key={`dni-${filaGlobal}`} className="col-dni">
                           {String(a.dni || "")}
                         </td>
                       );
@@ -1675,7 +1719,7 @@ const MesasExamen = () => {
                               <th>Hora</th>
                               <th>Espacio Curricular</th>
                               <th>Estudiante</th>
-                              <th className="col-dni" >DNI</th>
+                              <th className="col-dni">DNI</th>
                               <th className="pdf-td-center">Curso</th>
                               <th>Docentes</th>
                             </tr>
@@ -1707,14 +1751,13 @@ const MesasExamen = () => {
                           &nbsp; PDF (esta mesa)
                         </button>
 
-                        {/* NUEVOS BOTONES: Editar y Eliminar al lado del PDF */}
+                        {/* Botón Editar */}
                         <button
                           className="glob-iconchip pdfbuttons"
                           title="Editar (primera mesa de la agrupación)"
                           onClick={() => {
                             if (!primerNumero) return;
 
-                            // Marcamos que vamos a Editar: cuando volvamos, se restaurará estado
                             try {
                               if (typeof window !== "undefined") {
                                 window.sessionStorage.setItem(
@@ -1729,7 +1772,6 @@ const MesasExamen = () => {
                               );
                             }
 
-                            // Guardar posición y filtros antes de navegar
                             persistState();
                             navigate(`/mesas/editar/${primerNumero}`);
                           }}
@@ -1740,6 +1782,7 @@ const MesasExamen = () => {
                           &nbsp; Editar
                         </button>
 
+                        {/* Botón Eliminar */}
                         <button
                           className="glob-iconchip pdfbuttons"
                           title="Eliminar (primera mesa de la agrupación)"
@@ -1768,7 +1811,6 @@ const MesasExamen = () => {
           <button
             className="glob-profesor-button glob-hover-effect glob-volver-atras"
             onClick={() => {
-              // Si vuelvo al panel principal, limpio TODO el estado guardado
               try {
                 if (typeof window !== "undefined") {
                   window.localStorage.removeItem(STORAGE_KEY);
@@ -1787,7 +1829,7 @@ const MesasExamen = () => {
           </button>
 
           <div className="glob-botones-container">
-            {/* CREAR MESAS: deshabilitado si YA hay alguna mesa creada */}
+            {/* CREAR MESAS */}
             <button
               className="glob-profesor-button glob-hover-effect"
               onClick={() => setAbrirCrear(true)}
@@ -1860,7 +1902,7 @@ const MesasExamen = () => {
               <p>Exportar PDF</p>
             </button>
 
-            {/* ELIMINAR MESAS: SIEMPRE abre el modal si hay mesas (grupos o no agrupadas) */}
+            {/* ELIMINAR MESAS */}
             <button
               className="glob-profesor-button glob-hover-effect"
               onClick={() => setAbrirEliminar(true)}
@@ -1886,7 +1928,6 @@ const MesasExamen = () => {
             await fetchGrupos();
             await fetchNoAgrupadas();
 
-            // Al crear, volvemos a "Grupos"
             setVista("grupos");
 
             notify({
@@ -1894,7 +1935,6 @@ const MesasExamen = () => {
               mensaje: "Mesas creadas y grupos actualizados.",
             });
 
-            // Restaurar scroll después de crear
             restaurarScroll();
           }}
           onError={(mensaje) => {
@@ -1920,7 +1960,6 @@ const MesasExamen = () => {
               mensaje: "Mesas eliminadas correctamente",
             });
 
-            // Restaurar scroll después de eliminar
             restaurarScroll();
           }}
           onError={(mensaje) =>
@@ -1933,7 +1972,7 @@ const MesasExamen = () => {
         />
       )}
 
-      {/* Eliminar individual — siempre habilitado */}
+      {/* Eliminar individual */}
       {abrirEliminarUno && mesaAEliminar?.numero_mesa && (
         <ModalEliminarMesa
           open={abrirEliminarUno}
@@ -1945,7 +1984,6 @@ const MesasExamen = () => {
             await fetchNoAgrupadas();
             notify({ tipo: "exito", mensaje: "Mesa eliminada." });
 
-            // Restaurar scroll después de eliminar individual
             restaurarScroll();
           }}
           onError={(mensaje) =>

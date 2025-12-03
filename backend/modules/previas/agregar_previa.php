@@ -11,7 +11,8 @@ try {
     $pdo->exec("SET NAMES utf8mb4");
 
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        echo json_encode(['exito' => false, 'mensaje' => 'Método no permitido']); exit;
+        echo json_encode(['exito' => false, 'mensaje' => 'Método no permitido']); 
+        exit;
     }
 
     $raw = file_get_contents('php://input');
@@ -21,31 +22,50 @@ try {
     $dni = isset($in['dni']) ? preg_replace('/\D+/', '', $in['dni']) : '';
 
     // Soporte: si vienen apellido/nombre (nuevo front), los componemos "APELLIDO, NOMBRE"
-    $apellido = isset($in['apellido']) ? trim($in['apellido']) : '';
-    $nombre   = isset($in['nombre']) ? trim($in['nombre']) : '';
-    $alumno_in = isset($in['alumno']) ? trim($in['alumno']) : '';
+    $apellido   = isset($in['apellido']) ? trim($in['apellido']) : '';
+    $nombre     = isset($in['nombre'])   ? trim($in['nombre'])   : '';
+    $alumno_in  = isset($in['alumno'])   ? trim($in['alumno'])   : '';
 
     // Componer si corresponde; prioridad: alumno ya armado (del front), sino apellido/nombre
     if ($alumno_in !== '') {
         $alumno = $alumno_in;
-    } else if ($apellido !== '' || $nombre !== '') {
-        $alumno = strtoupper($apellido) . (($apellido !== '' && $nombre !== '') ? ', ' : '') . strtoupper($nombre);
+    } elseif ($apellido !== '' || $nombre !== '') {
+        $alumno = strtoupper($apellido)
+                . (($apellido !== '' && $nombre !== '') ? ', ' : '')
+                . strtoupper($nombre);
     } else {
         $alumno = '';
     }
 
-    // El front asegura que estos sean enteros o null, pero la BD espera int.
-    // Usamos (int) para asegurar un 0 si vienen null/vacío (aunque el front valida > 0)
-    $cursando_id_curso      = (int)($in['cursando_id_curso'] ?? 0);
-    $cursando_id_division   = (int)($in['cursando_id_division'] ?? 0);
-    $id_materia             = (int)($in['id_materia'] ?? 0);
-    $materia_id_curso       = (int)($in['materia_id_curso'] ?? 0);
-    $materia_id_division    = (int)($in['materia_id_division'] ?? 0);
-    $id_condicion           = (int)($in['id_condicion'] ?? 0);
-    $anio                   = (int)($in['anio'] ?? date('Y'));
-    $inscripcion            = (int)($in['inscripcion'] ?? 0);
-    $fecha_carga            = isset($in['fecha_carga']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $in['fecha_carga'])
-                              ? $in['fecha_carga'] : date('Y-m-d');
+    // ---- Cursado (curso + división) ----
+    // Curso siempre como int (0 si no viene)
+    $cursando_id_curso = isset($in['cursando_id_curso']) ? (int)$in['cursando_id_curso'] : 0;
+
+    // División cursando:
+    //  - Si el curso es EGRESADO (id=8) => forzamos NULL
+    //  - Si NO es egresado => tomamos el valor si viene (>0), sino NULL (el front ya valida)
+    $raw_c_div = $in['cursando_id_division'] ?? null;
+    if ($cursando_id_curso === 8) {
+        $cursando_id_division = null;  // 👈 clave: se guarda NULL para egresado
+    } else {
+        if ($raw_c_div === null || $raw_c_div === '') {
+            $cursando_id_division = null;  // o podrías tirar error si querés obligar
+        } else {
+            $tmpDiv = (int)$raw_c_div;
+            $cursando_id_division = $tmpDiv > 0 ? $tmpDiv : null;
+        }
+    }
+
+    // ---- Datos de la materia/previa ----
+    $id_materia          = (int)($in['id_materia'] ?? 0);
+    $materia_id_curso    = (int)($in['materia_id_curso'] ?? 0);
+    $materia_id_division = (int)($in['materia_id_division'] ?? 0);
+    $id_condicion        = (int)($in['id_condicion'] ?? 0);
+    $anio                = (int)($in['anio'] ?? date('Y'));
+    $inscripcion         = (int)($in['inscripcion'] ?? 0);
+    $fecha_carga         = isset($in['fecha_carga']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $in['fecha_carga'])
+                           ? $in['fecha_carga']
+                           : date('Y-m-d');
 
     // ---- Validaciones mínimas ----
     if ($dni === '' || !preg_match('/^\d{7,9}$/', $dni)) {
@@ -54,11 +74,21 @@ try {
     if ($alumno === '') {
         throw new InvalidArgumentException('El nombre del alumno es obligatorio');
     }
-    // Validaciones de la previa específica (curso/división cursando puede ser 0 si es EGRESADO, pero el front ya lo maneja)
-    if ($id_materia <= 0) throw new InvalidArgumentException('id_materia es obligatorio');
-    if ($materia_id_curso <= 0) throw new InvalidArgumentException('materia_id_curso es obligatorio');
-    if ($materia_id_division <= 0) throw new InvalidArgumentException('materia_id_division es obligatorio');
-    if ($id_condicion <= 0) throw new InvalidArgumentException('id_condicion es obligatorio');
+
+    // Validaciones de la previa específica
+    // (curso/división cursando puede llevar división NULL si es EGRESADO, eso ya lo manejamos arriba)
+    if ($id_materia <= 0) {
+        throw new InvalidArgumentException('id_materia es obligatorio');
+    }
+    if ($materia_id_curso <= 0) {
+        throw new InvalidArgumentException('materia_id_curso es obligatorio');
+    }
+    if ($materia_id_division <= 0) {
+        throw new InvalidArgumentException('materia_id_division es obligatorio');
+    }
+    if ($id_condicion <= 0) {
+        throw new InvalidArgumentException('id_condicion es obligatorio');
+    }
 
     // ---- Insert ----
     $sql = "INSERT INTO previas
@@ -69,22 +99,22 @@ try {
              :m_curso, :m_div, :id_cond, :insc, :anio, :fecha)";
     $st = $pdo->prepare($sql);
     $st->execute([
-        ':dni'      => $dni,
-        ':alumno'   => $alumno, // <— ya viene "APELLIDO, NOMBRE"
-        ':c_curso'  => $cursando_id_curso,
-        ':c_div'    => $cursando_id_division,
-        ':id_materia'=> $id_materia,
-        ':m_curso'  => $materia_id_curso,
-        ':m_div'    => $materia_id_division,
-        ':id_cond'  => $id_condicion,
-        ':insc'     => $inscripcion ? 1 : 0,
-        ':anio'     => $anio,
-        ':fecha'    => $fecha_carga,
+        ':dni'        => $dni,
+        ':alumno'     => $alumno, // <— ya viene "APELLIDO, NOMBRE"
+        ':c_curso'    => $cursando_id_curso,
+        ':c_div'      => $cursando_id_division,   // 👈 puede ser NULL si es egresado
+        ':id_materia' => $id_materia,
+        ':m_curso'    => $materia_id_curso,
+        ':m_div'      => $materia_id_division,
+        ':id_cond'    => $id_condicion,
+        ':insc'       => $inscripcion ? 1 : 0,
+        ':anio'       => $anio,
+        ':fecha'      => $fecha_carga,
     ]);
 
     $id = (int)$pdo->lastInsertId();
 
-    // Devolvemos el ID de la nueva previa
+    // Devolvemos el registro recién insertado
     $q = $pdo->prepare("
         SELECT p.*
         FROM previas p
@@ -94,9 +124,9 @@ try {
     $q->execute([':id' => $id]);
     $fila = $q->fetch(PDO::FETCH_ASSOC);
 
-    // Se mantiene la estructura, se elimina la devolución de campos vacíos
     echo json_encode(['exito' => true, 'previa' => $fila]);
 } catch (Throwable $e) {
+    // Mantengo 200 para que el front siempre pueda parsear el JSON
     http_response_code(200);
     echo json_encode(['exito' => false, 'mensaje' => $e->getMessage()]);
 }
