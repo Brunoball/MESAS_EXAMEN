@@ -1,6 +1,6 @@
 // src/components/MesasExamen/modales/ModalMoverMesa.jsx
 import React, { useEffect, useMemo, useState, useCallback } from "react";
-import { FaTimes, FaCheck } from "react-icons/fa";
+import { FaTimes, FaCheck, FaSearch } from "react-icons/fa";
 import BASE_URL from "../../../config/config";
 
 /**
@@ -329,7 +329,7 @@ const ModalMoverMesa = ({
                       </label>
                       <div className="mi-input__wrapper">
                         <span className="mi-input__icon" aria-hidden="true">
-                          🔍
+                          <FaSearch />
                         </span>
                         <input
                           id="buscar-grupo-mesa"
