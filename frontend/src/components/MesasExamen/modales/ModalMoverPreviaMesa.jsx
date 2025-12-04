@@ -114,7 +114,6 @@ const ModalMoverPreviaMesa = ({ open, previa, onClose, onMoved }) => {
       if (typeof onMoved === "function") {
         onMoved(json);
       }
-      // No cerramos acá directamente el modal de previas, eso lo hace el padre.
       // Este modal se cierra cuando el padre hace setSelectedPrevia(null).
     } catch (e) {
       const msg = e.message || "Error al mover la previa de mesa.";
@@ -133,19 +132,22 @@ const ModalMoverPreviaMesa = ({ open, previa, onClose, onMoved }) => {
     >
       <div className="modal-mover-previa-container" onClick={stop}>
         <header className="modal-mover-previa-header">
-          <h3 className="modal-mover-previa-title">
-            Mover previa de {previa.alumno}
-          </h3>
-          {materiaNombre && (
-            <p className="modal-mover-previa-subtitle">
-              Materia: <strong>{materiaNombre}</strong>
-            </p>
-          )}
-          {numeroMesaActual && (
-            <p className="modal-mover-previa-subtitle">
-              Mesa actual: <strong>Nº {numeroMesaActual}</strong>
-            </p>
-          )}
+          <div className="modal-mover-previa-headtext">
+            <h3 className="modal-mover-previa-title">
+              Mover previa de {previa.alumno}
+            </h3>
+            {materiaNombre && (
+              <p className="modal-mover-previa-subtitle">
+                Materia: <strong>{materiaNombre}</strong>
+              </p>
+            )}
+            {numeroMesaActual && (
+              <p className="modal-mover-previa-subtitle">
+                Mesa actual: <strong>Nº {numeroMesaActual}</strong>
+              </p>
+            )}
+          </div>
+
           <button
             type="button"
             className="modal-mover-previa-close"
@@ -202,7 +204,7 @@ const ModalMoverPreviaMesa = ({ open, previa, onClose, onMoved }) => {
 
                         return (
                           <tr key={m.numero_mesa}>
-                            <td>
+                            <td style={{ textAlign: "center" }}>
                               <input
                                 type="radio"
                                 name="dest_mesa"
@@ -217,7 +219,9 @@ const ModalMoverPreviaMesa = ({ open, previa, onClose, onMoved }) => {
                                 disabled={moving}
                               />
                             </td>
-                            <td>{m.numero_mesa}</td>
+                            <td style={{ textAlign: "center" }}>
+                              {m.numero_mesa}
+                            </td>
                             <td>{fechaFmt || "-"}</td>
                             <td>{m.nombre_turno || "-"}</td>
                             <td>{materiaDestino}</td>

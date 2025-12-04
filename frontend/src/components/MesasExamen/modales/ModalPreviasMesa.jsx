@@ -108,19 +108,20 @@ const ModalPreviasMesa = ({ open, onClose, numeroMesa, onPreviaMoved }) => {
   return (
     <>
       <div
-        className="modal-previas-overlay"
+        className="mprev_overlay"
         role="dialog"
         aria-modal="true"
         onClick={handleOverlayClick}
       >
-        <div className="modal-previas-container" onClick={stop}>
-          <header className="modal-previas-header">
-            <h3 className="modal-previas-title">
+        <div className="mprev_modal" onClick={stop}>
+          {/* HEADER con gradiente como ModalAgregarMesas */}
+          <header className="mprev_header">
+            <h3 className="mprev_title">
               Previas de la mesa Nº {numeroMesa}
             </h3>
             <button
               type="button"
-              className="modal-previas-close"
+              className="mprev_close"
               onClick={onClose}
               disabled={loading}
               aria-label="Cerrar"
@@ -129,24 +130,25 @@ const ModalPreviasMesa = ({ open, onClose, numeroMesa, onPreviaMoved }) => {
             </button>
           </header>
 
-          <div className="modal-previas-body">
+          {/* BODY mismo estilo de body que el otro modal */}
+          <div className="mprev_body">
             {loading && (
-              <p className="modal-previas-info">Cargando previas…</p>
+              <p className="mprev_info">Cargando previas…</p>
             )}
 
             {error && !loading && (
-              <p className="modal-previas-error">{error}</p>
+              <p className="mprev_error">{error}</p>
             )}
 
             {!loading && !error && (
               <>
                 {previas.length === 0 ? (
-                  <p className="modal-previas-info">
+                  <p className="mprev_info">
                     No hay previas asignadas a esta mesa.
                   </p>
                 ) : (
-                  <div className="modal-previas-table-wrapper">
-                    <table className="modal-previas-table">
+                  <div className="mprev_tablewrapper">
+                    <table className="mprev_table">
                       <thead>
                         <tr>
                           <th>DNI</th>
@@ -168,10 +170,10 @@ const ModalPreviasMesa = ({ open, onClose, numeroMesa, onPreviaMoved }) => {
                               <td>{p.dni}</td>
                               <td>{p.alumno}</td>
                               <td>{cursoCompleto}</td>
-                              <td className="modal-previas-actions">
+                              <td className="mprev_actions">
                                 <button
                                   type="button"
-                                  className="modal-previas-action-btn"
+                                  className="mprev_actionbtn"
                                   title="Mover esta previa a otra mesa de la misma materia"
                                   onClick={() => handleAbrirMoverPrevia(p)}
                                 >
@@ -189,10 +191,11 @@ const ModalPreviasMesa = ({ open, onClose, numeroMesa, onPreviaMoved }) => {
             )}
           </div>
 
-          <footer className="modal-previas-footer">
+          {/* FOOTER igual estilo que el otro modal */}
+          <footer className="mprev_footer">
             <button
               type="button"
-              className="modal-previas-footer-btn"
+              className="mprev_btnclose"
               onClick={onClose}
               disabled={loading}
             >
