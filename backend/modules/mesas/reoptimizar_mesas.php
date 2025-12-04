@@ -5,12 +5,14 @@
 //   - Usa docentes_bloques_no para bloqueos.
 //   - Mantiene lógica de 7° año y 3° técnico especial.
 //   - Nunca deja mesas “perdidas”: siempre están en grupo o en mesas_no_agrupadas.
-//   - CORRELATIVIDAD ESTRICTA: si un alumno tiene materia base y avanzada,
-//       la base (curso más bajo) va si o si ANTES en el calendario.
-//
-// Esta versión además:
-//   - Corrige inversiones ya armadas (como tu caso Aguirre: 6° antes que 5°).
-//   - Evita ONLY_FULL_GROUP_BY.
+//   - CORRELATIVIDAD ESTRICTA:
+//        * Dos materias son correlativas si materias.correlativa es el mismo
+//          número (>0) para ambas.
+//        * Para cada alumno (dni) y cada valor de correlativa, la materia con
+//          menor materia_id_curso es la BASE y DEBE IR ANTES en el calendario
+//          que las otras (avanzadas).
+//        * Esa mesa base se marca con prioridad = 1, y el algoritmo favorece
+//          que las prioridad 1 entren en slots tempranos.
 // -----------------------------------------------------------------------------
 
 declare(strict_types=1);
@@ -210,7 +212,7 @@ try {
             FROM mesas
             WHERE fecha_mesa IS NOT NULL
         ")->fetch(PDO::FETCH_ASSOC);
-        if (!$rowMin || !$rowMin['fmin'] || !$rowMin['fmax']) {
+        if (!$rowMin || $rowMin['fmin'] === null || $rowMin['fmax'] === null) {
             bad_request("No hay fechas agendadas para deducir rango. Enviá 'fecha_inicio' y 'fecha_fin'.");
         }
         $fi = $fi ?: $rowMin['fmin'];
@@ -379,7 +381,6 @@ try {
 
     // ------------------------------------------------------------------
     // PRIORIDAD POR CORRELATIVIDAD
-    //   prioridadMesa[numero_mesa] = 1 si es materia base (correlativa)
     // ------------------------------------------------------------------
     $prioridadMesa = [];
     $rowsPrio = $pdo->query("SELECT numero_mesa, prioridad FROM mesas")->fetchAll(PDO::FETCH_ASSOC);
@@ -398,7 +399,8 @@ try {
         INNER JOIN previas  p   ON p.id_previa   = m.id_previa
         INNER JOIN materias mat ON mat.id_materia = p.id_materia
         WHERE p.inscripcion = 1
-          AND p.id_condicion = 3
+          AND mat.correlativa IS NOT NULL
+          AND mat.correlativa <> 0
     ";
     $rowsMesaMat = $pdo->query($sqlMesaMat)->fetchAll(PDO::FETCH_ASSOC);
 
@@ -409,22 +411,22 @@ try {
         $porDni[$dni][$nm] = [
             'id_materia'  => (int)$r['id_materia'],
             'curso'       => (int)$r['materia_id_curso'],
-            'correlativa' => $r['correlativa'] !== null ? (int)$r['correlativa'] : 0,
+            'correlativa' => (int)$r['correlativa'],
         ];
     }
 
     foreach ($porDni as $dni => $mesasAlumno) {
-        $porMateria = [];
+        $porCorr = [];
         foreach ($mesasAlumno as $nm => $info) {
-            $porMateria[$info['id_materia']][] = $nm;
+            $corr = $info['correlativa'];
+            if ($corr <= 0) continue;
+            $porCorr[$corr][$nm] = $info;
         }
-        foreach ($mesasAlumno as $nmAdv => $infoAdv) {
-            $corr = $infoAdv['correlativa'];
-            if ($corr === 0) continue;
-            if (!isset($porMateria[$corr])) continue;
-            foreach ($porMateria[$corr] as $nmBase) {
-                $prioridadMesa[$nmBase] = 1;
-            }
+        foreach ($porCorr as $corr => $mesasCorr) {
+            if (count($mesasCorr) < 2) continue;
+            uasort($mesasCorr, fn($a,$b)=>$a['curso'] <=> $b['curso']);
+            $nmBase = array_key_first($mesasCorr);
+            $prioridadMesa[$nmBase] = 1;
         }
     }
 
@@ -483,6 +485,7 @@ try {
             if (!$ok) continue;
 
             $score = $slotCarga[$s];
+
             if ($tienePrioridad && $S > 0) {
                 $bloque = max(1, (int)ceil($S / 3));
                 $bloqueIdx = (int)floor($s / $bloque);
@@ -577,7 +580,7 @@ try {
     };
 
     // ------------------------------------------------------------------
-    // REOPTIMIZACIÓN PRINCIPAL (como tenías + correlatividad después)
+    // REOPTIMIZACIÓN PRINCIPAL
     // ------------------------------------------------------------------
     $iter           = 0;
     $cambiosTotales = 0;
@@ -815,7 +818,6 @@ try {
             INNER JOIN catedras c   ON c.id_catedra  = m.id_catedra
             INNER JOIN materias mat ON mat.id_materia = c.id_materia
             WHERE p.inscripcion = 1
-              AND p.id_condicion = 3
               AND (m.fecha_mesa IS NULL OR m.id_turno IS NULL)
               AND m.numero_mesa IS NOT NULL
             ORDER BY m.prioridad DESC, m.numero_mesa
@@ -860,7 +862,7 @@ try {
     }
 
     // ------------------------------------------------------------------
-    // ENFORCE CORRELATIVIDAD: corregir inversiones (tipo Aguirre 6° antes que 5°)
+    // ENFORCE CORRELATIVIDAD (materias.correlativa)
     // ------------------------------------------------------------------
     if (!$dryRun) {
         $infoMesa=$pdo->query("
@@ -868,30 +870,39 @@ try {
                    p.dni, p.materia_id_curso, mat.correlativa, mat.id_area
             FROM mesas m
             INNER JOIN previas p    ON p.id_previa=m.id_previa
-            INNER JOIN catedras c   ON c.id_catedra=m.id_catedra
-            INNER JOIN materias mat ON mat.id_materia=c.id_materia
-            WHERE p.inscripcion=1 AND p.id_condicion=3
+            INNER JOIN materias mat ON mat.id_materia=p.id_materia
+            WHERE p.inscripcion=1
+              AND mat.correlativa IS NOT NULL
+              AND mat.correlativa <> 0
         ")->fetchAll(PDO::FETCH_ASSOC);
 
         $porClave=[];
         foreach ($infoMesa as $r){
-            if ($r['correlativa']===null || $r['correlativa']==='0' || $r['correlativa']==0) continue;
-            $porClave[$r['dni'].'|'.$r['correlativa']][]=$r;
+            $clave = $r['dni'].'|'.$r['correlativa'];
+            $porClave[$clave][]=$r;
         }
 
         foreach ($porClave as $clave=>$lst){
             usort($lst, fn($a,$b)=>((int)$a['materia_id_curso']<=> (int)$b['materia_id_curso']));
 
             $base=$lst[0];
-            $baseIdx = ($base['fecha_mesa'] && $base['id_turno']) ? $slotIndex($base['fecha_mesa'], (int)$base['id_turno']) : -1;
+            $baseIdx = ($base['fecha_mesa'] && $base['id_turno'])
+                ? $slotIndex($base['fecha_mesa'], (int)$base['id_turno'])
+                : -1;
 
             for ($i=1;$i<count($lst);$i++){
                 $adv=$lst[$i];
-                $advIdx = ($adv['fecha_mesa'] && $adv['id_turno']) ? $slotIndex($adv['fecha_mesa'], (int)$adv['id_turno']) : -1;
+
+                if ((int)$adv['materia_id_curso'] === (int)$base['materia_id_curso']) {
+                    continue;
+                }
+
+                $advIdx = ($adv['fecha_mesa'] && $adv['id_turno'])
+                    ? $slotIndex($adv['fecha_mesa'], (int)$adv['id_turno'])
+                    : -1;
 
                 if ($baseIdx>=0 && $advIdx>=0 && $advIdx <= $baseIdx){
-                    // Intentar mover avanzada a slot posterior
-                    $nums=[(int)$adv['numero_mesa']];
+                    // 1) mover avanzada a posterior
                     $dnisLocal=$dnisPorNumero[(int)$adv['numero_mesa']] ?? [];
                     $nuevoIdx=-1;
                     for ($s=$baseIdx+1;$s<$S;$s++){
@@ -925,7 +936,7 @@ try {
                         ];
                         $advIdx=$nuevoIdx;
                     } else {
-                        // No hay lugar posterior: intentar mover base a un slot anterior
+                        // 2) mover base a anterior
                         $dnisBase=$dnisPorNumero[(int)$base['numero_mesa']] ?? [];
                         $nuevoBaseIdx=-1;
                         for ($s=0;$s<$advIdx;$s++){
@@ -1080,10 +1091,9 @@ try {
     }
 
     // ------------------------------------------------------------------
-    // SANIDAD FINAL, LIMPIEZAS Y RED DE SEGURIDAD
+    // SANIDAD FINAL Y RED DE SEGURIDAD
     // ------------------------------------------------------------------
     if (!$dryRun) {
-        // singles no especiales -> mesas_no_agrupadas
         $pdo->exec("
             INSERT IGNORE INTO mesas_no_agrupadas (numero_mesa, fecha_mesa, id_turno, hora)
             SELECT
@@ -1136,7 +1146,6 @@ try {
               )
         ");
 
-        // alinear mesas_no_agrupadas con mesas
         $pdo->exec("
             DELETE l
             FROM mesas_no_agrupadas l
@@ -1147,7 +1156,6 @@ try {
             WHERE m.numero_mesa IS NULL
         ");
 
-        // quitar duplicados grupo/no_agrupadas
         $pdo->exec("
             DELETE l
             FROM mesas_no_agrupadas l
@@ -1156,7 +1164,6 @@ try {
             WHERE l.numero_mesa IN (g.numero_mesa_1, g.numero_mesa_2, g.numero_mesa_3, g.numero_mesa_4)
         ");
 
-        // sanidad fuerte grupos
         $pdo->exec("
             DELETE g
             FROM mesas_grupos g
@@ -1187,7 +1194,6 @@ try {
               OR (g.numero_mesa_4 > 0 AND m4.numero_mesa IS NULL)
         ");
 
-        // red de seguridad
         $pdo->exec("
             INSERT IGNORE INTO mesas_no_agrupadas (numero_mesa, fecha_mesa, id_turno, hora)
             SELECT m.numero_mesa, m.fecha_mesa, m.id_turno,
@@ -1229,10 +1235,8 @@ try {
             'fallidos'     => $detalleFail,
         ],
         'nota' =>
-          'Correlatividad aplicada: para cada alumno y materia correlativa, ' .
-          'la mesa base (curso más bajo) queda cronológicamente antes que la avanzada. ' .
-          'Si estaba al revés, se mueve la avanzada a un slot posterior; si no hay lugar, ' .
-          'se intenta mover la base a uno anterior, respetando docentes, alumnos y estructura.'
+          'Correlatividad aplicada usando materias.correlativa: para cada alumno y cada valor de correlativa, ' .
+          'la mesa base (menor materia_id_curso) queda cronológicamente antes que las avanzadas.'
     ]);
 
 } catch (Throwable $e) {

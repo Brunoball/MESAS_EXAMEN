@@ -8,7 +8,7 @@ import BASE_URL from "../../../config/config";
  * - Reutiliza clases: mi-modal__*, mi-card, mi-input, mi-btn, etc.
  */
 import "./ModalCrearMesas.css"; // ⬅️ Reutilizamos todo el theme ya existente
-import "./ModalMoverMesa.css"; // ⬅️ (Opcional) pequeños ajustes locales
+import "./ModalMoverMesa.css"; // ⬅️ Ajustes locales
 
 const turnoLabel = (idTurno) => {
   const n = Number(idTurno);
@@ -18,12 +18,44 @@ const turnoLabel = (idTurno) => {
   return `Turno ${idTurno}`;
 };
 
+// Resalta el término de búsqueda dentro de un texto, en negro/negrita
+const highlightText = (text, term) => {
+  if (!term) return text;
+  if (!text) return "";
+
+  const str = String(text);
+  const lowerText = str.toLowerCase();
+  const lowerTerm = term.toLowerCase();
+
+  const parts = [];
+  let start = 0;
+  let index;
+
+  while ((index = lowerText.indexOf(lowerTerm, start)) !== -1) {
+    if (index > start) {
+      parts.push(str.slice(start, index));
+    }
+    parts.push(
+      <span key={index} className="mi-highlight">
+        {str.slice(index, index + lowerTerm.length)}
+      </span>
+    );
+    start = index + lowerTerm.length;
+  }
+
+  if (start < str.length) {
+    parts.push(str.slice(start));
+  }
+
+  return parts;
+};
+
 const ModalMoverMesa = ({
   open,
   onClose,
   numeroMesaOrigen, // número a mover
-  fechaObjetivo, // YYYY-MM-DD
-  idTurnoObjetivo, // number | null
+  fechaObjetivo, // YYYY-MM-DD (solo informativo ahora)
+  idTurnoObjetivo, // number | null (solo informativo ahora)
   onMoved,
   onError,
 }) => {
@@ -31,6 +63,7 @@ const ModalMoverMesa = ({
   const [grupos, setGrupos] = useState([]); // grupos incompletos
   const [destino, setDestino] = useState("");
   const [detallesPorMesa, setDetallesPorMesa] = useState({}); // numero_mesa -> { materia, docentes }
+  const [search, setSearch] = useState("");
 
   const closeIfOverlay = useCallback(
     (e) => {
@@ -46,6 +79,7 @@ const ModalMoverMesa = ({
       setGrupos([]);
       setDetallesPorMesa({});
 
+      // Seguimos enviando fecha/turno, aunque el backend ahora devuelve TODOS los incompletos
       const body = {
         fecha_mesa: fechaObjetivo || null,
         id_turno: idTurnoObjetivo ?? null,
@@ -154,11 +188,47 @@ const ModalMoverMesa = ({
   };
 
   useEffect(() => {
-    if (open) cargarGrupos();
+    if (open) {
+      setSearch("");
+      setDestino("");
+      cargarGrupos();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, numeroMesaOrigen, fechaObjetivo, idTurnoObjetivo]);
 
   const puedeMover = useMemo(() => !!destino, [destino]);
+
+  // Filtrado por búsqueda (materia, docente o número de mesa)
+  const gruposFiltrados = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return grupos;
+
+    return grupos.filter((g) => {
+      const numeros = [
+        g.numero_mesa_1,
+        g.numero_mesa_2,
+        g.numero_mesa_3,
+        g.numero_mesa_4,
+      ]
+        .map((n) => Number(n || 0))
+        .filter((n) => n > 0);
+
+      // Si matchea por ID de grupo, también lo dejamos
+      if (String(g.id_grupo).toLowerCase().includes(term)) return true;
+
+      for (const n of numeros) {
+        const info = detallesPorMesa[n] || {};
+        const materia = (info.materia || "").toLowerCase();
+        const docentes = (info.docentes || "").toLowerCase();
+
+        if (materia.includes(term)) return true;
+        if (docentes.includes(term)) return true;
+        if (String(n).toLowerCase().includes(term)) return true;
+      }
+
+      return false;
+    });
+  }, [grupos, detallesPorMesa, search]);
 
   const mover = async () => {
     try {
@@ -188,13 +258,16 @@ const ModalMoverMesa = ({
   if (!open) return null;
 
   const subTitle = [
-    fechaObjetivo ? `Fecha: ${fechaObjetivo}` : null,
+    fechaObjetivo ? `Fecha sugerida: ${fechaObjetivo}` : null,
     Number.isFinite(Number(idTurnoObjetivo))
-      ? `Turno: ${turnoLabel(idTurnoObjetivo)}`
+      ? `Turno sugerido: ${turnoLabel(idTurnoObjetivo)}`
       : null,
   ]
     .filter(Boolean)
     .join(" · ");
+
+  const hayGrupos = grupos.length > 0;
+  const hayFiltrados = gruposFiltrados.length > 0;
 
   return (
     <div className="mi-modal__overlay" onClick={closeIfOverlay}>
@@ -212,7 +285,7 @@ const ModalMoverMesa = ({
               Mover número {numeroMesaOrigen}
             </h2>
             <p className="mi-modal__subtitle">
-              {subTitle || "Seleccioná el grupo de destino"}
+              {subTitle || "Seleccioná el grupo de destino para la mesa."}
             </p>
           </div>
           <button
@@ -234,101 +307,161 @@ const ModalMoverMesa = ({
 
                 {loading ? (
                   <p className="mi-help">Cargando grupos…</p>
-                ) : grupos.length === 0 ? (
+                ) : !hayGrupos ? (
                   <p className="mi-help">
-                    No hay grupos con lugar para la fecha/turno seleccionados.
+                    No hay grupos con lugar disponibles en este momento.
                   </p>
                 ) : (
                   <>
                     <p className="mi-help">
-                      Elegí a qué grupo querés mover la mesa. Solo aparecen
-                      grupos de la misma fecha y turno, con al menos un slot
-                      libre.
+                      Elegí a qué grupo querés mover la mesa. Se muestran todos
+                      los grupos con al menos un slot libre. Podés filtrar por
+                      materia, docente, número de mesa o ID de grupo.
                     </p>
 
-                    <div className="mi-grid-destinos">
-                      {grupos.map((g) => {
-                        const numeros = [
-                          g.numero_mesa_1,
-                          g.numero_mesa_2,
-                          g.numero_mesa_3,
-                          g.numero_mesa_4,
-                        ]
-                          .map((n) => Number(n || 0))
-                          .filter((n) => n > 0);
-
-                        const libres = 4 - numeros.length;
-                        const isSelected =
-                          String(destino) === String(g.id_grupo);
-
-                        return (
-                          <div
-                            key={g.id_grupo}
-                            className={`mi-card mi-card--destino ${
-                              isSelected ? "is-selected" : ""
-                            }`}
-                            role="button"
-                            tabIndex={0}
-                            onClick={() =>
-                              setDestino(String(g.id_grupo))
-                            }
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" || e.key === " ") {
-                                e.preventDefault();
-                                setDestino(String(g.id_grupo));
-                              }
-                            }}
-                          >
-                            <div className="mi-card__header-row">
-                              <span className="mi-pill">
-                                Grupo {g.id_grupo}
-                              </span>
-                              <span className="mi-pill mi-pill--soft">
-                                Libres: {libres}
-                              </span>
-                            </div>
-
-                            <div className="mi-card__meta">
-                              <span>{g.fecha_mesa}</span>
-                              <span>Turno: {turnoLabel(g.id_turno)}</span>
-                            </div>
-
-                            <div className="mi-card__body">
-                              <p className="mi-card__subtitle">
-                                Mesas del grupo
-                              </p>
-                              <ul className="mi-list mi-list--compact">
-                                {numeros.length === 0 && (
-                                  <li className="mi-list__item">
-                                    Este grupo todavía no tiene mesas asignadas.
-                                  </li>
-                                )}
-                                {numeros.map((n) => {
-                                  const info = detallesPorMesa[n] || {};
-                                  return (
-                                    <li
-                                      key={n}
-                                      className="mi-list__item"
-                                    >
-                                      <strong>N° {n}:</strong>{" "}
-                                      {info.materia || "Sin materia"}
-                                      {info.docentes
-                                        ? ` — Docentes: ${info.docentes}`
-                                        : ""}
-                                    </li>
-                                  );
-                                })}
-                              </ul>
-                            </div>
-                          </div>
-                        );
-                      })}
+                    {/* Buscador */}
+                    <div className="mi-input mi-input--block mi-input--search">
+                      <label
+                        htmlFor="buscar-grupo-mesa"
+                        className="mi-input__label"
+                      >
+                        Buscar grupo por materia, docente o número
+                      </label>
+                      <div className="mi-input__wrapper">
+                        <span className="mi-input__icon" aria-hidden="true">
+                          🔍
+                        </span>
+                        <input
+                          id="buscar-grupo-mesa"
+                          type="text"
+                          className="mi-input__field"
+                          placeholder="Ej: Matemática · PÉREZ · 120 · Grupo 5"
+                          value={search}
+                          onChange={(e) => setSearch(e.target.value)}
+                        />
+                      </div>
                     </div>
 
-                    <p className="mi-help">
-                      Al mover, la mesa adoptará la fecha y el turno del grupo
-                      destino.
-                    </p>
+                    {!hayFiltrados ? (
+                      <p className="mi-help">
+                        No se encontraron grupos que coincidan con la búsqueda.
+                      </p>
+                    ) : (
+                      <>
+                        <div className="mi-grid-destinos">
+                          {gruposFiltrados.map((g) => {
+                            const numeros = [
+                              g.numero_mesa_1,
+                              g.numero_mesa_2,
+                              g.numero_mesa_3,
+                              g.numero_mesa_4,
+                            ]
+                              .map((n) => Number(n || 0))
+                              .filter((n) => n > 0);
+
+                            const libres = 4 - numeros.length;
+                            const isSelected =
+                              String(destino) === String(g.id_grupo);
+
+                            return (
+                              <div
+                                key={g.id_grupo}
+                                className={`mi-card mi-card--destino ${
+                                  isSelected ? "is-selected" : ""
+                                }`}
+                                role="button"
+                                tabIndex={0}
+                                onClick={() =>
+                                  setDestino(String(g.id_grupo))
+                                }
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" || e.key === " ") {
+                                    e.preventDefault();
+                                    setDestino(String(g.id_grupo));
+                                  }
+                                }}
+                              >
+                                <div className="mi-card__header-row">
+                                  <span className="mi-pill">
+                                    Grupo{" "}
+                                    {highlightText(
+                                      String(g.id_grupo),
+                                      search
+                                    )}
+                                  </span>
+                                  <span className="mi-pill mi-pill--soft">
+                                    Libres: {libres}
+                                  </span>
+                                </div>
+
+                                <div className="mi-card__meta">
+                                  <span>{g.fecha_mesa}</span>
+                                  <span>
+                                    Turno: {turnoLabel(g.id_turno)}
+                                  </span>
+                                </div>
+
+                                <div className="mi-card__body">
+                                  <p className="mi-card__subtitle">
+                                    Mesas del grupo
+                                  </p>
+                                  <ul className="mi-list mi-list--compact">
+                                    {numeros.length === 0 && (
+                                      <li className="mi-list__item">
+                                        Este grupo todavía no tiene mesas
+                                        asignadas.
+                                      </li>
+                                    )}
+                                    {numeros.map((n) => {
+                                      const info = detallesPorMesa[n] || {};
+                                      const materia =
+                                        info.materia || "Sin materia";
+                                      const docentes =
+                                        info.docentes || "";
+
+                                      return (
+                                        <li
+                                          key={n}
+                                          className="mi-list__item"
+                                        >
+                                          <strong>
+                                            N°{" "}
+                                            {highlightText(
+                                              String(n),
+                                              search
+                                            )}
+                                            :
+                                          </strong>{" "}
+                                          {highlightText(
+                                            materia,
+                                            search
+                                          )}
+                                          {docentes && (
+                                            <>
+                                              {" "}
+                                              —{" "}
+                                              {highlightText(
+                                                docentes,
+                                                search
+                                              )}
+                                            </>
+                                          )}
+                                        </li>
+                                      );
+                                    })}
+                                  </ul>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        <p className="mi-help">
+                          Al mover, la mesa adoptará la fecha y el turno del
+                          grupo destino.
+                        </p>
+                      </>
+                    )}
                   </>
                 )}
               </article>
