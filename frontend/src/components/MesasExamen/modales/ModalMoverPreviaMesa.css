@@ -257,3 +257,59 @@
 .modal-mover-previa-table td {
   text-align: center !important;
 }
+/* Fila seleccionada */
+.mmp_row.selected {
+  background: #dbeafe !important;
+}
+
+.mmp_row {
+  cursor: pointer;
+}
+
+.mmp_row:hover {
+  background: #f0f7ff;
+}
+/* Indicador de selección tipo "dot" */
+.modal-mover-previa-table input[type="radio"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 2px solid #9ca3af;   /* grisito base */
+  background: #ffffff;
+  display: inline-block;
+  cursor: pointer;
+  position: relative;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background-color 0.15s ease;
+}
+
+/* Estado seleccionado: borde azul + punto interno */
+.modal-mover-previa-table input[type="radio"]:checked {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.22);
+}
+
+/* "Dot" interno cuando está seleccionado */
+.modal-mover-previa-table input[type="radio"]:checked::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 999px;
+  background: #2563eb;
+}
+
+/* Disabled (cuando se está moviendo) */
+.modal-mover-previa-table input[type="radio"]:disabled {
+  border-color: #d1d5db;
+  background: #f3f4f6;
+  cursor: default;
+  box-shadow: none;
+}
+
+.modal-mover-previa-table input[type="radio"]:disabled::after {
+  background: #9ca3af;
+}

@@ -110,11 +110,9 @@ const ModalMoverPreviaMesa = ({ open, previa, onClose, onMoved }) => {
         throw new Error(json?.mensaje || `HTTP ${resp.status}`);
       }
 
-      // Avisamos al padre que se movió OK (para cerrar ambos modales y mostrar toast)
       if (typeof onMoved === "function") {
         onMoved(json);
       }
-      // Este modal se cierra cuando el padre hace setSelectedPrevia(null).
     } catch (e) {
       const msg = e.message || "Error al mover la previa de mesa.";
       setError(msg);
@@ -131,6 +129,7 @@ const ModalMoverPreviaMesa = ({ open, previa, onClose, onMoved }) => {
       onClick={handleOverlayClick}
     >
       <div className="modal-mover-previa-container" onClick={stop}>
+        {/* HEADER */}
         <header className="modal-mover-previa-header">
           <div className="modal-mover-previa-headtext">
             <h3 className="modal-mover-previa-title">
@@ -159,12 +158,14 @@ const ModalMoverPreviaMesa = ({ open, previa, onClose, onMoved }) => {
           </button>
         </header>
 
+        {/* BODY */}
         <div className="modal-mover-previa-body">
           {loading && (
             <p className="modal-mover-previa-info">
               Cargando mesas de la misma materia…
             </p>
           )}
+
           {error && !loading && (
             <p className="modal-mover-previa-error">{error}</p>
           )}
@@ -201,27 +202,27 @@ const ModalMoverPreviaMesa = ({ open, previa, onClose, onMoved }) => {
 
                         const materiaDestino = m.materia || materiaNombre || "-";
                         const docenteDestino = m.docente || "-";
+                        const isSelected =
+                          Number(selectedNumeroMesa) ===
+                          Number(m.numero_mesa);
 
                         return (
-                          <tr key={m.numero_mesa}>
-                            <td style={{ textAlign: "center" }}>
+                          <tr
+                            key={m.numero_mesa}
+                            className={`mmp_row ${isSelected ? "selected" : ""}`}
+                            onClick={() => handleSelectMesa(m.numero_mesa)}
+                          >
+                            <td>
                               <input
                                 type="radio"
                                 name="dest_mesa"
                                 value={m.numero_mesa}
-                                checked={
-                                  Number(selectedNumeroMesa) ===
-                                  Number(m.numero_mesa)
-                                }
-                                onChange={() =>
-                                  handleSelectMesa(m.numero_mesa)
-                                }
+                                checked={isSelected}
+                                readOnly
                                 disabled={moving}
                               />
                             </td>
-                            <td style={{ textAlign: "center" }}>
-                              {m.numero_mesa}
-                            </td>
+                            <td>{m.numero_mesa}</td>
                             <td>{fechaFmt || "-"}</td>
                             <td>{m.nombre_turno || "-"}</td>
                             <td>{materiaDestino}</td>
@@ -237,6 +238,7 @@ const ModalMoverPreviaMesa = ({ open, previa, onClose, onMoved }) => {
           )}
         </div>
 
+        {/* FOOTER */}
         <footer className="modal-mover-previa-footer">
           <button
             type="button"
