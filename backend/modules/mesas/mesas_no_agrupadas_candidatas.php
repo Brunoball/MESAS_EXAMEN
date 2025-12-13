@@ -172,8 +172,11 @@ try {
     // ============================================================
     // B) PREVIAS INSCRIPTAS SIN NINGUNA MESA ASOCIADA
     // ============================================================
-
-    $anioActual = (int)date('Y');
+    //
+    // REGLA: solo queremos previas con inscripcion = 1
+    //        (0 = no inscripta; 2 no se usa más),
+    //        y que NO tengan ninguna fila en `mesas` (me.id_mesa IS NULL).
+    //        No filtramos por año, así siempre ves TODAS las inscriptas.
 
     $sqlPrev = "
         SELECT
@@ -206,16 +209,15 @@ try {
         LEFT JOIN mesas AS me
             ON me.id_previa = p.id_previa
         WHERE
-            p.inscripcion = 1
-            AND p.anio = :anio_actual
-            AND me.id_mesa IS NULL
+            p.inscripcion = 1          -- SOLO inscriptas
+            AND me.id_mesa IS NULL     -- SIN ninguna mesa asociada
         ORDER BY
             p.alumno ASC,
             mat.materia ASC
     ";
 
     $stPrev = $pdo->prepare($sqlPrev);
-    $stPrev->execute([':anio_actual' => $anioActual]);
+    $stPrev->execute();
     $rowsPrev = $stPrev->fetchAll(PDO::FETCH_ASSOC);
 
     $outPrevias = [];

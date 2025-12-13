@@ -23,7 +23,7 @@ function respond(bool $ok, $payload = null, int $status = 200): void {
         $ok
             ? ['exito' => true, 'data' => $payload]
             : ['exito' => false, 'mensaje' => (is_string($payload) ? $payload : 'Error desconocido')],
-        JSON_UNESCAPED_UNICODE
+        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
     );
     exit;
 }
@@ -35,15 +35,31 @@ try {
 
     // Podés seguir mandando fecha_mesa e id_turno desde el front,
     // pero acá ya NO se filtra por esos campos: se devuelven
-    // TODOS los grupos incompletos.
+    // TODOS los grupos incompletos "reales".
     $input = json_decode(file_get_contents('php://input'), true) ?? [];
-    // Solo se parsean por si en el futuro querés usarlos de nuevo
-    $fecha = isset($input['fecha_mesa']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)$input['fecha_mesa'])
+    $fecha    = isset($input['fecha_mesa']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)$input['fecha_mesa'])
         ? $input['fecha_mesa']
         : null;
     $id_turno = isset($input['id_turno']) ? (int)$input['id_turno'] : null;
 
-    // Trae TODOS los grupos con al menos un slot libre (algún numero_mesa = 0)
+    /**
+     * LÓGICA NUEVA:
+     *  - Un grupo es "incompleto" si tiene algún numero_mesa_X = 0.
+     *  - PERO lo consideramos "lleno" (no se puede mover nada ahí) si ya
+     *    tiene muchas previas dentro de sus mesas.
+     *
+     *  Regla práctica:
+     *    - Si el total de filas en `mesas` asociadas a los números de ese
+     *      grupo es >= 4, el grupo se considera COMPLETO y NO se devuelve.
+     *
+     *  Esto cubre:
+     *    - Caso 7° (n° 46): tiene ~10 filas en `mesas` → queda fuera.
+     *    - Caso 3° técnico (n° 41 con DIBUJO / ED TEC / TALLER / etc.):
+     *      tiene 4 o más filas → queda fuera.
+     *
+     *  Los grupos normales con 1 o 2 mesas y pocas filas siguen apareciendo.
+     */
+
     $sql = "
         SELECT
             mg.id_mesa_grupos AS id_grupo,
@@ -52,13 +68,34 @@ try {
             mg.numero_mesa_3,
             mg.numero_mesa_4,
             mg.fecha_mesa,
-            mg.id_turno
+            mg.id_turno,
+            COUNT(m.id_mesa) AS total_filas_mesas
         FROM mesas_grupos mg
-        WHERE
-            (mg.numero_mesa_1 = 0)
-            OR (mg.numero_mesa_2 = 0)
-            OR (mg.numero_mesa_3 = 0)
-            OR (mg.numero_mesa_4 = 0)
+        LEFT JOIN mesas m
+            ON m.numero_mesa IN (
+                mg.numero_mesa_1,
+                mg.numero_mesa_2,
+                mg.numero_mesa_3,
+                mg.numero_mesa_4
+            )
+        GROUP BY
+            mg.id_mesa_grupos,
+            mg.numero_mesa_1,
+            mg.numero_mesa_2,
+            mg.numero_mesa_3,
+            mg.numero_mesa_4,
+            mg.fecha_mesa,
+            mg.id_turno
+        HAVING
+            -- Debe tener al menos un slot libre (número 0)
+            (
+                mg.numero_mesa_1 = 0
+                OR mg.numero_mesa_2 = 0
+                OR mg.numero_mesa_3 = 0
+                OR mg.numero_mesa_4 = 0
+            )
+            -- Y NO debe estar ya “lleno” lógicamente
+            AND total_filas_mesas < 4
         ORDER BY
             mg.fecha_mesa,
             mg.id_turno,

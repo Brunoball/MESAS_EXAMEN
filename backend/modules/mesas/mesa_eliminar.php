@@ -5,12 +5,19 @@
 //   - un numero_mesa dado (en cualquiera de los 4 slots), o
 //   - un id_mesa_grupos dado.
 //
-// Si el numero_mesa NO está en ningún grupo, se intenta eliminar
-// la mesa correspondiente de la tabla `mesas_no_agrupadas`.
+// Además SIEMPRE elimina de la tabla `mesas` todas las filas cuyos
+// numero_mesa estén involucrados:
 //
-// NO toca la tabla `mesas` ni `mesas_previas`.
+//   - Si se pasa id_mesa_grupos: borra las mesas de TODOS los numeros del grupo.
+//   - Si se pasa numero_mesa:
+//        * Si ese numero_mesa pertenece a uno o más grupos, se obtienen TODOS
+//          los numero_mesa_1..4 de esos grupos, se borran todas las mesas de
+//          esos numeros y luego los grupos.
+//        * Si NO pertenece a ningún grupo pero está en mesas_no_agrupadas,
+//          se borra de mesas_no_agrupadas y de mesas ese numero_mesa.
+//
+// NO toca la tabla `previas`.
 // -----------------------------------------------------------------------------
-
 
 declare(strict_types=1);
 
@@ -74,63 +81,125 @@ try {
 
   $pdo->beginTransaction();
 
-  $grupos_afectados = [];
-  $noAgrupadas_afectadas = [];
+  $grupos_afectados       = [];
+  $noAgrupadas_afectadas  = [];
+  $mesas_eliminadas       = [];
 
+  // =========================================================================
+  // Caso 1: eliminar por ID de grupo
+  // =========================================================================
   if ($id_mesa_grupos !== null) {
-    // ===== Caso 1: eliminar por id_mesa_grupos =====
+    // Obtenemos el grupo y sus numeros de mesa
     $chk = $pdo->prepare("
-      SELECT id_mesa_grupos
+      SELECT
+        id_mesa_grupos,
+        numero_mesa_1,
+        numero_mesa_2,
+        numero_mesa_3,
+        numero_mesa_4
       FROM mesas_grupos
       WHERE id_mesa_grupos = :idg
       LIMIT 1
     ");
     $chk->execute([':idg' => $id_mesa_grupos]);
+    $grupo = $chk->fetch(PDO::FETCH_ASSOC);
 
-    if ($chk->fetchColumn() === false) {
+    if (!$grupo) {
       $pdo->rollBack();
       respond(false, 'Grupo no encontrado.', 404);
     }
 
-    $del = $pdo->prepare("DELETE FROM mesas_grupos WHERE id_mesa_grupos = :idg");
-    $del->execute([':idg' => $id_mesa_grupos]);
+    // Armamos listado de numeros_mesa del grupo (> 0, sin repetir)
+    $numsGrupo = [];
+    foreach (['numero_mesa_1', 'numero_mesa_2', 'numero_mesa_3', 'numero_mesa_4'] as $campo) {
+      $nm = isset($grupo[$campo]) ? (int)$grupo[$campo] : 0;
+      if ($nm > 0) {
+        $numsGrupo[$nm] = true;
+      }
+    }
+    $numsGrupo = array_keys($numsGrupo); // array de ints únicos
+
+    // 1) Borramos las mesas (tabla `mesas`) de TODOS esos numeros
+    if (!empty($numsGrupo)) {
+      $placeholders = implode(',', array_fill(0, count($numsGrupo), '?'));
+      $delMesas = $pdo->prepare("DELETE FROM mesas WHERE numero_mesa IN ($placeholders)");
+      $delMesas->execute($numsGrupo);
+      $mesas_eliminadas = $numsGrupo;
+    }
+
+    // 2) Borramos el grupo
+    $delGrupo = $pdo->prepare("DELETE FROM mesas_grupos WHERE id_mesa_grupos = :idg");
+    $delGrupo->execute([':idg' => $id_mesa_grupos]);
     $grupos_afectados[] = $id_mesa_grupos;
 
     $pdo->commit();
 
     respond(true, [
-      'mensaje'          => 'Grupo eliminado correctamente.',
-      'id_mesa_grupos'   => $grupos_afectados,
-      'numero_mesa_busca'=> $numero_mesa,
-      'nota'             => 'No se modificaron registros en la tabla `mesas`.',
+      'mensaje'            => 'Grupo eliminado correctamente.',
+      'id_mesa_grupos'     => $grupos_afectados,
+      'numeros_mesa'       => $mesas_eliminadas,
+      'nota'               => 'Se eliminaron también todas las mesas correspondientes de la tabla `mesas`.',
     ]);
   }
 
-  // ===== Caso 2: eliminar por numero_mesa =====
+  // =========================================================================
+  // Caso 2: eliminar por numero_mesa
+  // =========================================================================
+
   // 2.1) Buscar todos los grupos donde aparezca ese numero_mesa en cualquier slot
   $sel = $pdo->prepare("
-    SELECT id_mesa_grupos
+    SELECT
+      id_mesa_grupos,
+      numero_mesa_1,
+      numero_mesa_2,
+      numero_mesa_3,
+      numero_mesa_4
     FROM mesas_grupos
     WHERE :nm IN (numero_mesa_1, numero_mesa_2, numero_mesa_3, numero_mesa_4)
     FOR UPDATE
   ");
   $sel->execute([':nm' => $numero_mesa]);
-  $ids = $sel->fetchAll(PDO::FETCH_COLUMN, 0);
+  $grupos = $sel->fetchAll(PDO::FETCH_ASSOC);
 
-  if ($ids) {
-    // Hay grupos: eliminamos de mesas_grupos
-    $in  = implode(',', array_fill(0, count($ids), '?'));
-    $del = $pdo->prepare("DELETE FROM mesas_grupos WHERE id_mesa_grupos IN ($in)");
-    $del->execute(array_map('intval', $ids));
-    $grupos_afectados = array_map('intval', $ids);
+  if ($grupos) {
+    // Tenemos uno o más grupos donde aparece ese numero_mesa.
+    // 1) Reunimos TODOS los numeros de mesa de esos grupos (sin repetir)
+    $numsGrupo = [];
+    $idsGrupos = [];
+
+    foreach ($grupos as $g) {
+      $idsGrupos[] = (int)$g['id_mesa_grupos'];
+      foreach (['numero_mesa_1', 'numero_mesa_2', 'numero_mesa_3', 'numero_mesa_4'] as $campo) {
+        $nm = isset($g[$campo]) ? (int)$g[$campo] : 0;
+        if ($nm > 0) {
+          $numsGrupo[$nm] = true;
+        }
+      }
+    }
+
+    $numsGrupo = array_keys($numsGrupo); // numeros de mesa únicos
+    $grupos_afectados = $idsGrupos;
+
+    // 2) Borramos TODAS las filas de `mesas` cuyos numero_mesa estén en esos grupos
+    if (!empty($numsGrupo)) {
+      $phMesas = implode(',', array_fill(0, count($numsGrupo), '?'));
+      $delMesas = $pdo->prepare("DELETE FROM mesas WHERE numero_mesa IN ($phMesas)");
+      $delMesas->execute($numsGrupo);
+      $mesas_eliminadas = $numsGrupo;
+    }
+
+    // 3) Borramos los grupos
+    $phGrupos = implode(',', array_fill(0, count($idsGrupos), '?'));
+    $delGrupos = $pdo->prepare("DELETE FROM mesas_grupos WHERE id_mesa_grupos IN ($phGrupos)");
+    $delGrupos->execute($idsGrupos);
 
     $pdo->commit();
 
     respond(true, [
-      'mensaje'            => 'Grupo(s) eliminado(s) correctamente.',
+      'mensaje'            => 'Grupo(s) y mesas eliminados correctamente.',
       'id_mesa_grupos'     => $grupos_afectados,
-      'numero_mesa_busca'  => $numero_mesa,
-      'nota'               => 'No se modificaron registros en la tabla `mesas`.',
+      'numeros_mesa'       => $mesas_eliminadas,
+      'nota'               => 'Se eliminaron todas las mesas de los números involucrados en los grupos.',
     ]);
   }
 
@@ -145,10 +214,15 @@ try {
   $idsNo = $selNo->fetchAll(PDO::FETCH_COLUMN, 0);
 
   if ($idsNo) {
-    $inNo = implode(',', array_fill(0, count($idsNo), '?'));
+    $inNo  = implode(',', array_fill(0, count($idsNo), '?'));
     $delNo = $pdo->prepare("DELETE FROM mesas_no_agrupadas WHERE id IN ($inNo)");
     $delNo->execute(array_map('intval', $idsNo));
     $noAgrupadas_afectadas = array_map('intval', $idsNo);
+
+    // También borramos TODAS las filas de la tabla `mesas` con ese numero_mesa
+    $delMesa = $pdo->prepare("DELETE FROM mesas WHERE numero_mesa = :nm");
+    $delMesa->execute([':nm' => $numero_mesa]);
+    $mesas_eliminadas[] = $numero_mesa;
 
     $pdo->commit();
 
@@ -156,7 +230,8 @@ try {
       'mensaje'                 => 'Mesa no agrupada eliminada correctamente.',
       'id_mesas_no_agrupadas'   => $noAgrupadas_afectadas,
       'numero_mesa_busca'       => $numero_mesa,
-      'nota'                    => 'Se eliminó de `mesas_no_agrupadas`. No se tocó la tabla `mesas`.',
+      'mesas_eliminadas'        => $mesas_eliminadas,
+      'nota'                    => 'Se eliminó también la mesa correspondiente de la tabla `mesas`.',
     ]);
   }
 

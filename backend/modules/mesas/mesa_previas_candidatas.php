@@ -2,7 +2,7 @@
 // backend/modules/mesas/mesa_previas_candidatas.php
 //
 // Devuelve las PREVIAS (inscripcion = 1) que todavía
-// no tienen ninguna mesa asociada en `mesas_examen.mesas`,
+// no tienen ninguna mesa asociada en `mesas`,
 // FILTRADAS para que coincidan en MATERIA con la mesa
 // (caja) desde la cual se abrió el modal.
 //
@@ -73,8 +73,8 @@ try {
         $sqlMesaBase = "
             SELECT
                 c.id_materia
-            FROM mesas_examen.mesas AS me
-            INNER JOIN mesas_examen.catedras AS c
+            FROM mesas AS me
+            INNER JOIN catedras AS c
                 ON c.id_catedra = me.id_catedra
             WHERE me.numero_mesa = :numero_mesa
             ORDER BY me.id_mesa ASC
@@ -108,7 +108,7 @@ try {
     //    Y QUE COINCIDAN EN MATERIA con la mesa destino
     // ============================================================
     //
-    // LEFT JOIN con `mesas_examen.mesas` por id_previa y filtramos
+    // LEFT JOIN con `mesas` por id_previa y filtramos
     // donde me.id_mesa IS NULL  => previa no está en ninguna mesa.
     // Además, filtramos por la MATERIA de la mesa destino.
     //
@@ -131,14 +131,14 @@ try {
                 END,
                 COALESCE(d.nombre_division, '')
             ) AS curso_div
-        FROM mesas_examen.previas AS p
-        INNER JOIN mesas_examen.materias AS m
+        FROM previas AS p
+        INNER JOIN materias AS m
             ON m.id_materia = p.id_materia
-        LEFT JOIN mesas_examen.curso AS c
+        LEFT JOIN curso AS c
             ON c.id_curso = p.materia_id_curso
-        LEFT JOIN mesas_examen.division AS d
+        LEFT JOIN division AS d
             ON d.id_division = p.materia_id_division
-        LEFT JOIN mesas_examen.mesas AS me
+        LEFT JOIN mesas AS me
             ON me.id_previa = p.id_previa
         WHERE
             p.inscripcion = 1

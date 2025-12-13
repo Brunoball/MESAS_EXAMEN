@@ -1,7 +1,7 @@
 <?php
 // backend/modules/mesas/mesa_agregar_alumno.php
 //
-// Agrega una PREVIA a la tabla `mesas_examen.mesas` para un número de mesa
+// Agrega una PREVIA a la tabla `mesas` para un número de mesa
 // dado, copiando prioridad / fecha / turno / docente de una mesa existente
 // con ese numero_mesa y reemplazando solo id_previa e id_catedra.
 //
@@ -43,7 +43,7 @@ try {
             id_materia,
             materia_id_curso,
             materia_id_division
-        FROM mesas_examen.previas
+        FROM previas
         WHERE id_previa = :id_previa
         LIMIT 1
     ";
@@ -64,7 +64,7 @@ try {
     // ===========================
     $sqlExists = "
         SELECT id_mesa
-        FROM mesas_examen.mesas
+        FROM mesas
         WHERE id_previa = :id_previa
         LIMIT 1
     ";
@@ -81,7 +81,7 @@ try {
     // ===========================
     $sqlCat = "
         SELECT id_catedra
-        FROM mesas_examen.catedras
+        FROM catedras
         WHERE id_materia = :id_materia
           AND id_curso   = :id_curso
           AND id_division = :id_division
@@ -111,7 +111,7 @@ try {
             id_docente,
             fecha_mesa,
             id_turno
-        FROM mesas_examen.mesas
+        FROM mesas
         WHERE numero_mesa = :numero_mesa
         ORDER BY id_mesa ASC
         LIMIT 1
@@ -135,7 +135,7 @@ try {
     //    - solo cambian id_previa e id_catedra
     // ===========================
     $sqlIns = "
-        INSERT INTO mesas_examen.mesas
+        INSERT INTO mesas
             (numero_mesa, prioridad, id_catedra, id_previa, id_docente, fecha_mesa, id_turno)
         VALUES
             (:numero_mesa, :prioridad, :id_catedra, :id_previa, :id_docente, :fecha_mesa, :id_turno)
