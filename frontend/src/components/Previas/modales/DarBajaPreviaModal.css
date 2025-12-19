@@ -1,139 +1,91 @@
-.dbm-overlay{
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.55);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  padding: 14px;
-}
+/* src/components/Previas/modales/DarBajaPreviaModal.css */
 
-.dbm-container{
-  width: min(520px, 100%);
-  background: #0f172a;
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: 14px;
-  box-shadow: 0 18px 50px rgba(0,0,0,.45);
-  padding: 18px 18px 16px;
-  position: relative;
-  color: #e5e7eb;
-}
-
-.dbm-close{
-  position: absolute;
-  top: 10px;
-  right: 10px;
+/* botón X arriba a la derecha (similar a tu dbm-close) */
+.prev-baja-x{
+  position:absolute;
+  top: 12px;
+  right: 12px;
   border: 0;
   background: transparent;
-  color: #e5e7eb;
+  color: #64748b;
   cursor: pointer;
   font-size: 18px;
   opacity: .85;
 }
-.dbm-close:hover{ opacity: 1; }
+.prev-baja-x:hover{ opacity: 1; }
+.prev-baja-x:disabled{ opacity: .55; cursor: not-allowed; }
 
-.dbm-icon{
-  width: 44px;
-  height: 44px;
+/* “pill” de detalle */
+.prev-modal-item{
+  padding: 10px 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: .95rem;
+  color: #0f172a;
+  margin: 0 0 14px;
+}
+
+/* label estilo consistente */
+.prev-baja-label{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #0f172a;
+}
+
+/* wrapper fecha: reutiliza tus clases "soc-*" (mismo look del alta profesor) */
+.prev-baja-datewrap{
+  margin-bottom: 14px;
+}
+
+/* textarea estilo profesores */
+.prev-baja-textarea{
+  width: 100%;
   border-radius: 12px;
-  display: grid;
-  place-items: center;
-  background: rgba(239,68,68,.12);
-  color: #ef4444;
-  font-size: 20px;
-  margin-bottom: 10px;
+  border: 1px solid #e5e7eb;
+  padding: 10px 12px;
+  resize: vertical;
+  outline: none;
+  box-shadow: none;
+  font-size: .95rem;
+  color: #0f172a;
+  background: #fff;
+}
+.prev-baja-textarea:focus{
+  border-color: rgba(231, 76, 60, .45);
+  box-shadow: 0 0 0 3px rgba(231, 76, 60, .12);
 }
 
-.dbm-title{
-  margin: 0;
-  font-size: 18px;
-  font-weight: 800;
-  letter-spacing: .2px;
-}
-
-.dbm-subtitle{
-  margin: 6px 0 12px;
-  opacity: .9;
-  line-height: 1.35;
-}
-
-.dbm-item{
-  background: rgba(255,255,255,.04);
-  border: 1px solid rgba(255,255,255,.06);
+/* si querés reutilizar tu bloque de error oscuro, lo dejamos, pero mejor “claro” como el resto */
+.dbm-error{
+  background: rgba(211,47,47,.08);
+  border: 1px solid rgba(211,47,47,.25);
+  color: #b91c1c;
   padding: 10px 12px;
   border-radius: 12px;
+  margin: 10px 0 0;
+}
+/* ===== Grid Fecha + Motivo ===== */
+.prev-baja-grid{
+  display: grid;
+  grid-template-columns: 1fr 1.2fr; /* motivo un poco más ancho */
+  gap: 16px;
   margin-bottom: 12px;
 }
 
-.dbm-field{
-  display: grid;
-  gap: 6px;
-  margin-bottom: 10px;
-}
-
-.dbm-label{
-  font-size: 13px;
-  opacity: .9;
-  display: inline-flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.dbm-input{
-  height: 38px;
-  border-radius: 10px;
-  border: 1px solid rgba(255,255,255,.12);
-  background: rgba(255,255,255,.04);
-  color: #e5e7eb;
-  padding: 0 10px;
-  outline: none;
-}
-.dbm-input:focus{
-  border-color: rgba(59,130,246,.55);
-  box-shadow: 0 0 0 3px rgba(59,130,246,.18);
-}
-
-.dbm-error{
-  background: rgba(239,68,68,.12);
-  border: 1px solid rgba(239,68,68,.25);
-  color: #fecaca;
-  padding: 10px 12px;
-  border-radius: 12px;
-  margin-top: 6px;
-}
-
-.dbm-actions{
+.prev-baja-col{
   display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-  margin-top: 14px;
+  flex-direction: column;
 }
 
-.dbm-btn{
-  height: 38px;
-  border-radius: 12px;
-  border: 0;
-  padding: 0 14px;
-  cursor: pointer;
-  font-weight: 800;
+/* En mobile se apilan */
+@media (max-width: 640px){
+  .prev-baja-grid{
+    grid-template-columns: 1fr;
+  }
 }
-
-.dbm-btn-ghost{
-  background: rgba(255,255,255,.06);
-  color: #e5e7eb;
-  border: 1px solid rgba(255,255,255,.12);
-}
-.dbm-btn-ghost:hover{ background: rgba(255,255,255,.09); }
-
-.dbm-btn-danger{
-  background: #ef4444;
-  color: #0b1220;
-}
-.dbm-btn-danger:hover{ filter: brightness(1.05); }
-
-.dbm-btn:disabled,
-.dbm-close:disabled{
-  opacity: .55;
-  cursor: not-allowed;
-}
+#modalBajaPrevia{min-width: 700px; height: 90%;}
+#motivo-baja-previa{max-height: 103px;}

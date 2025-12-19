@@ -76,7 +76,7 @@
   --secondary-600:          var(--pro-primary-darker);  /* = dark azul */
 
   --success-500:            var(--pro-success);
-  --success-600:            #1B5E20;
+
 
   --warning-500:            var(--pro-warning);
   --warning-600:            #E65100;
@@ -464,6 +464,7 @@ input:-webkit-autofill { background-color: transparent !important; }
   justify-content: center;
   overflow-y: auto;
   min-height: 55vh;
+
   transition: min-height 0.3s ease, max-height 0.3s ease;
 }
 

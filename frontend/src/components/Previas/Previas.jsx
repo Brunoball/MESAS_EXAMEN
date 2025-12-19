@@ -1340,6 +1340,7 @@ const Previas = () => {
             {/* ✅ NUEVO: IR A BAJAS */}
             <button
               className="glob-profesor-button glob-hover-effect"
+              id='BTNBaja'
               onClick={() => navigate('/previas/baja')}
               aria-label="Dados de baja"
               title="Ver registros dados de baja"

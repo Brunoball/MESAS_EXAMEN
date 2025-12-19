@@ -483,13 +483,13 @@ input:-webkit-autofill { background-color: transparent !important; }
 
 /* React-window outer scroller con gutter estable */
 .rw-outer {
-  scrollbar-gutter: stable both-edges;
+  scrollbar-gutter: stable;
   direction: ltr; /* tu contenedor ya lo usa; lo dejamos explícito */
 }
 
 /* Opcional: si tu header sticky y otros contenedores necesitan reservar el gutter */
 .glob-header {
-  scrollbar-gutter: stable both-edges;
+  scrollbar-gutter: stable ;
 }
 /* ================================
    INSCRIBIR MODAL (InscribirModal)
@@ -690,3 +690,63 @@ input:-webkit-autofill { background-color: transparent !important; }
     transform: translateY(0);
   }
 }
+/* src/components/Previas/PreviasBaja.css */
+
+/* grid de 6 columnas para previas (desktop) */
+.prev-baja-header,
+.prev-baja-fila{
+  grid-template-columns: 1.6fr .7fr 1fr 1fr .9fr .6fr;
+}
+
+/* botón limpiar búsqueda (en el input) */
+.prev-baja-clear{
+  position: absolute;
+  right: 44px;              /* deja lugar al icono de buscar */
+  top: 50%;
+  transform: translateY(-50%);
+  border: 1px solid var(--border-color, #e2e8f0);
+  background: #fff;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: var(--transition-smooth, all .25s cubic-bezier(.4,0,.2,1));
+  color: var(--text-secondary, #475569);
+  box-shadow: var(--shadow-sm, 0 1px 2px 0 rgb(0 0 0 / 0.05));
+}
+.prev-baja-clear:hover{
+  background: var(--primary-light, #e2e8f0);
+}
+.prev-baja-clear:disabled{
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+/* botón dar alta usando el mismo "chip" emp-baja-icono */
+.prev-baja-btn-alta{
+  color: var(--success-700, #047857);
+  background: var(--success-50, #ecfdf5);
+  border-color: var(--success-100, #d1fae5);
+}
+.prev-baja-btn-alta:hover{
+  background: var(--success-600, #059669);
+  border-color: var(--success-600, #059669);
+  color: #fff;
+}
+
+/* Mobile: reutiliza el modo tarjeta del CSS de ProfesorBaja */
+@media (max-width: 768px){
+  .prev-baja-header{ display: none; }
+
+  /* labels de cada campo (mismo patrón que emp-baja) */
+  .prev-col-alumno::before{ content:"Alumno"; }
+  .prev-col-dni::before{ content:"DNI"; }
+  .prev-col-materia::before{ content:"Materia"; }
+  .prev-col-condicion::before{ content:"Condición"; }
+  .prev-col-curso::before{ content:"Curso"; }
+  .prev-col-acciones::before{ content:"Acciones"; }
+}
+#iconbaja{font-size: 1rem;}
+#BTNBaja{background-color:var(--blue-inst-dark) !important ;}

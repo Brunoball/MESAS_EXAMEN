@@ -9,15 +9,9 @@ const hoyISO = () => {
   return `${d.getFullYear()}-${mm}-${dd}`;
 };
 
-const DarAltaPreviaModal = ({
-  open,
-  item,
-  loading,
-  error,
-  onCancel,
-  onConfirm,
-}) => {
+const DarAltaPreviaModal = ({ open, item, loading, error, onCancel, onConfirm }) => {
   const cancelRef = useRef(null);
+  const dateRef = useRef(null);              // 👈 nuevo
   const [fecha, setFecha] = useState(hoyISO());
 
   useEffect(() => {
@@ -31,6 +25,27 @@ const DarAltaPreviaModal = ({
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [open, onCancel]);
+
+  const openDatePicker = (e) => {            // 👈 nuevo (igual que en Profesores)
+    e?.preventDefault?.();
+    const el = dateRef.current;
+    if (!el) return;
+    try {
+      if (typeof el.showPicker === "function") {
+        el.showPicker();
+      } else {
+        el.focus();
+        el.click();
+      }
+    } catch {
+      el.focus();
+      try { el.click(); } catch {}
+    }
+  };
+
+  const handleKeyDownPicker = (e) => {       // 👈 nuevo
+    if (e.key === "Enter" || e.key === " ") openDatePicker(e);
+  };
 
   if (!open) return null;
 
@@ -53,9 +68,7 @@ const DarAltaPreviaModal = ({
               <h3 id="dam-title" className="dam-title">
                 Reactivar previa
               </h3>
-              <p className="dam-subtitle">
-                Esto devuelve la previa a la lista activa.
-              </p>
+              <p className="dam-subtitle">Esto devuelve la previa a la lista activa.</p>
             </div>
           </div>
 
@@ -94,13 +107,26 @@ const DarAltaPreviaModal = ({
             <label className="dam-field-label">
               <FaCalendarAlt /> Fecha (se guardará en Fecha de carga)
             </label>
-            <input
-              type="date"
-              className="dam-input"
-              value={fecha}
-              onChange={(e) => setFecha(e.target.value)}
-              disabled={loading}
-            />
+
+            {/* 👇 contenedor clickeable (cualquier click abre calendario) */}
+            <div
+              className="dam-date-wrap"
+              role="button"
+              tabIndex={0}
+              onMouseDown={openDatePicker}
+              onKeyDown={handleKeyDownPicker}
+              aria-label="Abrir selector de fecha"
+            >
+              <input
+                ref={dateRef}
+                type="date"
+                className="dam-input dam-input--date"
+                value={fecha}
+                onChange={(e) => setFecha(e.target.value)}
+                disabled={loading}
+              />
+
+            </div>
           </div>
         </div>
 
