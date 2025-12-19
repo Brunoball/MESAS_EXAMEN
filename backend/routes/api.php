@@ -92,6 +92,13 @@ try {
         case 'previa_get':
             include_module($MODULES_DIR . '/previas/obtener_previa.php'); break;
 
+        case 'previa_dar_baja':
+            include_module($MODULES_DIR . '/previas/previa_dar_baja.php'); break;
+        case 'previa_dar_alta':
+            include_module($MODULES_DIR . '/previas/previa_dar_alta.php'); break;
+        case 'previas_baja':
+            include_module($MODULES_DIR . '/previas/obtener_previas_baja.php'); break;
+
         // -------- 🔬 Previas LAB (tabla de PRUEBAS) --------
         case 'previas_lab_ensure':
         case 'previas_lab_import':

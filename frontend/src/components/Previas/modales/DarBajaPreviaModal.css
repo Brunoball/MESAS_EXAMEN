@@ -1,0 +1,139 @@
+.dbm-overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 14px;
+}
+
+.dbm-container{
+  width: min(520px, 100%);
+  background: #0f172a;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 14px;
+  box-shadow: 0 18px 50px rgba(0,0,0,.45);
+  padding: 18px 18px 16px;
+  position: relative;
+  color: #e5e7eb;
+}
+
+.dbm-close{
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border: 0;
+  background: transparent;
+  color: #e5e7eb;
+  cursor: pointer;
+  font-size: 18px;
+  opacity: .85;
+}
+.dbm-close:hover{ opacity: 1; }
+
+.dbm-icon{
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: rgba(239,68,68,.12);
+  color: #ef4444;
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.dbm-title{
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: .2px;
+}
+
+.dbm-subtitle{
+  margin: 6px 0 12px;
+  opacity: .9;
+  line-height: 1.35;
+}
+
+.dbm-item{
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.06);
+  padding: 10px 12px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.dbm-field{
+  display: grid;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.dbm-label{
+  font-size: 13px;
+  opacity: .9;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.dbm-input{
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.04);
+  color: #e5e7eb;
+  padding: 0 10px;
+  outline: none;
+}
+.dbm-input:focus{
+  border-color: rgba(59,130,246,.55);
+  box-shadow: 0 0 0 3px rgba(59,130,246,.18);
+}
+
+.dbm-error{
+  background: rgba(239,68,68,.12);
+  border: 1px solid rgba(239,68,68,.25);
+  color: #fecaca;
+  padding: 10px 12px;
+  border-radius: 12px;
+  margin-top: 6px;
+}
+
+.dbm-actions{
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
+.dbm-btn{
+  height: 38px;
+  border-radius: 12px;
+  border: 0;
+  padding: 0 14px;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.dbm-btn-ghost{
+  background: rgba(255,255,255,.06);
+  color: #e5e7eb;
+  border: 1px solid rgba(255,255,255,.12);
+}
+.dbm-btn-ghost:hover{ background: rgba(255,255,255,.09); }
+
+.dbm-btn-danger{
+  background: #ef4444;
+  color: #0b1220;
+}
+.dbm-btn-danger:hover{ filter: brightness(1.05); }
+
+.dbm-btn:disabled,
+.dbm-close:disabled{
+  opacity: .55;
+  cursor: not-allowed;
+}

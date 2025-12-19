@@ -1,5 +1,5 @@
 <?php
-// backend/modules/previas/obtener_previas.php
+// backend/modules/previas/obtener_previas_baja.php
 header('Content-Type: application/json; charset=utf-8');
 
 require_once __DIR__ . '/../../config/db.php';
@@ -12,19 +12,11 @@ try {
         throw new RuntimeException('Conexión PDO no disponible.');
     }
 
-    // Filtros opcionales
+    // Filtros opcionales (mismo estilo que obtener_previas.php)
     $q    = isset($_GET['q'])    ? trim((string)$_GET['q'])    : '';
     $dni  = isset($_GET['dni'])  ? trim((string)$_GET['dni'])  : '';
     $id   = isset($_GET['id'])   ? (int)$_GET['id']            : 0;
-    $solo = isset($_GET['solo']) ? trim((string)$_GET['solo']) : ''; // '', 'inscriptos', 'pendientes'
 
-    // Base query
-    // ✅ Se filtra SOLO activos: p.activo = 1
-    // 👉 Incluimos los IDs crudos que el frontend necesita (alias EXACTOS):
-    //     - p.cursando_id_curso          AS cursando_id_curso
-    //     - p.cursando_id_division       AS cursando_id_division
-    //     - p.materia_id_curso           AS materia_id_curso
-    //     - p.materia_id_division        AS materia_id_division
     $sql = "
         SELECT
             p.id_previa,
@@ -43,16 +35,16 @@ try {
             p.materia_id_curso     AS materia_id_curso,
             p.materia_id_division  AS materia_id_division,
 
-            -- Nombres mostrables (por si los querés en listados)
+            -- Nombres mostrables
             m.materia                                   AS materia_nombre,
             c.condicion                                 AS condicion_nombre,
 
-            -- Curso/división de la MATERIA (solo nombres)
+            -- Curso/división de la MATERIA
             cur_materia.nombre_curso                    AS materia_curso_nombre,
             div_materia.nombre_division                 AS materia_division_nombre,
             CONCAT(cur_materia.nombre_curso, '° ', div_materia.nombre_division) AS materia_curso_division,
 
-            -- Curso/división del ALUMNO (cursando) (solo nombres)
+            -- Curso/división del ALUMNO (cursando)
             cur_cursando.nombre_curso                   AS cursando_curso_nombre,
             div_cursando.nombre_division                AS cursando_division_nombre
 
@@ -73,10 +65,10 @@ try {
     $where  = [];
     $params = [];
 
-    // ✅ SIEMPRE: traer solo activos
-    $where[] = "COALESCE(p.activo, 1) = 1";
+    // ✅ SOLO BAJAS
+    $where[] = "COALESCE(p.activo, 1) = 0";
 
-    // Búsquedas específicas
+    // Búsquedas específicas (opcionales)
     if ($id > 0) {
         $where[] = "p.id_previa = :id";
         $params[':id'] = $id;
@@ -88,14 +80,7 @@ try {
         $params[':q'] = "%{$q}%";
     }
 
-    // Filtro por pestaña
-    if ($solo === 'inscriptos') {
-        $where[] = "COALESCE(p.inscripcion,0) = 1";
-    } elseif ($solo === 'pendientes') {
-        $where[] = "COALESCE(p.inscripcion,0) = 0";
-    }
-
-    $sql = str_replace('/**WHERE**/', empty($where) ? '' : 'WHERE ' . implode(' AND ', $where), $sql);
+    $sql = str_replace('/**WHERE**/', 'WHERE ' . implode(' AND ', $where), $sql);
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
@@ -107,6 +92,6 @@ try {
     http_response_code(500);
     echo json_encode([
         'exito'   => false,
-        'mensaje' => 'Error al obtener las previas: ' . $e->getMessage()
+        'mensaje' => 'Error al obtener las previas dadas de baja: ' . $e->getMessage()
     ], JSON_UNESCAPED_UNICODE);
 }

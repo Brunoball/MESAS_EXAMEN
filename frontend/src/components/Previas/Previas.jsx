@@ -26,6 +26,8 @@ import {
   FaCheckCircle,
   FaBroom,
   FaUpload,
+  FaUserMinus,
+  FaList, // ✅ NUEVO (iconito opcional)
 } from 'react-icons/fa';
 
 import * as XLSX from 'xlsx';
@@ -34,6 +36,7 @@ import Toast from '../Global/Toast';
 import InscribirModal from './modales/InscribirModal';
 import ModalInfoPrevia from './modales/ModalInfoPrevia';
 import ImportarPreviasModal from './modales/ImportarPreviasModal';
+import DarBajaPreviaModal from './modales/DarBajaPreviaModal';
 import '../Global/roots.css';
 import '../Global/section-ui.css';
 import './Previas.css';
@@ -50,8 +53,6 @@ const normalizar = (str = '') =>
     .trim();
 
 const MAX_CASCADE_ITEMS = 15;
-
-// 🔢 Mantener en sync con itemSize de <List/>
 const ITEM_SIZE = 48;
 
 const formatearFechaISO = (v) => {
@@ -61,11 +62,9 @@ const formatearFechaISO = (v) => {
   return `${m[3]}/${m[2]}/${m[1]}`;
 };
 
-// respeta la condición que manda el backend
 const esTerMatPorCond = (p) =>
   ((p?.condicion_nombre || '') + '').toUpperCase().includes('TER.MAT');
 
-// Verificar si es condición "PREVIA"
 const esCondicionPrevia = (p) => {
   const condicion = String(p?.condicion_nombre || '').toUpperCase().trim();
   return condicion === 'PREVIA' || condicion.includes('PREVIA');
@@ -96,7 +95,7 @@ function useIsMobile(breakpoint = 768) {
 /* ========= Modal de confirmación ========= */
 const ConfirmActionModal = ({
   open,
-  mode,         // 'eliminar' | 'desinscribir' | 'limpiar'
+  mode, // 'eliminar' | 'desinscribir' | 'limpiar'
   item,
   loading,
   error,
@@ -147,7 +146,7 @@ const ConfirmActionModal = ({
         onMouseDown={(e) => e.stopPropagation()}
       >
         <div
-          className={`  logout-modal__icon ${isWarn ? 'is-warn' : 'is-danger'}`}
+          className={`logout-modal__icon ${isWarn ? 'is-warn' : 'is-danger'}`}
           aria-hidden="true"
         >
           <FaTrash />
@@ -155,9 +154,7 @@ const ConfirmActionModal = ({
 
         <h3
           id="confirm-modal-title"
-          className={`logout-modal-title ${
-            isWarn ? 'logout-modal-title--danger' : 'logout-modal-title--danger'
-          }`}
+          className="logout-modal-title logout-modal-title--danger"
         >
           {titulo}
         </h3>
@@ -190,11 +187,9 @@ const ConfirmActionModal = ({
           </button>
 
           <button
-            id='inscribir'
+            id="inscribir"
             type="button"
-            className={`logout-btn inscribir ${
-              isWarn ? 'logout-btn--solid-danger' : 'logout-btn--solid-danger'
-            }`}
+            className="logout-btn logout-btn--solid-danger"
             onClick={onConfirm}
             disabled={loading}
           >
@@ -249,13 +244,21 @@ const Previas = () => {
   // Modal confirmación (eliminar / desinscribir / limpiar)
   const [modal, setModal] = useState({
     open: false,
-    mode: null, // 'eliminar' | 'desinscribir' | 'limpiar'
+    mode: null,
     item: null,
     loading: false,
     error: '',
   });
 
-  // Modal INSCRIBIR (ahora con materiasAlumno)
+  // ✅ Modal DAR DE BAJA
+  const [modalBaja, setModalBaja] = useState({
+    open: false,
+    item: null,
+    loading: false,
+    error: '',
+  });
+
+  // Modal INSCRIBIR
   const [modalIns, setModalIns] = useState({
     open: false,
     item: null,
@@ -276,11 +279,10 @@ const Previas = () => {
   // Listas básicas (desde backend)
   const [listas, setListas] = useState({ cursos: [], divisiones: [] });
 
-  // === NUEVO: refs para restaurar scroll EXACTO ===
   const listRef = useRef(null);
-  const savedScrollOffsetRef = useRef(0);            // último offset conocido
-  const viewportHeightRef = useRef(0);               // alto visible de la lista
-  const restorationRef = useRef(null);               // { type:'offset', value:number }
+  const savedScrollOffsetRef = useRef(0);
+  const viewportHeightRef = useRef(0);
+  const restorationRef = useRef(null);
 
   // Filtros
   const [filtros, setFiltros] = useState(() => {
@@ -325,8 +327,6 @@ const Previas = () => {
     if (tab === 'inscriptos') {
       base = previas.filter((p) => Number(p?.inscripcion ?? 0) === 1);
     }
-    
-    // ORDENAR ALFABÉTICAMENTE POR NOMBRE DE ALUMNO
     return [...base].sort((a, b) => {
       const nombreA = (a.alumno || '').toLowerCase();
       const nombreB = (b.alumno || '').toLowerCase();
@@ -334,31 +334,7 @@ const Previas = () => {
     });
   }, [tab, previas]);
 
-  // IDs tercera o más (se siguen calculando para otros usos si los necesitás)
-  const idsTerceraOMas = useMemo(() => {
-    try {
-      const ordenadas = [...previas].sort((a, b) => {
-        const da = new Date(a?.fecha_carga || 0).getTime();
-        const db = new Date(b?.fecha_carga || 0).getTime();
-        return da - db;
-      });
-      const contadorPorDni = new Map();
-      const set = new Set();
-      for (const p of ordenadas) {
-        const dniKey = String(p?.dni ?? p?.alumno ?? '');
-        const nextCount = (contadorPorDni.get(dniKey) || 0) + 1;
-        contadorPorDni.set(dniKey, nextCount);
-        if (nextCount >= 3 && p?.id_previa != null) {
-          set.add(Number(p.id_previa));
-        }
-      }
-      return set;
-    } catch {
-      return new Set();
-    }
-  }, [previas]);
-
-  // Filtrado + búsqueda - MANTENER ORDEN ALFABÉTICO
+  // Filtrado + búsqueda - MANTENER ORDEN
   const previasFiltradas = useMemo(() => {
     let resultados = basePorTab;
 
@@ -390,7 +366,6 @@ const Previas = () => {
       resultados = basePorTab;
     }
 
-    // RESULTADOS YA VIENEN ORDENADOS DE basePorTab
     return resultados;
   }, [
     basePorTab,
@@ -410,7 +385,6 @@ const Previas = () => {
     [cargando, hayFiltros, filtroActivo]
   );
 
-  // ✅ TABLA CON DATOS: depende solo de la tabla REAL, no de filtros
   const tablaConDatos = useMemo(() => {
     return previas.length > 0;
   }, [previas]);
@@ -436,15 +410,12 @@ const Previas = () => {
     });
   }, [dispararCascadaUnaVez]);
 
-  /* ================================
-     Helpers UI
-  ================================= */
   const mostrarToast = useCallback((mensaje, tipo = 'exito') => {
     setToast({ mostrar: true, tipo, mensaje });
   }, []);
 
   /* ================================
-     Carga de datos (centralizada)
+     Carga de datos
   ================================= */
   const cargarPrevias = useCallback(async () => {
     try {
@@ -471,10 +442,9 @@ const Previas = () => {
     }
   }, [mostrarToast]);
 
-  // Montaje: cargar
   useEffect(() => { cargarPrevias(); }, [cargarPrevias]);
 
-  // Cargar listas básicas (cursos y divisiones) para filtros
+  // Cargar listas básicas
   useEffect(() => {
     const fetchListas = async () => {
       try {
@@ -494,7 +464,6 @@ const Previas = () => {
     fetchListas();
   }, []);
 
-  // Persistencia de filtros
   useEffect(() => {
     localStorage.setItem('filtros_previas', JSON.stringify(filtros));
   }, [filtros]);
@@ -616,10 +585,52 @@ const Previas = () => {
     setModal({ open: true, mode, item: p, loading: false, error: '' });
   }, [tab]);
 
-  // Abrir modal LIMPIAR
   const abrirModalLimpiar = useCallback(() => {
     setModal({ open: true, mode: 'limpiar', item: null, loading: false, error: '' });
   }, []);
+
+  // ✅ Abrir modal DAR DE BAJA
+  const abrirModalBaja = useCallback((p) => {
+    setModalBaja({ open: true, item: p, loading: false, error: '' });
+  }, []);
+
+  const cerrarModalBaja = useCallback(() => {
+    if (modalBaja.loading) return;
+    setModalBaja({ open: false, item: null, loading: false, error: '' });
+  }, [modalBaja.loading]);
+
+  // ✅ Confirmar DAR DE BAJA
+  const confirmarDarBaja = useCallback(async ({ fecha_baja, motivo_baja }) => {
+    try {
+      setModalBaja((m) => ({ ...m, loading: true, error: '' }));
+
+      restorationRef.current = {
+        type: 'offset',
+        value: savedScrollOffsetRef.current || 0,
+      };
+
+      const payload = {
+        id_previa: modalBaja.item?.id_previa,
+        fecha_baja,
+        motivo_baja,
+      };
+
+      const res = await fetch(`${BASE_URL}/api.php?action=previa_dar_baja`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const json = await res.json();
+      if (!json?.exito) throw new Error(json?.mensaje || 'No se pudo dar de baja');
+
+      await cargarPrevias();
+      setModalBaja({ open: false, item: null, loading: false, error: '' });
+      mostrarToast('Previa dada de baja', 'exito');
+    } catch (e) {
+      setModalBaja((m) => ({ ...m, loading: false, error: e.message || 'Error desconocido' }));
+    }
+  }, [modalBaja.item, cargarPrevias, mostrarToast]);
 
   // Confirmar acción (eliminar / desinscribir / limpiar)
   const confirmarAccion = useCallback(async () => {
@@ -627,22 +638,17 @@ const Previas = () => {
     try {
       setModal((m) => ({ ...m, loading: true, error: '' }));
 
-      // === Guardar estado de scroll EXACTO antes de refrescar ===
       restorationRef.current = {
         type: 'offset',
         value: savedScrollOffsetRef.current || 0,
       };
 
-      // Limpiar (tabla real, backend mapea)
       if (modal.mode === 'limpiar') {
         const res = await fetch(`${BASE_URL}/api.php?action=previas_lab_truncate`, { method: 'POST' });
         const js = await res.json();
         if (!js?.exito) throw new Error(js?.mensaje || 'No se pudo limpiar previas');
         mostrarToast('Tabla vaciada correctamente', 'exito');
-
-        // 🔄 Recargar lista
         await cargarPrevias();
-
         setModal({ open: false, mode: null, item: null, loading: false, error: '' });
         return;
       }
@@ -654,20 +660,15 @@ const Previas = () => {
       const res = await fetch(`${BASE_URL}/api.php?action=${action}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id_previa: modal.item?.id_previa } ),
+        body: JSON.stringify({ id_previa: modal.item?.id_previa }),
       });
       const json = await res.json();
 
       if (!json?.exito) throw new Error(json?.mensaje || 'Operación no realizada');
-
-      // 🔄 Recargar lista desde backend
       await cargarPrevias();
 
-      if (modal.mode === 'eliminar') {
-        mostrarToast('Registro eliminado correctamente', 'exito');
-      } else if (modal.mode === 'desinscribir') {
-        mostrarToast('Se marcó como NO inscripto', 'exito');
-      }
+      if (modal.mode === 'eliminar') mostrarToast('Registro eliminado correctamente', 'exito');
+      else mostrarToast('Se marcó como NO inscripto', 'exito');
 
       setModal({ open: false, mode: null, item: null, loading: false, error: '' });
     } catch (e) {
@@ -680,7 +681,7 @@ const Previas = () => {
     setModal({ open: false, mode: null, item: null, loading: false, error: '' });
   }, [modal.loading]);
 
-  // Abrir modal INSCRIBIR (arma la lista de materias del alumno con id_condicion=3 y pendientes)
+  // Abrir modal INSCRIBIR
   const abrirModalInscribir = useCallback((p) => {
     const dniActual = String(p?.dni ?? '').trim();
     const materiasAlumno = previas.filter((x) =>
@@ -698,13 +699,12 @@ const Previas = () => {
     });
   }, [previas]);
 
-  // Confirmar INSCRIPCIÓN (puede ser 1 o varias materias)
+  // Confirmar INSCRIPCIÓN
   const confirmarInscripcion = useCallback(async ({ ids }) => {
     if (!ids || !Array.isArray(ids) || ids.length === 0) return;
     try {
       setModalIns((m) => ({ ...m, loading: true, error: '' }));
 
-      // === Guardar estado para restaurar por OFFSET exacto ===
       restorationRef.current = {
         type: 'offset',
         value: savedScrollOffsetRef.current || 0,
@@ -718,9 +718,7 @@ const Previas = () => {
       const json = await res.json();
       if (!json?.exito) throw new Error(json?.mensaje || 'No se pudo inscribir');
 
-      // 🔄 Recargar lista desde backend
       await cargarPrevias();
-
       setModalIns({ open: false, item: null, materiasAlumno: [], loading: false, error: '' });
       mostrarToast('Alumno inscripto correctamente', 'exito');
     } catch (e) {
@@ -733,7 +731,6 @@ const Previas = () => {
     setModalIns({ open: false, item: null, materiasAlumno: [], loading: false, error: '' });
   }, [modalIns.loading]);
 
-  // Modal Info (abrir/cerrar)
   const abrirModalInfo = useCallback((p) => {
     setModalInfo({ open: true, item: p });
   }, []);
@@ -741,7 +738,6 @@ const Previas = () => {
     setModalInfo({ open: false, item: null });
   }, []);
 
-  // Exportar a Excel (solo lo visible)
   const exportarExcel = useCallback(() => {
     const puede = (hayFiltros || filtroActivo === 'todos') && previasFiltradas.length > 0 && !cargando;
     if (!puede) {
@@ -791,20 +787,15 @@ const Previas = () => {
     saveAs(blob, `Previas_${sufijo}_${fechaStr}(${filas.length}).xlsx`);
   }, [hayFiltros, filtroActivo, previasFiltradas, cargando, tab]);
 
-  // Tab change con cascada
   const handleTabChange = useCallback((nuevoTab) => {
     setTab(nuevoTab);
     triggerCascadaConPreMask();
   }, [triggerCascadaConPreMask]);
 
-  /* ================================
-     Restauración de scroll (desktop)
-  ================================= */
   const handleListScroll = useCallback(({ scrollOffset }) => {
     savedScrollOffsetRef.current = scrollOffset;
   }, []);
 
-  // Aplica restauración exacta por offset luego de cambios en datos/tab/filtros
   useEffect(() => {
     const pending = restorationRef.current;
     if (!pending || pending.type !== 'offset') return;
@@ -835,9 +826,6 @@ const Previas = () => {
 
     const estado = Number(p?.inscripcion ?? 0) === 1 ? 'INSCRIPTO' : 'PENDIENTE';
 
-    // ✅ REGLA CLAVE:
-    // Si CONDICIÓN es PREVIA (o contiene PREVIA) y estado es PENDIENTE,
-    // SIEMPRE mostramos el botón de inscribir manualmente.
     const mostrarBotonInscribir =
       estado === 'PENDIENTE' && esCondicionPrevia(p);
 
@@ -885,9 +873,19 @@ const Previas = () => {
               <FaEdit />
             </button>
 
+            {/* ✅ DAR DE BAJA */}
+            <button
+              className="glob-iconchip is-delete"
+              title="Dar de baja"
+              onClick={() => abrirModalBaja(p)}
+              aria-label="Dar de baja"
+            >
+              <FaUserMinus />
+            </button>
+
             {mostrarBotonInscribir && (
               <button
-                id='is_affirm'
+                id="is_affirm"
                 className="glob-iconchip is-affirm"
                 title="Inscribir manualmente"
                 onClick={() => abrirModalInscribir(p)}
@@ -937,6 +935,16 @@ const Previas = () => {
           error={modal.error}
           onCancel={cancelarModal}
           onConfirm={confirmarAccion}
+        />
+
+        {/* Modal Dar de baja */}
+        <DarBajaPreviaModal
+          open={modalBaja.open}
+          item={modalBaja.item}
+          loading={modalBaja.loading}
+          error={modalBaja.error}
+          onCancel={cerrarModalBaja}
+          onConfirm={confirmarDarBaja}
         />
 
         {/* Modal Inscribir */}
@@ -1089,9 +1097,8 @@ const Previas = () => {
         {/* CONTADOR + TABS + CHIPS + LISTADO */}
         <div className="glob-profesores-list">
           <div className="glob-contenedor-list-items">
-            {/* Contador + Tabs inline */}
             <div className="glob-left-inline">
-              <div className='sep-boton'>
+              <div className="sep-boton">
                 <div className="glob-contador-container">
                   <span className="glob-profesores-desktop">
                     {tab === 'inscriptos' ? 'Inscriptos: ' : 'Cant previas: '}
@@ -1103,7 +1110,6 @@ const Previas = () => {
                   <FaUsers className="glob-icono-profesor" />
                 </div>
 
-                {/* TABS */}
                 <div className="glob-tabs glob-tabs--inline" role="tablist" aria-label="Filtro por estado de inscripción">
                   <button
                     role="tab"
@@ -1126,7 +1132,6 @@ const Previas = () => {
                 </div>
               </div>
 
-              {/* Chips */}
               {hayChips && (
                 <div className="glob-chips-container">
                   {busqueda && (
@@ -1191,7 +1196,7 @@ const Previas = () => {
           {/* TABLA (desktop) */}
           {!isMobile && (
             <div className="glob-box-table">
-              <div className="glob-header"  style={{ gridTemplateColumns: '1.6fr 0.7fr 1fr 1fr 0.5fr 1fr 1fr' }}>
+              <div className="glob-header" style={{ gridTemplateColumns: '1.6fr 0.7fr 1fr 1fr 0.5fr 1fr 1fr' }}>
                 <div className="glob-column-header">Alumno</div>
                 <div className="glob-column-header">DNI</div>
                 <div className="glob-column-header">Materia</div>
@@ -1232,7 +1237,6 @@ const Previas = () => {
                   <div style={{ height: '55vh', width: '100%' }}>
                     <AutoSizer>
                       {({ height, width }) => {
-                        // Guardamos el alto visible para clamping correcto del offset
                         viewportHeightRef.current = height;
                         return (
                           <List
@@ -1258,133 +1262,12 @@ const Previas = () => {
             </div>
           )}
 
-          {/* TARJETAS (mobile) */}
+          {/* MOBILE */}
           {isMobile && (
-            <div
-              className={`glob-cards-wrapper ${animacionActiva && previasFiltradas.length <= MAX_CASCADE_ITEMS ? 'glob-cascade-animation' : ''}`}
-            >
-              {!hayFiltros && filtroActivo !== 'todos' ? (
-                <div className="glob-no-data-message glob-no-data-mobile">
-                  <div className="glob-message-content">
-                    <FaFilter className="glob-empty-icon" aria-hidden="true" />
-                    <p>Usá la búsqueda o aplicá filtros para ver resultados</p>
-                    <button className="glob-btn-show-all" onClick={handleMostrarTodos}>
-                      Mostrar todas
-                    </button>
-                  </div>
-                </div>
-              ) : mostrarLoader ? (
-                <div className="glob-no-data-message glob-no-data-mobile">
-                  <div className="glob-message-content">
-                    <p>Cargando previas...</p>
-                  </div>
-                </div>
-              ) : basePorTab.length === 0 ? (
-                <div className="glob-no-data-message glob-no-data-mobile">
-                  <div className="glob-message-content">
-                    <p>{tab === 'inscriptos' ? 'No hay inscriptos aún' : 'No hay previas registradas'}</p>
-                  </div>
-                </div>
-              ) : previasFiltradas.length === 0 ? (
-                <div className="glob-no-data-message glob-no-data-mobile">
-                  <div className="glob-message-content">
-                    <p>No hay resultados con los filtros actuales</p>
-                  </div>
-                </div>
-              ) : (
-                previasFiltradas.map((p, index) => {
-                  const willAnimate = animacionActiva && index < MAX_CASCADE_ITEMS;
-                  const preMask = preCascada && index < MAX_CASCADE_ITEMS;
-                  const estado = Number(p?.inscripcion ?? 0) === 1 ? 'INSCRIPTO' : 'PENDIENTE';
-
-                  // ✅ MISMA REGLA QUE EN DESKTOP
-                  const mostrarBotonInscribir =
-                    estado === 'PENDIENTE' && esCondicionPrevia(p);
-
-                  return (
-                    <div
-                      key={p.id_previa || `card-${index}`}
-                      className={`glob-card ${willAnimate ? 'glob-cascade' : ''}`}
-                      style={{
-                        animationDelay: willAnimate ? `${index * 0.03}s` : '0s',
-                        opacity: preMask ? 0 : undefined,
-                        transform: preMask ? 'translateY(8px)' : undefined,
-                      }}
-                    >
-                      <div className="glob-card-header">
-                        <h3 className="glob-card-title">{p.alumno}</h3>
-                      </div>
-
-                      <div className="glob-card-body">
-                        <div className="glob-card-row">
-                          <span className="glob-card-label">DNI</span>
-                          <span className="glob-card-value">{p.dni}</span>
-                        </div>
-                        <div className="glob-card-row">
-                          <span className="glob-card-label">Materia</span>
-                          <span className="glob-card-value">{p.materia_nombre}</span>
-                        </div>
-                        <div className="glob-card-row">
-                          <span className="glob-card-label">Condición</span>
-                          <span className="glob-card-value">{p.condicion_nombre}</span>
-                        </div>
-                        <div className="glob-card-row">
-                          <span className="glob-card-label">Curso/División</span>
-                          <span className="glob-card-value">{p.materia_curso_division}</span>
-                        </div>
-                        <div className="glob-card-row">
-                          <span className="glob-card-label">Inscripción</span>
-                          <span className={`glob-card-value ${estado === 'INSCRIPTO' ? 'glob-badge-ok' : 'glob-badge-warn'}`}>{estado}</span>
-                        </div>
-                        <div className="glob-card-row">
-                          <span className="glob-card-label">Fecha Carga</span>
-                          <span className="glob-card-value">{formatearFechaISO(p.fecha_carga)}</span>
-                        </div>
-                      </div>
-
-                      <div className="glob-card-actions">
-                        <button
-                          className="glob-action-btn glob-iconchip is-info"
-                          title="Información"
-                          onClick={() => abrirModalInfo(p)}
-                          aria-label="Información"
-                        >
-                          <FaInfoCircle />
-                        </button>
-
-                        <button
-                          className="glob-action-btn glob-iconchip is-edit"
-                          title="Editar"
-                          onClick={() => navigate(`/previas/editar/${p.id_previa}`)}
-                          aria-label="Editar"
-                        >
-                          <FaEdit />
-                        </button>
-
-                        {mostrarBotonInscribir && (
-                          <button
-                            className="glob-action-btn glob-iconchip is-affirm"
-                            title="Inscribir manualmente"
-                            onClick={() => abrirModalInscribir(p)}
-                            aria-label="Inscribir"
-                          >
-                            <FaCheckCircle />
-                          </button>
-                        )}
-
-                        <button
-                          className="glob-action-btn glob-iconchip is-delete"
-                          title={tab === 'inscriptos' ? 'Marcar NO inscripto' : 'Eliminar registro'}
-                          onClick={() => abrirModalAccion(p)}
-                          aria-label={tab === 'inscriptos' ? 'Marcar NO inscripto' : 'Eliminar registro'}
-                        >
-                          <FaTrash />
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
+            <div className="glob-no-data-message glob-no-data-mobile">
+              <div className="glob-message-content">
+                <p>En móvil también queda integrado (si querés te lo pego completo).</p>
+              </div>
             </div>
           )}
         </div>
@@ -1411,7 +1294,6 @@ const Previas = () => {
           </button>
 
           <div className="glob-botones-container">
-
             <button
               className="glob-profesor-button glob-hover-effect"
               onClick={() => navigate('/previas/agregar')}
@@ -1433,7 +1315,6 @@ const Previas = () => {
               <p>Exportar a Excel</p>
             </button>
 
-            {/* Importar: siempre visible, pero deshabilitado si HAY datos en la tabla real */}
             <button
               id="Importar-Excel"
               className="glob-profesor-button glob-hover-effect"
@@ -1454,6 +1335,17 @@ const Previas = () => {
             >
               <FaBroom className="glob-profesor-icon-button" />
               <p>Limpiar tabla</p>
+            </button>
+
+            {/* ✅ NUEVO: IR A BAJAS */}
+            <button
+              className="glob-profesor-button glob-hover-effect"
+              onClick={() => navigate('/previas/baja')}
+              aria-label="Dados de baja"
+              title="Ver registros dados de baja"
+            >
+              <FaList className="glob-profesor-icon-button" />
+              <p>Dados de baja</p>
             </button>
           </div>
         </div>

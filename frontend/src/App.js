@@ -24,6 +24,7 @@ import ProfesorBaja from "./components/Profesores/ProfesorBaja";
 import Previas from "./components/Previas/Previas";
 import AgregarPrevia from "./components/Previas/AgregarPrevia";
 import EditarPrevia from "./components/Previas/EditarPrevia";
+import PreviasBaja from "./components/Previas/PreviasBaja";
 
 /* Cátedras */
 import Catedras from "./components/Catedras/Catedras";
@@ -171,6 +172,7 @@ function App() {
         <Route path="/previas" element={<RutaProtegida componente={<Previas />} />} />
         <Route path="/previas/agregar" element={<RutaProtegida componente={<AgregarPrevia />} />} />
         <Route path="/previas/editar/:id_previa" element={<RutaProtegida componente={<EditarPrevia />} />} />
+        <Route path="/previas/baja" element={<PreviasBaja />} />
 
         {/* Cátedras (protegido) */}
         <Route path="/catedras" element={<RutaProtegida componente={<Catedras />} />} />
