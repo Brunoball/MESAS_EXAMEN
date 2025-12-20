@@ -89,3 +89,76 @@
 }
 #modalBajaPrevia{min-width: 700px; height: 90%;}
 #motivo-baja-previa{max-height: 103px;}
+/* ===============================
+   TITULOS (Fecha / Motivo)
+================================= */
+.prev-baja-label{
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: #475569; /* slate-600 */
+  margin-bottom: 8px;
+}
+
+
+/* ===============================
+   INPUT FECHA
+================================= */
+.prev-baja-date{
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  padding: 11px 14px;
+  font-size: .95rem;
+  color: #0f172a;
+  background: #fff;
+}
+
+.prev-baja-date:focus{
+  border-color: rgba(211,47,47,.45);
+  box-shadow: 0 0 0 3px rgba(211,47,47,.12);
+}
+
+/* ===============================
+   TEXTAREA (Motivo)
+================================= */
+.prev-baja-textarea{
+  width: 100%;
+  min-height: 96px;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  padding: 14px 16px;
+  font-size: .95rem;
+  line-height: 1.5;
+  color: #0f172a;
+  background: #ffffff;
+  resize: vertical;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.prev-baja-textarea::placeholder{
+  color: #94a3b8; /* slate-400 */
+}
+
+.prev-baja-textarea:focus{
+  border-color: rgba(211,47,47,.5);
+  box-shadow: 0 0 0 3px rgba(211,47,47,.15);
+  outline: none;
+}
+
+/* Estado deshabilitado */
+.prev-baja-textarea:disabled{
+  background: #f8fafc;
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+/* ===============================
+   AJUSTES FINOS DE SEPARACIÓN
+================================= */
+.prev-baja-col{
+  gap: 2px;
+}
