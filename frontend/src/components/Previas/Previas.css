@@ -751,6 +751,6 @@ input:-webkit-autofill { background-color: transparent !important; }
 #iconbaja{font-size: 1rem;}
 #BTNBaja{background-color:var(--blue-inst-dark) !important ;}
 .scrolbarheaders{overflow: auto; scrollbar-gutter: stable;}
-.prev-baja-btn-alta{
+.prev-baja-btn-alta, .prev-baja-btn-trash{
   font-size: 1rem !important;
 }

@@ -322,7 +322,7 @@ const PreviasBaja = () => {
                       </button>
 
                       <button
-                        className="emp-baja-icono prev-baja-btn-trash"
+                        className="emp-baja-icono prev-baja-btn-trash "
                         title="Eliminar registro"
                         onClick={() => abrirModalEliminar(p)}
                         aria-label="Eliminar registro"

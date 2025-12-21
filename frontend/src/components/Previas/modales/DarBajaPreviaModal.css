@@ -150,4 +150,5 @@
 #modalBajaPrevia{
   min-width: unset !important;
   height: 88%;
+  max-height: 493px;
 }
