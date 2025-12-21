@@ -190,6 +190,7 @@ const PreviasBaja = () => {
 
   return (
     <div className="emp-baja-container prev-baja-container">
+      
       {/* Toast */}
       {toast.mostrar && (
         <Toast
@@ -279,7 +280,7 @@ const PreviasBaja = () => {
           </div>
 
           <div className="emp-baja-tabla-header-container">
-            <div className="emp-baja-tabla-header">
+            <div className="emp-baja-tabla-header scrolbarheaders"    style={{gridTemplateColumns: '0.5fr 1.6fr 1.4fr 0.5fr .8fr',}}>
               <div className="prev-col-dni">DNI</div>
               <div className="prev-col-alumno">Alumno</div>
               <div className="prev-col-motivo">Motivo</div>
@@ -296,7 +297,7 @@ const PreviasBaja = () => {
               </div>
             ) : (
               bajasFiltradas.map((p) => (
-                <div className="emp-baja-fila" key={p.id_previa}>
+                <div className="emp-baja-fila" key={p.id_previa}     style={{gridTemplateColumns: '0.5fr 1.6fr 1.4fr 0.5fr .8fr',}}>
                   <div className="prev-col-dni">{p.dni}</div>
                   <div className="prev-col-alumno">{p.alumno}</div>
                   <div className="prev-col-motivo" title={p.motivo_baja || ""}>

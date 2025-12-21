@@ -11,6 +11,7 @@
 }
 
 .delprev-card{
+  border-top: 4px solid var(--blue-inst-danger);
   width: min(560px, 92vw);
   background: #fff;
   border-radius: 18px;
@@ -37,14 +38,14 @@
   margin: 0 auto 8px;
   display: grid;
   place-items: center;
-  color: #e53935;
+  color: var(--blue-inst-danger);
   font-size: 30px;
 }
 
 .delprev-title{
   text-align: center;
-  color: #e53935;
-  font-weight: 800;
+  color: var(--blue-inst-danger);
+  font-weight: 600;
   font-size: 1.35rem;
   margin: 6px 0 6px;
 }
@@ -76,7 +77,7 @@
   border-radius: 12px;
   background: rgba(229,57,53,.08);
   border: 1px solid rgba(229,57,53,.25);
-  color: #b91c1c;
+  color: var(--blue-inst-danger);
 }
 
 .delprev-actions{
@@ -90,7 +91,7 @@
   min-width: 170px;
   padding: 12px 16px;
   border-radius: 12px;
-  font-weight: 800;
+  font-weight: 600;
   border: 1px solid transparent;
   cursor: pointer;
 }
@@ -103,6 +104,6 @@
 }
 
 .delprev-btn--danger{
-  background: #f26b6b;
+  background: var(--blue-inst-danger);
   color: #fff;
 }
