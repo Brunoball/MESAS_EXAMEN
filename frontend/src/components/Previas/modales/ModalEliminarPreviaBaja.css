@@ -1,0 +1,108 @@
+/* src/components/Previas/modales/ModalEliminarPreviaBaja.css */
+
+.delprev-overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, .35);
+  display: grid;
+  place-items: center;
+  z-index: 9999;
+  padding: 16px;
+}
+
+.delprev-card{
+  width: min(560px, 92vw);
+  background: #fff;
+  border-radius: 18px;
+  padding: 24px 22px 18px;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0,0,0,.20);
+}
+
+.delprev-x{
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  border: 0;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 18px;
+}
+.delprev-x:disabled{ opacity: .6; cursor: not-allowed; }
+
+.delprev-icon{
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 8px;
+  display: grid;
+  place-items: center;
+  color: #e53935;
+  font-size: 30px;
+}
+
+.delprev-title{
+  text-align: center;
+  color: #e53935;
+  font-weight: 800;
+  font-size: 1.35rem;
+  margin: 6px 0 6px;
+}
+
+.delprev-text{
+  text-align: center;
+  color: #334155;
+  margin: 0 0 14px;
+}
+
+.delprev-pill{
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 12px 12px;
+  margin: 0 0 12px;
+  text-align: center;
+  color: #0f172a;
+}
+.delprev-sub{
+  margin-top: 4px;
+  color: #64748b;
+  font-size: .92rem;
+}
+
+.delprev-error{
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(229,57,53,.08);
+  border: 1px solid rgba(229,57,53,.25);
+  color: #b91c1c;
+}
+
+.delprev-actions{
+  margin-top: 14px;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.delprev-btn{
+  min-width: 170px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-weight: 800;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+.delprev-btn:disabled{ opacity: .6; cursor: not-allowed; }
+
+.delprev-btn--ghost{
+  background: #fff;
+  border-color: #e2e8f0;
+  color: #0f172a;
+}
+
+.delprev-btn--danger{
+  background: #f26b6b;
+  color: #fff;
+}

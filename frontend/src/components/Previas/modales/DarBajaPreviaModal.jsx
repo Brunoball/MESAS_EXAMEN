@@ -1,14 +1,7 @@
 // src/components/Previas/modales/DarBajaPreviaModal.jsx
-import React, { useEffect, useRef, useState, useCallback } from "react";
-import { FaTimes, FaUserMinus, FaCalendarAlt, FaCommentDots } from "react-icons/fa";
+import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { FaTimes, FaUserMinus } from "react-icons/fa";
 import "./DarBajaPreviaModal.css";
-
-const hoyISO = () => {
-  const d = new Date();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${d.getFullYear()}-${mm}-${dd}`;
-};
 
 const DarBajaPreviaModal = ({
   open,
@@ -20,69 +13,58 @@ const DarBajaPreviaModal = ({
 }) => {
   const cancelRef = useRef(null);
   const motivoRef = useRef(null);
-  const fechaRef = useRef(null);
 
-  const [fecha, setFecha] = useState(hoyISO());
   const [motivo, setMotivo] = useState("");
+
+  const nombreAlumno = useMemo(() => {
+    const a = (item?.alumno || "").trim();
+    return a || "este alumno";
+  }, [item]);
 
   useEffect(() => {
     if (!open) return;
 
-    setFecha(hoyISO());
     setMotivo("");
     cancelRef.current?.focus();
 
     const onKeyDown = (e) => {
       if (e.key === "Escape") onCancel?.();
-      if (e.key === "Enter") handleConfirm();
+
+      // Evitar que Enter dentro del textarea dispare confirmación
+      const tag = (e.target?.tagName || "").toLowerCase();
+      const isTypingInTextarea = tag === "textarea";
+
+      if (e.key === "Enter" && !isTypingInTextarea) {
+        e.preventDefault();
+        handleConfirm();
+      }
     };
+
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  const openDatePicker = useCallback(
-    (e) => {
-      e?.preventDefault?.();
-      if (loading) return;
+  // ✅ ahora con 1 carácter ya vale
+  const motivoValido = motivo.trim().length >= 1;
 
-      const el = fechaRef.current;
-      if (!el) return;
-
-      try {
-        if (typeof el.showPicker === "function") el.showPicker();
-        else {
-          el.focus();
-          el.click();
-        }
-      } catch {
-        el.focus();
-        try {
-          el.click();
-        } catch {}
-      }
-    },
-    [loading]
-  );
-
-  if (!open) return null;
-
-  const motivoValido = motivo.trim().length >= 3;
-
-  const handleConfirm = () => {
+  const handleConfirm = useCallback(() => {
     const txt = motivo.trim();
-    if (!fecha) return;
 
-    if (txt.length < 3) {
+    // ✅ 1 solo carácter mínimo
+    if (txt.length < 1) {
       motivoRef.current?.focus();
       return;
     }
 
+    // ✅ sin fecha: backend usa NOW()
+    // ✅ por las dudas, enviamos en mayúsculas igual
     onConfirm?.({
-      fecha_baja: fecha,
-      motivo_baja: txt,
+      motivo_baja: txt.toUpperCase(),
     });
-  };
+  }, [motivo, onConfirm]);
+
+  if (!open) return null;
 
   return (
     <div
@@ -93,7 +75,7 @@ const DarBajaPreviaModal = ({
       onMouseDown={onCancel}
     >
       <div
-        className="logout-modal-container logout-modal--danger"
+        className="logout-modal-container logout-modal--danger prev-baja-card"
         id="modalBajaPrevia"
         onMouseDown={(e) => e.stopPropagation()}
       >
@@ -109,98 +91,52 @@ const DarBajaPreviaModal = ({
           <FaTimes />
         </button>
 
-        <div
-          className="logout-modal__icon"
-          aria-hidden="true"
-          style={{ color: "#D32F2F" }}
-        >
+        <div className="prev-baja-icon" aria-hidden="true">
           <FaUserMinus />
         </div>
 
-        <h3
-          id="prev-baja-title"
-          className="logout-modal-title logout-modal-title--danger"
-        >
-          Dar de baja previa
+        <h3 id="prev-baja-title" className="prev-baja-title">
+          Confirmar baja de previa
         </h3>
 
-        <p className="logout-modal-text">
-          Confirmá que querés <strong>dar de baja</strong> la previa e indicá
-          fecha y motivo.
+        <p className="prev-baja-question">
+          ¿Estás seguro que deseas dar de baja a{" "}
+          <strong>{nombreAlumno}</strong>?
         </p>
 
-        {item && (
-          <div className="prev-modal-item">
-            <strong>{item.alumno}</strong> — DNI {item.dni}
-            <br />
-            Materia: {item.materia_nombre}
-          </div>
-        )}
+        {/* MOTIVO */}
+        <label className="prev-baja-label" htmlFor="motivo-baja-previa">
+          Motivo de la baja <span className="prev-baja-required">*</span>
+        </label>
 
-        {/* FECHA + MOTIVO en la misma fila */}
-        <div className="prev-baja-grid">
-          {/* FECHA */}
-          <div className="prev-baja-col">
-            <label className="prev-baja-label">
-              <p /> Fecha de baja
-            </label>
-
-            <div
-              className="soc-input-fecha-container prev-baja-datewrap"
-              role="button"
-              tabIndex={0}
-              onMouseDown={openDatePicker}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") openDatePicker(e);
-              }}
-              aria-label="Abrir selector de fecha"
-            >
-              <input
-                ref={fechaRef}
-                type="date"
-                className="soc-input-fecha-alta prev-baja-date"
-                value={fecha}
-                onChange={(e) => setFecha(e.target.value)}
-                disabled={loading}
-                onMouseDown={(e) => {
-                  e.stopPropagation();
-                  openDatePicker(e);
-                }}
-                onFocus={(e) => openDatePicker(e)}
-              />
-            </div>
-          </div>
-
-          {/* MOTIVO */}
-          <div className="prev-baja-col">
-            <label className="prev-baja-label" htmlFor="motivo-baja-previa">
-              <p/> Motivo de la baja{" "}
-              <span style={{ color: "#D32F2F" }}>*</span>
-            </label>
-
-            <textarea
-              id="motivo-baja-previa"
-              ref={motivoRef}
-              rows={3}
-              value={motivo}
-              onChange={(e) => setMotivo(e.target.value)}
-              placeholder="Ej: Alumno ya aprobó, se cambió de institución, error de carga…"
-              disabled={loading}
-              className="prev-baja-textarea"
-            />
-          </div>
+        <div className="prev-baja-textarea-wrap">
+          <textarea
+            id="motivo-baja-previa"
+            ref={motivoRef}
+            rows={4}
+            value={motivo}
+            onChange={(e) => {
+              // ✅ todo a mayúsculas mientras escribe
+              setMotivo((e.target.value || "").toUpperCase());
+            }}
+            placeholder="Escribí el motivo (obligatorio)"
+            disabled={loading}
+            className="prev-baja-textarea"
+            maxLength={250}
+          />
+          <div className="prev-baja-counter">{motivo.length}/250</div>
         </div>
 
         {error && (
-          <div className="dbm-error" role="alert">
+          <div className="prev-baja-error" role="alert">
             {error}
           </div>
         )}
 
-        <div className="logout-modal-buttons">
+        <div className="prev-baja-buttons">
           <button
             type="button"
-            className="logout-btn logout-btn--ghost"
+            className="prev-baja-btn prev-baja-btn--ghost"
             onClick={onCancel}
             ref={cancelRef}
             disabled={loading}
@@ -210,10 +146,10 @@ const DarBajaPreviaModal = ({
 
           <button
             type="button"
-            className="logout-btn logout-btn--solid-danger"
+            className="prev-baja-btn prev-baja-btn--danger"
             onClick={handleConfirm}
-            disabled={loading || !fecha || !motivoValido}
-            title={!motivoValido ? "Ingresá un motivo (mínimo 3 caracteres)" : ""}
+            disabled={loading || !motivoValido}
+            title={!motivoValido ? "Ingresá un motivo" : ""}
           >
             {loading ? "Procesando..." : "Confirmar baja"}
           </button>

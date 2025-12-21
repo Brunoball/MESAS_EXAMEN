@@ -1,164 +1,154 @@
 /* src/components/Previas/modales/DarBajaPreviaModal.css */
 
-/* botón X arriba a la derecha (similar a tu dbm-close) */
+/* X arriba a la derecha */
 .prev-baja-x{
   position:absolute;
   top: 12px;
   right: 12px;
   border: 0;
   background: transparent;
-  color: #64748b;
+  color: #94a3b8;
   cursor: pointer;
   font-size: 18px;
-  opacity: .85;
+  opacity: .9;
 }
 .prev-baja-x:hover{ opacity: 1; }
 .prev-baja-x:disabled{ opacity: .55; cursor: not-allowed; }
 
-/* “pill” de detalle */
-.prev-modal-item{
-  padding: 10px 12px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  font-size: .95rem;
-  color: #0f172a;
-  margin: 0 0 14px;
+/* Card “like screenshot” */
+.prev-baja-card{
+  position: relative;
+  width: min(720px, 92vw);
+  border-radius: 18px;
+  padding: 26px 26px 22px;
 }
 
-/* label estilo consistente */
-.prev-baja-label{
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 600;
-  margin-bottom: 6px;
-  color: #0f172a;
-}
-
-/* wrapper fecha: reutiliza tus clases "soc-*" (mismo look del alta profesor) */
-.prev-baja-datewrap{
-  margin-bottom: 14px;
-}
-
-/* textarea estilo profesores */
-.prev-baja-textarea{
-  width: 100%;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  padding: 10px 12px;
-  resize: vertical;
-  outline: none;
-  box-shadow: none;
-  font-size: .95rem;
-  color: #0f172a;
-  background: #fff;
-}
-.prev-baja-textarea:focus{
-  border-color: rgba(231, 76, 60, .45);
-  box-shadow: 0 0 0 3px rgba(231, 76, 60, .12);
-}
-
-/* si querés reutilizar tu bloque de error oscuro, lo dejamos, pero mejor “claro” como el resto */
-.dbm-error{
-  background: rgba(211,47,47,.08);
-  border: 1px solid rgba(211,47,47,.25);
-  color: #b91c1c;
-  padding: 10px 12px;
-  border-radius: 12px;
-  margin: 10px 0 0;
-}
-/* ===== Grid Fecha + Motivo ===== */
-.prev-baja-grid{
+/* Icono arriba */
+.prev-baja-icon{
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 8px;
   display: grid;
-  grid-template-columns: 1fr 1.2fr; /* motivo un poco más ancho */
-  gap: 16px;
-  margin-bottom: 12px;
+  place-items: center;
+  color: #e53935;
+  font-size: 32px;
 }
 
-.prev-baja-col{
-  display: flex;
-  flex-direction: column;
+/* Título rojo centrado */
+.prev-baja-title{
+  margin: 6px 0 8px;
+  text-align: center;
+  font-weight: 800;
+  color: #e53935;
+  font-size: 1.55rem;
 }
 
-/* En mobile se apilan */
-@media (max-width: 640px){
-  .prev-baja-grid{
-    grid-template-columns: 1fr;
-  }
+/* Pregunta centrada */
+.prev-baja-question{
+  margin: 0 0 18px;
+  text-align: center;
+  color: #334155;
+  font-size: 1rem;
+  line-height: 1.45;
 }
-#modalBajaPrevia{min-width: 700px; height: 90%;}
-#motivo-baja-previa{max-height: 103px;}
-/* ===============================
-   TITULOS (Fecha / Motivo)
-================================= */
+
+/* Label */
 .prev-baja-label{
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: .85rem;
+  display: block;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .04em;
-  color: #475569; /* slate-600 */
-  margin-bottom: 8px;
+  color: #475569;
+  margin: 0 0 8px;
+}
+.prev-baja-required{
+  color: #e53935;
 }
 
-
-/* ===============================
-   INPUT FECHA
-================================= */
-.prev-baja-date{
-  border-radius: 14px;
-  border: 1px solid #e5e7eb;
-  padding: 11px 14px;
-  font-size: .95rem;
-  color: #0f172a;
-  background: #fff;
+/* Textarea + contador */
+.prev-baja-textarea-wrap{
+  position: relative;
 }
-
-.prev-baja-date:focus{
-  border-color: rgba(211,47,47,.45);
-  box-shadow: 0 0 0 3px rgba(211,47,47,.12);
-}
-
-/* ===============================
-   TEXTAREA (Motivo)
-================================= */
 .prev-baja-textarea{
   width: 100%;
-  min-height: 96px;
-  border-radius: 16px;
-  border: 1px solid #e5e7eb;
-  padding: 14px 16px;
-  font-size: .95rem;
+  min-height: 120px;
+  border-radius: 14px;
+  border: 2px solid rgba(229, 57, 53, .25);
+  padding: 14px 14px 26px;
+  font-size: .98rem;
   line-height: 1.5;
   color: #0f172a;
-  background: #ffffff;
-  resize: vertical;
+  background: #fff;
+  resize: none;
+  outline: none;
   transition: border-color .15s ease, box-shadow .15s ease;
 }
-
 .prev-baja-textarea::placeholder{
-  color: #94a3b8; /* slate-400 */
+  color: #94a3b8;
 }
-
 .prev-baja-textarea:focus{
-  border-color: rgba(211,47,47,.5);
-  box-shadow: 0 0 0 3px rgba(211,47,47,.15);
-  outline: none;
+  border-color: rgba(229, 57, 53, .45);
+  box-shadow: 0 0 0 3px rgba(229, 57, 53, .12);
 }
-
-/* Estado deshabilitado */
 .prev-baja-textarea:disabled{
   background: #f8fafc;
   color: #64748b;
   cursor: not-allowed;
 }
 
-/* ===============================
-   AJUSTES FINOS DE SEPARACIÓN
-================================= */
-.prev-baja-col{
-  gap: 2px;
+.prev-baja-counter{
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+  font-size: .82rem;
+  color: #94a3b8;
+}
+
+/* Error */
+.prev-baja-error{
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(229,57,53,.08);
+  border: 1px solid rgba(229,57,53,.25);
+  color: #b91c1c;
+}
+
+/* Botones como screenshot */
+.prev-baja-buttons{
+  margin-top: 18px;
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+}
+
+.prev-baja-btn{
+  min-width: 190px;
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-weight: 800;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: transform .05s ease, opacity .15s ease;
+}
+.prev-baja-btn:active{ transform: scale(.99); }
+.prev-baja-btn:disabled{ opacity: .6; cursor: not-allowed; }
+
+.prev-baja-btn--ghost{
+  background: #fff;
+  border-color: #e2e8f0;
+  color: #0f172a;
+}
+
+.prev-baja-btn--danger{
+  background: #f26b6b;
+  color: #fff;
+  border-color: transparent;
+}
+.prev-baja-btn--danger:hover{
+  filter: brightness(0.98);
+}
+
+/* Si tu logout-modal-container tiene min-width raro, lo neutralizamos */
+#modalBajaPrevia{
+  min-width: unset !important;
+  height: auto !important;
 }

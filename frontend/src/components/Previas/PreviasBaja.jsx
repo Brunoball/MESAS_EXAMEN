@@ -2,18 +2,22 @@
 import React, { useEffect, useMemo, useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BASE_URL from "../../config/config";
-import { FaArrowLeft, FaUsers, FaSearch, FaTimes, FaUserPlus } from "react-icons/fa";
+import {
+  FaArrowLeft,
+  FaUsers,
+  FaSearch,
+  FaTimes,
+  FaUserPlus,
+  FaTrash,
+} from "react-icons/fa";
 import Toast from "../Global/Toast";
+
 import DarAltaPreviaModal from "./modales/DarAltaPreviaModal";
+import ModalEliminarPreviaBaja from "./modales/ModalEliminarPreviaBaja";
 
 import "../Global/roots.css";
 import "../Global/section-ui.css";
-
-// ✅ Reutilizá la estética de ProfesorBaja
 import "../Profesores/ProfesorBaja.css";
-
-// ✅ CSS SOLO para columnas/labels de previas
-
 
 const normalizar = (str = "") =>
   (str?.toString?.() ?? String(str))
@@ -22,16 +26,30 @@ const normalizar = (str = "") =>
     .replace(/[\u0300-\u036f]/g, "")
     .trim();
 
+const fmtFechaAR = (v) => {
+  if (!v) return "-";
+  const s = String(v).slice(0, 10); // "YYYY-MM-DD"
+  const [y, m, d] = s.split("-");
+  if (!y || !m || !d) return s;
+  return `${d}/${m}/${y}`;
+};
+
 const PreviasBaja = () => {
   const navigate = useNavigate();
 
   const [previas, setPrevias] = useState([]);
   const [cargando, setCargando] = useState(false);
   const [busqueda, setBusqueda] = useState("");
-
   const [toast, setToast] = useState({ mostrar: false, tipo: "", mensaje: "" });
 
   const [modalAlta, setModalAlta] = useState({
+    open: false,
+    item: null,
+    loading: false,
+    error: "",
+  });
+
+  const [modalEliminar, setModalEliminar] = useState({
     open: false,
     item: null,
     loading: false,
@@ -45,23 +63,24 @@ const PreviasBaja = () => {
   const cargarBajas = useCallback(async () => {
     try {
       setCargando(true);
-      const res = await fetch(`${BASE_URL}/api.php?action=previas_baja&ts=${Date.now()}`);
+
+      const res = await fetch(
+        `${BASE_URL}/api.php?action=previas_baja&ts=${Date.now()}`
+      );
       const data = await res.json();
 
-      if (data?.exito) {
-        const procesados = (data.previas || []).map((p) => ({
-          ...p,
-          _alumno: normalizar(p?.alumno ?? ""),
-          _dni: String(p?.dni ?? "").toLowerCase(),
-          _materia: normalizar(p?.materia_nombre ?? ""),
-          materia_curso_division: `${p.materia_curso_nombre || ""} ${p.materia_division_nombre || ""}`.trim(),
-        }));
-        setPrevias(procesados);
-      } else {
-        mostrarToast(`Error al obtener bajas: ${data?.mensaje || "desconocido"}`, "error");
-      }
-    } catch {
-      mostrarToast("Error de red al obtener bajas", "error");
+      if (!data?.exito) throw new Error(data?.mensaje || "Error desconocido");
+
+      const procesadas = (data.previas || []).map((p) => ({
+        ...p,
+        _alumno: normalizar(p.alumno),
+        _dni: String(p.dni || "").toLowerCase(),
+        _motivo: normalizar(p.motivo_baja),
+      }));
+
+      setPrevias(procesadas);
+    } catch (e) {
+      mostrarToast(e.message || "Error al obtener bajas", "error");
     } finally {
       setCargando(false);
     }
@@ -76,18 +95,18 @@ const PreviasBaja = () => {
     if (!q) return previas;
 
     return previas.filter(
-      (p) => p._alumno?.includes(q) || p._dni?.includes(q) || p._materia?.includes(q)
+      (p) => p._alumno.includes(q) || p._dni.includes(q) || p._motivo.includes(q)
     );
   }, [previas, busqueda]);
 
+  // ===== MODAL ALTA =====
   const abrirModalAlta = useCallback((p) => {
     setModalAlta({ open: true, item: p, loading: false, error: "" });
   }, []);
 
   const cerrarModalAlta = useCallback(() => {
-    if (modalAlta.loading) return;
-    setModalAlta({ open: false, item: null, loading: false, error: "" });
-  }, [modalAlta.loading]);
+    setModalAlta((m) => (m.loading ? m : { open: false, item: null, loading: false, error: "" }));
+  }, []);
 
   const confirmarAlta = useCallback(
     async ({ fecha_alta, motivo_alta }) => {
@@ -100,11 +119,14 @@ const PreviasBaja = () => {
           motivo_alta,
         };
 
-        const res = await fetch(`${BASE_URL}/api.php?action=previa_dar_alta&ts=${Date.now()}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
+        const res = await fetch(
+          `${BASE_URL}/api.php?action=previa_dar_alta&ts=${Date.now()}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          }
+        );
 
         const json = await res.json();
         if (!json?.exito) throw new Error(json?.mensaje || "No se pudo dar de alta");
@@ -122,6 +144,49 @@ const PreviasBaja = () => {
     },
     [modalAlta.item, cargarBajas, mostrarToast]
   );
+
+  // ===== MODAL ELIMINAR =====
+  const abrirModalEliminar = useCallback((p) => {
+    setModalEliminar({ open: true, item: p, loading: false, error: "" });
+  }, []);
+
+  const cerrarModalEliminar = useCallback(() => {
+    setModalEliminar((m) =>
+      m.loading ? m : { open: false, item: null, loading: false, error: "" }
+    );
+  }, []);
+
+  const confirmarEliminar = useCallback(async () => {
+    try {
+      const id = Number(modalEliminar.item?.id_previa || 0);
+      if (!id) throw new Error("ID inválido");
+
+      setModalEliminar((m) => ({ ...m, loading: true, error: "" }));
+
+      // ✅ llama a tu eliminar_registro.php mediante api.php
+      const res = await fetch(
+        `${BASE_URL}/api.php?action=previa_eliminar&ts=${Date.now()}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id_previa: id }),
+        }
+      );
+
+      const json = await res.json();
+      if (!json?.exito) throw new Error(json?.mensaje || "No se pudo eliminar");
+
+      await cargarBajas();
+      setModalEliminar({ open: false, item: null, loading: false, error: "" });
+      mostrarToast("Registro eliminado", "exito");
+    } catch (e) {
+      setModalEliminar((m) => ({
+        ...m,
+        loading: false,
+        error: e?.message || "Error desconocido",
+      }));
+    }
+  }, [modalEliminar.item, cargarBajas, mostrarToast]);
 
   return (
     <div className="emp-baja-container prev-baja-container">
@@ -145,7 +210,17 @@ const PreviasBaja = () => {
         onConfirm={confirmarAlta}
       />
 
-      {/* Franja superior (igual ProfesorBaja) */}
+      {/* Modal Eliminar */}
+      <ModalEliminarPreviaBaja
+        open={modalEliminar.open}
+        item={modalEliminar.item}
+        loading={modalEliminar.loading}
+        error={modalEliminar.error}
+        onCancel={cerrarModalEliminar}
+        onConfirm={confirmarEliminar}
+      />
+
+      {/* Barra superior */}
       <div className="emp-baja-glass">
         <div className="emp-baja-barra-superior">
           <div className="emp-baja-titulo-container">
@@ -155,7 +230,6 @@ const PreviasBaja = () => {
           <button
             className="emp-baja-nav-btn emp-baja-nav-btn--volver-top"
             onClick={() => navigate("/previas")}
-            title="Volver"
             type="button"
           >
             <FaArrowLeft className="ico" />
@@ -164,56 +238,52 @@ const PreviasBaja = () => {
         </div>
       </div>
 
-      {/* Buscador (misma estética) */}
+      {/* Buscador */}
       <div className="emp-baja-buscador-container">
         <input
           type="text"
           className="emp-baja-buscador"
-          placeholder="Buscar por alumno, DNI o materia..."
+          placeholder="Buscar por alumno, DNI o motivo..."
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
-          disabled={cargando}
+          disabled={cargando || modalAlta.loading || modalEliminar.loading}
         />
-        {busqueda ? (
+
+        {busqueda && (
           <button
             type="button"
             className="prev-baja-clear"
             onClick={() => setBusqueda("")}
             title="Limpiar"
-            aria-label="Limpiar búsqueda"
-            disabled={cargando}
+            disabled={cargando || modalAlta.loading || modalEliminar.loading}
           >
             <FaTimes />
           </button>
-        ) : null}
+        )}
 
-        <div className="emp-baja-buscador-icono" aria-hidden="true">
+        <div className="emp-baja-buscador-icono">
           <FaSearch />
         </div>
       </div>
 
-      {/* Tabla / Lista */}
+      {/* Tabla */}
       {cargando ? (
         <p className="emp-baja-cargando">Cargando previas dadas de baja...</p>
       ) : (
-        <div className="emp-baja-tabla-container prev-baja-tabla-container">
+        <div className="emp-baja-tabla-container">
           <div className="emp-baja-controles-superiores">
             <div className="emp-baja-contador">
-              Mostrando <strong>{bajasFiltradas.length}</strong> previas{" "}
+              Mostrando <strong>{bajasFiltradas.length}</strong> previas
               <FaUsers style={{ marginLeft: 8, opacity: 0.7 }} />
             </div>
-
-            {/* (si después querés agregar exportar/eliminar, lo ponés acá como en Profesores) */}
-            <div className="emp-baja-acciones-derecha" />
           </div>
 
           <div className="emp-baja-tabla-header-container">
-            <div className="emp-baja-tabla-header prev-baja-header">
-              <div className="prev-col-alumno">Alumno</div>
+            <div className="emp-baja-tabla-header">
               <div className="prev-col-dni">DNI</div>
-              <div className="prev-col-materia">Materia</div>
-              <div className="prev-col-condicion">Condición</div>
-              <div className="prev-col-curso">Curso</div>
+              <div className="prev-col-alumno">Alumno</div>
+              <div className="prev-col-motivo">Motivo</div>
+              <div className="prev-col-fecha">Fecha baja</div>
               <div className="prev-col-acciones">Acciones</div>
             </div>
           </div>
@@ -225,26 +295,40 @@ const PreviasBaja = () => {
                 No hay registros dados de baja
               </div>
             ) : (
-              bajasFiltradas.map((p, idx) => (
-                <div className="emp-baja-fila prev-baja-fila" key={p.id_previa ?? idx}>
-                  <div className="prev-col-alumno" title={p.alumno}>{p.alumno}</div>
-                  <div className="prev-col-dni" title={p.dni}>{p.dni}</div>
-                  <div className="prev-col-materia" title={p.materia_nombre}>{p.materia_nombre}</div>
-                  <div className="prev-col-condicion" title={p.condicion_nombre}>{p.condicion_nombre}</div>
-                  <div className="prev-col-curso" title={p.materia_curso_division}>{p.materia_curso_division}</div>
+              bajasFiltradas.map((p) => (
+                <div className="emp-baja-fila" key={p.id_previa}>
+                  <div className="prev-col-dni">{p.dni}</div>
+                  <div className="prev-col-alumno">{p.alumno}</div>
+                  <div className="prev-col-motivo" title={p.motivo_baja || ""}>
+                    {p.motivo_baja || "-"}
+                  </div>
+                  <div className="prev-col-fecha" title={p.fecha_baja || ""}>
+                    {fmtFechaAR(p.fecha_baja)}
+                  </div>
 
+                  {/* ✅ ACCIONES: alta + eliminar */}
                   <div className="prev-col-acciones">
                     <div className="emp-baja-iconos">
                       <button
-                        className="emp-baja-icono prev-baja-btn-alta "
-                        id="iconbaja"
+                        className="emp-baja-icono prev-baja-btn-alta"
                         title="Dar de alta"
                         onClick={() => abrirModalAlta(p)}
                         aria-label="Dar de alta"
-                        disabled={modalAlta.loading}
+                        disabled={modalAlta.loading || modalEliminar.loading}
                         type="button"
                       >
                         <FaUserPlus />
+                      </button>
+
+                      <button
+                        className="emp-baja-icono prev-baja-btn-trash"
+                        title="Eliminar registro"
+                        onClick={() => abrirModalEliminar(p)}
+                        aria-label="Eliminar registro"
+                        disabled={modalAlta.loading || modalEliminar.loading}
+                        type="button"
+                      >
+                        <FaTrash />
                       </button>
                     </div>
                   </div>

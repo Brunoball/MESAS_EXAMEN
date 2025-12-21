@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+
 header('Content-Type: application/json; charset=utf-8');
 
 require_once __DIR__ . '/../../config/db.php';
@@ -16,36 +17,33 @@ try {
   $data = json_decode($raw ?: '[]', true);
 
   $id     = isset($data['id_previa']) ? (int)$data['id_previa'] : 0;
-  $fecha  = isset($data['fecha_baja']) ? trim((string)$data['fecha_baja']) : '';
   $motivo = isset($data['motivo_baja']) ? trim((string)$data['motivo_baja']) : '';
 
   if ($id <= 0) {
     throw new Exception('ID inválido');
   }
 
-  if ($fecha === '' || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) {
-    throw new Exception('Fecha inválida (formato YYYY-MM-DD)');
-  }
-
   if (mb_strlen($motivo) < 3) {
     throw new Exception('El motivo de la baja es obligatorio (mínimo 3 caracteres)');
   }
 
-  // ✅ Dar de baja + SIEMPRE inscripcion = 0
-  // - Si ya era 0, queda igual
-  // - Si era 1, pasa a 0
+  if (mb_strlen($motivo) > 250) {
+    // por si llega más largo desde algún cliente
+    $motivo = mb_substr($motivo, 0, 250);
+  }
+
+  // ✅ fecha_baja SIEMPRE ahora (server), inscripcion SIEMPRE 0
   $stmt = $pdo->prepare("
     UPDATE previas
     SET activo = 0,
         inscripcion = 0,
-        fecha_baja = :fecha,
+        fecha_baja = NOW(),
         motivo_baja = :motivo
     WHERE id_previa = :id
     LIMIT 1
   ");
 
   $stmt->execute([
-    ':fecha'  => $fecha,
     ':motivo' => $motivo,
     ':id'     => $id,
   ]);
