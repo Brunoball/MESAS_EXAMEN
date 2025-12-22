@@ -1,6 +1,7 @@
 // src/components/Previas/PreviasBaja.jsx
-import React, { useEffect, useMemo, useCallback, useState } from "react";
+import React, { useEffect, useMemo, useCallback, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { FaInfoCircle } from "react-icons/fa";
 import BASE_URL from "../../config/config";
 import {
   FaArrowLeft,
@@ -9,6 +10,7 @@ import {
   FaTimes,
   FaUserPlus,
   FaTrash,
+  FaCommentDots,
 } from "react-icons/fa";
 import Toast from "../Global/Toast";
 
@@ -34,6 +36,67 @@ const fmtFechaAR = (v) => {
   return `${d}/${m}/${y}`;
 };
 
+/* =========================================================
+   ✅ MODAL EMBEBIDO (sin archivo aparte)
+========================================================= */
+const MotivoCompletoModal = ({ open, motivo, onClose }) => {
+  const closeRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    closeRef.current?.focus();
+
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") onClose?.();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open, onClose]);
+
+  if (!open) return null;
+
+  return (
+    <div className="prevMot_modal" role="dialog" aria-modal="true">
+      <button
+        className="prevMot_backdrop"
+        onClick={onClose}
+        aria-label="Cerrar modal"
+      />
+
+      <div className="prevMot_card">
+        {/* ÍCONO */}
+        <div className="prevMot_iconWrap">
+          <div className="prevMot_iconCircle">
+            <FaInfoCircle />
+          </div>
+        </div>
+
+        {/* TÍTULO */}
+        <h3 className="prevMot_title">Motivo de la baja</h3>
+
+        {/* CONTENIDO */}
+        <div className="prevMot_box">
+          {motivo || "-"}
+        </div>
+
+        {/* ACCIONES */}
+        <div className="prevMot_actions">
+          <button
+            ref={closeRef}
+            type="button"
+            className="prevMot_btn"
+            onClick={onClose}
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+
 const PreviasBaja = () => {
   const navigate = useNavigate();
 
@@ -55,6 +118,19 @@ const PreviasBaja = () => {
     loading: false,
     error: "",
   });
+
+  // ✅ Modal motivo completo (embebido)
+  const [modalMotivo, setModalMotivo] = useState({ open: false, motivo: "" });
+  const abrirModalMotivo = useCallback((motivo) => {
+    setModalMotivo({ open: true, motivo: motivo || "" });
+  }, []);
+  const cerrarModalMotivo = useCallback(() => {
+    setModalMotivo({ open: false, motivo: "" });
+  }, []);
+
+  // ✅ Refs para medir overflow por fila (motivo)
+  const motivoRefs = useRef({});
+  const [motivosOverflow, setMotivosOverflow] = useState({});
 
   const mostrarToast = useCallback((mensaje, tipo = "exito") => {
     setToast({ mostrar: true, tipo, mensaje });
@@ -98,6 +174,26 @@ const PreviasBaja = () => {
       (p) => p._alumno.includes(q) || p._dni.includes(q) || p._motivo.includes(q)
     );
   }, [previas, busqueda]);
+
+  // ✅ medir overflow: si el texto desborda su caja => mostrar botón ⋯
+  useEffect(() => {
+    const medir = () => {
+      const next = {};
+      for (const p of bajasFiltradas) {
+        const el = motivoRefs.current[p.id_previa];
+        if (!el) continue;
+        next[p.id_previa] = el.scrollWidth > el.clientWidth + 1;
+      }
+      setMotivosOverflow(next);
+    };
+
+    const t = setTimeout(medir, 0);
+    window.addEventListener("resize", medir);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("resize", medir);
+    };
+  }, [bajasFiltradas]);
 
   // ===== MODAL ALTA =====
   const abrirModalAlta = useCallback((p) => {
@@ -163,7 +259,6 @@ const PreviasBaja = () => {
 
       setModalEliminar((m) => ({ ...m, loading: true, error: "" }));
 
-      // ✅ llama a tu eliminar_registro.php mediante api.php
       const res = await fetch(
         `${BASE_URL}/api.php?action=previa_eliminar&ts=${Date.now()}`,
         {
@@ -190,7 +285,6 @@ const PreviasBaja = () => {
 
   return (
     <div className="emp-baja-container prev-baja-container">
-      
       {/* Toast */}
       {toast.mostrar && (
         <Toast
@@ -219,6 +313,13 @@ const PreviasBaja = () => {
         error={modalEliminar.error}
         onCancel={cerrarModalEliminar}
         onConfirm={confirmarEliminar}
+      />
+
+      {/* ✅ Modal Motivo completo (embebido) */}
+      <MotivoCompletoModal
+        open={modalMotivo.open}
+        motivo={modalMotivo.motivo}
+        onClose={cerrarModalMotivo}
       />
 
       {/* Barra superior */}
@@ -280,7 +381,10 @@ const PreviasBaja = () => {
           </div>
 
           <div className="emp-baja-tabla-header-container">
-            <div className="emp-baja-tabla-header scrolbarheaders"    style={{gridTemplateColumns: '0.5fr 1.6fr 1.4fr 0.5fr .8fr',}}>
+            <div
+              className="emp-baja-tabla-header scrolbarheaders"
+              style={{ gridTemplateColumns: "0.5fr 1.6fr 1.4fr 0.5fr .8fr" }}
+            >
               <div className="prev-col-dni">DNI</div>
               <div className="prev-col-alumno">Alumno</div>
               <div className="prev-col-motivo">Motivo</div>
@@ -297,12 +401,40 @@ const PreviasBaja = () => {
               </div>
             ) : (
               bajasFiltradas.map((p) => (
-                <div className="emp-baja-fila" key={p.id_previa}     style={{gridTemplateColumns: '0.5fr 1.6fr 1.4fr 0.5fr .8fr',}}>
+                <div
+                  className="emp-baja-fila"
+                  key={p.id_previa}
+                  style={{ gridTemplateColumns: "0.5fr 1.6fr 1.4fr 0.5fr .8fr" }}
+                >
                   <div className="prev-col-dni">{p.dni}</div>
                   <div className="prev-col-alumno">{p.alumno}</div>
+
+                  {/* ✅ MOTIVO: ancho max 350px + ellipsis + botón ⋯ solo si desborda */}
                   <div className="prev-col-motivo" title={p.motivo_baja || ""}>
-                    {p.motivo_baja || "-"}
+                    <div className="prev-motivo-wrap" style={{ maxWidth: 350 }}>
+                      <span
+                        className="prev-motivo-text"
+                        ref={(el) => {
+                          if (el) motivoRefs.current[p.id_previa] = el;
+                        }}
+                      >
+                        {p.motivo_baja || "-"}
+                      </span>
+
+{motivosOverflow[p.id_previa] && (
+  <button
+    type="button"
+    className="prev-motivo-info"
+    title="Ver motivo completo"
+    aria-label="Ver motivo completo"
+    onClick={() => abrirModalMotivo(p.motivo_baja)}
+  >
+    <FaInfoCircle />
+  </button>
+)}
+                    </div>
                   </div>
+
                   <div className="prev-col-fecha" title={p.fecha_baja || ""}>
                     {fmtFechaAR(p.fecha_baja)}
                   </div>

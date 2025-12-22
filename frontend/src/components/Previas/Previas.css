@@ -754,3 +754,268 @@ input:-webkit-autofill { background-color: transparent !important; }
 .prev-baja-btn-alta, .prev-baja-btn-trash{
   font-size: 1rem !important;
 }
+/* ✅ Clave para que una celda con texto largo NO empuje las columnas en un grid */
+.emp-baja-fila > div,
+.emp-baja-tabla-header > div{
+  min-width: 0;
+}
+
+/* ✅ Motivo controlado (máx 350px) + ellipsis */
+.prev-motivo-wrap{
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.prev-motivo-text{
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* ✅ Botón 3 puntitos */
+.prev-motivo-more{
+  flex: 0 0 auto;
+  width: 30px;
+  height: 28px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,.12);
+  background: rgba(255,255,255,.75);
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 0;
+  display: grid;
+  place-items: center;
+}
+.prev-motivo-more:hover{
+  background: rgba(255,255,255,.95);
+}
+
+/* =========================
+   MODAL embebido (Motivo)
+========================= */
+.prev-mot-modal{
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.prev-mot-backdrop{
+  position: fixed;
+  inset: 0;
+  border: 0;
+  background: rgba(0,0,0,.45);
+  cursor: pointer;
+}
+
+.prev-mot-card{
+  position: relative;
+  width: min(720px, 92vw);
+  max-height: min(70vh, 560px);
+  background: rgba(255,255,255,.92);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 16px;
+  box-shadow: 0 14px 40px rgba(0,0,0,.18);
+  overflow: hidden;
+  z-index: 1;
+
+  animation: prevMotPop .16s ease-out both;
+}
+
+@keyframes prevMotPop{
+  from{ transform: translateY(6px); opacity: .5; }
+  to{ transform: translateY(0); opacity: 1; }
+}
+
+.prev-mot-head{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 14px;
+  border-bottom: 1px solid rgba(0,0,0,.08);
+}
+
+.prev-mot-title-wrap{
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.prev-mot-ico{ opacity: .85; }
+
+.prev-mot-title{
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.prev-mot-close{
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,.10);
+  background: rgba(255,255,255,.85);
+  cursor: pointer;
+}
+
+.prev-mot-body{
+  padding: 14px;
+  overflow: auto;
+}
+
+.prev-mot-text{
+  white-space: pre-wrap;
+  line-height: 1.35;
+  font-size: 14px;
+  color: rgba(0,0,0,.86);
+}
+
+.prev-mot-footer{
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px 14px;
+  border-top: 1px solid rgba(0,0,0,.08);
+}
+
+.prev-mot-btn{
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,.10);
+  background: rgba(0,0,0,.85);
+  color: #fff;
+  cursor: pointer;
+}
+/* ========= Modal “Motivo de la baja” estilo como la imagen ========= */
+.prevMot_modal{
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+
+.prevMot_backdrop{
+  position: fixed;
+  inset: 0;
+  border: 0;
+  background: rgba(0,0,0,.35);
+  cursor: pointer;
+}
+
+.prevMot_card{
+  position: relative;
+  max-width: 600px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 18px 50px rgba(0,0,0,.22);
+  padding: 28px 26px 24px;
+  z-index: 1;
+
+  /* borde superior azul como la foto */
+  border-top: 5px solid var(--accent-red);
+
+  animation: prevMotPop .16s ease-out both;
+}
+
+@keyframes prevMotPop{
+  from{ transform: translateY(8px); opacity: .7; }
+  to{ transform: translateY(0); opacity: 1; }
+}
+
+/* ícono circular centrado */
+.prevMot_iconWrap{
+  display: grid;
+  place-items: center;
+  margin-top: -6px;
+  margin-bottom: 10px;
+}
+
+.prevMot_iconCircle{
+
+  border-radius: 50%;
+  background: #fff;
+  color: var(--accent-red);
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+/* título grande azul */
+.prevMot_title{
+  margin: 10px 0 18px;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--accent-red);
+}
+
+/* caja gris tipo textarea */
+.prevMot_box{
+  background: #f1f5f9;
+  border-radius: 12px;
+  padding: 16px 16px;
+  color: #0f172a;
+  font-size: 18px;
+  line-height: 1.35;
+
+  /* si es largo, que scrollee como tu imagen */
+  max-height: 140px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* botón centrado azul */
+.prevMot_actions{
+  display: flex;
+  justify-content: center;
+  margin-top: 18px;
+}
+
+.prevMot_btn{
+  min-width: 160px;
+  padding: 12px 22px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--accent-red);
+  color: #fff;
+  font-weight: 600;
+  font-size: 18px;
+  cursor: pointer;
+  box-shadow: 0 10px 22px rgba(37,99,235,.26);
+}
+
+.prevMot_btn:hover{
+  filter: brightness(1.02);
+}
+
+.prevMot_btn:active{
+  transform: translateY(1px);
+}
+.prev-motivo-info{
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 0;
+  background: transparent;
+  color: var(--accent-red);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+}
+
+.prev-motivo-info:hover{
+  background: rgba(37,99,235,.12);
+}
