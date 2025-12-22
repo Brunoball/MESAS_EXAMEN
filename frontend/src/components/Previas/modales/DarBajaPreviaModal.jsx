@@ -3,6 +3,12 @@ import React, { useEffect, useMemo, useRef, useState, useCallback } from "react"
 import { FaTimes, FaUserMinus } from "react-icons/fa";
 import "./DarBajaPreviaModal.css";
 
+const MOTIVOS = {
+  APROBO_DIA: "APROBO_DIA",
+  PASE_OTRO_COLEGIO: "PASE_OTRO_COLEGIO",
+  OTRO: "OTRO",
+};
+
 const DarBajaPreviaModal = ({
   open,
   item,
@@ -12,9 +18,12 @@ const DarBajaPreviaModal = ({
   onConfirm,
 }) => {
   const cancelRef = useRef(null);
-  const motivoRef = useRef(null);
+  const otroRef = useRef(null);
+  const fechaRef = useRef(null);
 
-  const [motivo, setMotivo] = useState("");
+  const [tipoMotivo, setTipoMotivo] = useState(MOTIVOS.APROBO_DIA);
+  const [fechaAprobado, setFechaAprobado] = useState("");
+  const [otroMotivo, setOtroMotivo] = useState("");
 
   const nombreAlumno = useMemo(() => {
     const a = (item?.alumno || "").trim();
@@ -24,17 +33,24 @@ const DarBajaPreviaModal = ({
   useEffect(() => {
     if (!open) return;
 
-    setMotivo("");
-    cancelRef.current?.focus();
+    setTipoMotivo(MOTIVOS.APROBO_DIA);
+    setOtroMotivo("");
+
+    // default: hoy (YYYY-MM-DD)
+    const hoy = new Date();
+    const yyyy = hoy.getFullYear();
+    const mm = String(hoy.getMonth() + 1).padStart(2, "0");
+    const dd = String(hoy.getDate()).padStart(2, "0");
+    setFechaAprobado(`${yyyy}-${mm}-${dd}`);
+
+    setTimeout(() => cancelRef.current?.focus(), 30);
 
     const onKeyDown = (e) => {
       if (e.key === "Escape") onCancel?.();
 
-      // Evitar que Enter dentro del textarea dispare confirmación
       const tag = (e.target?.tagName || "").toLowerCase();
-      const isTypingInTextarea = tag === "textarea";
-
-      if (e.key === "Enter" && !isTypingInTextarea) {
+      const isTyping = tag === "textarea" || tag === "input";
+      if (e.key === "Enter" && !isTyping) {
         e.preventDefault();
         handleConfirm();
       }
@@ -45,24 +61,51 @@ const DarBajaPreviaModal = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  // ✅ ahora con 1 carácter ya vale
-  const motivoValido = motivo.trim().length >= 1;
+  const formValido = useMemo(() => {
+    if (tipoMotivo === MOTIVOS.APROBO_DIA) return !!fechaAprobado;
+    if (tipoMotivo === MOTIVOS.OTRO) return otroMotivo.trim().length >= 1;
+    return true;
+  }, [tipoMotivo, fechaAprobado, otroMotivo]);
 
   const handleConfirm = useCallback(() => {
-    const txt = motivo.trim();
+    // ✅ APROBÓ (con fecha elegida)
+    if (tipoMotivo === MOTIVOS.APROBO_DIA) {
+      if (!fechaAprobado) {
+        fechaRef.current?.focus();
+        return;
+      }
 
-    // ✅ 1 solo carácter mínimo
-    if (txt.length < 1) {
-      motivoRef.current?.focus();
+      onConfirm?.({
+        tipo_motivo: MOTIVOS.APROBO_DIA,
+        // Compatibilidad: algunos padres mandan motivo_baja
+        motivo_baja: "APROBÓ",
+        fecha_baja: fechaAprobado, // YYYY-MM-DD
+      });
       return;
     }
 
-    // ✅ sin fecha: backend usa NOW()
-    // ✅ por las dudas, enviamos en mayúsculas igual
+    // ✅ PASE A OTRO COLEGIO (fecha hoy)
+    if (tipoMotivo === MOTIVOS.PASE_OTRO_COLEGIO) {
+      onConfirm?.({
+        tipo_motivo: MOTIVOS.PASE_OTRO_COLEGIO,
+        motivo_baja: "PASE A OTRO COLEGIO",
+      });
+      return;
+    }
+
+    // ✅ OTRO (texto obligatorio)
+    const txt = otroMotivo.trim();
+    if (txt.length < 1) {
+      otroRef.current?.focus();
+      return;
+    }
+
     onConfirm?.({
+      tipo_motivo: MOTIVOS.OTRO,
       motivo_baja: txt.toUpperCase(),
+      motivo_otro: txt.toUpperCase(), // por si el backend usa este
     });
-  }, [motivo, onConfirm]);
+  }, [tipoMotivo, fechaAprobado, otroMotivo, onConfirm]);
 
   if (!open) return null;
 
@@ -79,7 +122,6 @@ const DarBajaPreviaModal = ({
         id="modalBajaPrevia"
         onMouseDown={(e) => e.stopPropagation()}
       >
-        {/* X */}
         <button
           type="button"
           className="prev-baja-x"
@@ -100,31 +142,84 @@ const DarBajaPreviaModal = ({
         </h3>
 
         <p className="prev-baja-question">
-          ¿Estás seguro que deseas dar de baja a{" "}
-          <strong>{nombreAlumno}</strong>?
+          ¿Estás seguro que deseas dar de baja a <strong>{nombreAlumno}</strong>?
         </p>
 
-        {/* MOTIVO */}
-        <label className="prev-baja-label" htmlFor="motivo-baja-previa">
+        <label className="prev-baja-label">
           Motivo de la baja <span className="prev-baja-required">*</span>
         </label>
 
-        <div className="prev-baja-textarea-wrap">
-          <textarea
-            id="motivo-baja-previa"
-            ref={motivoRef}
-            rows={4}
-            value={motivo}
-            onChange={(e) => {
-              // ✅ todo a mayúsculas mientras escribe
-              setMotivo((e.target.value || "").toUpperCase());
-            }}
-            placeholder="Escribí el motivo (obligatorio)"
-            disabled={loading}
-            className="prev-baja-textarea"
-            maxLength={250}
-          />
-          <div className="prev-baja-counter">{motivo.length}/250</div>
+        <div className="prev-baja-motivos">
+          {/* APROBÓ EL DÍA + fecha */}
+          <div className="prev-baja-motivo-row">
+            <label className="prev-baja-radio">
+              <input
+                type="radio"
+                name="motivo_baja"
+                value={MOTIVOS.APROBO_DIA}
+                checked={tipoMotivo === MOTIVOS.APROBO_DIA}
+                onChange={() => setTipoMotivo(MOTIVOS.APROBO_DIA)}
+                disabled={loading}
+              />
+              <span>APROBÓ EL DÍA</span>
+            </label>
+
+            <input
+              ref={fechaRef}
+              type="date"
+              className="prev-baja-date"
+              value={fechaAprobado}
+              onChange={(e) => setFechaAprobado(e.target.value)}
+              disabled={loading || tipoMotivo !== MOTIVOS.APROBO_DIA}
+              title="Seleccioná la fecha"
+            />
+          </div>
+
+          {/* PASE */}
+          <div className="prev-baja-motivo-row">
+            <label className="prev-baja-radio">
+              <input
+                type="radio"
+                name="motivo_baja"
+                value={MOTIVOS.PASE_OTRO_COLEGIO}
+                checked={tipoMotivo === MOTIVOS.PASE_OTRO_COLEGIO}
+                onChange={() => setTipoMotivo(MOTIVOS.PASE_OTRO_COLEGIO)}
+                disabled={loading}
+              />
+              <span>PASE A OTRO COLEGIO</span>
+            </label>
+          </div>
+
+          {/* OTRO */}
+          <div className="prev-baja-motivo-row">
+            <label className="prev-baja-radio">
+              <input
+                type="radio"
+                name="motivo_baja"
+                value={MOTIVOS.OTRO}
+                checked={tipoMotivo === MOTIVOS.OTRO}
+                onChange={() => setTipoMotivo(MOTIVOS.OTRO)}
+                disabled={loading}
+              />
+              <span>OTRO MOTIVO (escribir)</span>
+            </label>
+          </div>
+
+          {tipoMotivo === MOTIVOS.OTRO && (
+            <div className="prev-baja-textarea-wrap" style={{ marginTop: 10 }}>
+              <textarea
+                ref={otroRef}
+                rows={4}
+                value={otroMotivo}
+                onChange={(e) => setOtroMotivo((e.target.value || "").toUpperCase())}
+                placeholder="Escribí el motivo (obligatorio)"
+                disabled={loading}
+                className="prev-baja-textarea"
+                maxLength={250}
+              />
+              <div className="prev-baja-counter">{otroMotivo.length}/250</div>
+            </div>
+          )}
         </div>
 
         {error && (
@@ -148,8 +243,8 @@ const DarBajaPreviaModal = ({
             type="button"
             className="prev-baja-btn prev-baja-btn--danger"
             onClick={handleConfirm}
-            disabled={loading || !motivoValido}
-            title={!motivoValido ? "Ingresá un motivo" : ""}
+            disabled={loading || !formValido}
+            title={!formValido ? "Completá el motivo" : ""}
           >
             {loading ? "Procesando..." : "Confirmar baja"}
           </button>
