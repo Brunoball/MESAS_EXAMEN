@@ -298,8 +298,8 @@
 
 .prev-baja-mini-title{
   font-weight: 600;
-  color: #0f172a;
-  font-size: 1rem;
+  color: var(--blue-inst-danger);
+  font-size: 1.3rem;
 }
 
 .prev-baja-mini-x{
@@ -349,4 +349,27 @@
   gap: 12px;
   justify-content:center;
   margin-top: 12px;
+}
+/* ===== Transición sutil mini-modal ===== */
+.prev-baja-mini-overlay{
+  opacity: 0;
+  animation: prevBajaFadeIn .14s ease-out forwards;
+}
+
+.prev-baja-mini-card{
+  transform: translateY(10px) scale(.99);
+  opacity: 0;
+  animation: prevBajaPopIn .16s ease-out forwards;
+  animation-delay: .02s;
+  will-change: transform, opacity;
+}
+
+@keyframes prevBajaFadeIn{
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes prevBajaPopIn{
+  from { opacity: 0; transform: translateY(10px) scale(.99); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
