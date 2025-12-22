@@ -149,6 +149,204 @@
 /* Si tu logout-modal-container tiene min-width raro, lo neutralizamos */
 #modalBajaPrevia{
   min-width: unset !important;
-  height: 88%;
-  max-height: 493px;
+  height: 98%;
+  max-height: 520px;
+}
+/* ===== Motivos como “items” ===== */
+.prev-baja-motivos{
+  display: grid;
+  gap: 10px;
+  margin-bottom: 1.4rem;
+}
+
+.prev-baja-motivo-item{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  padding: 12px 14px;
+  border-radius: 14px;
+
+  background: #fff;
+  border: 1px solid #e2e8f0;
+
+  transition: box-shadow .15s ease, border-color .15s ease, transform .05s ease;
+}
+
+.prev-baja-motivo-item:hover{
+  border-color: #cbd5e1;
+  box-shadow: 0 6px 18px rgba(15,23,42,.06);
+}
+
+.prev-baja-motivo-item:active{
+  transform: scale(.998);
+}
+
+/* Estado seleccionado */
+.prev-baja-motivo-item.is-checked{
+  border-color: rgba(229,57,53,.35);
+  box-shadow: 0 0 0 3px rgba(229,57,53,.10);
+}
+
+/* Radio + texto */
+.prev-baja-radio{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+
+  font-weight: 600;
+  color: #0f172a;
+  user-select: none;
+}
+
+/* radio más prolijo */
+.prev-baja-radio input[type="radio"]{
+  width: 16px;
+  height: 16px;
+  accent-color: #e53935; /* si el navegador soporta */
+}
+
+/* Fecha al lado (tipo chip/input) */
+.prev-baja-date{
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 12px;
+
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #0f172a;
+
+  font-weight: 600;
+  font-size: .92rem;
+
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+  min-width: 160px;
+}
+
+.prev-baja-date:focus{
+  background: #fff;
+  border-color: rgba(229,57,53,.35);
+  box-shadow: 0 0 0 3px rgba(229,57,53,.10);
+}
+
+.prev-baja-date:disabled{
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+/* En mobile, que baje la fecha abajo si no entra */
+@media (max-width: 520px){
+  .prev-baja-motivo-item{
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .prev-baja-date{
+    width: 100%;
+    min-width: unset;
+  }
+}
+/* Preview del motivo OTRO a la derecha */
+.prev-baja-otro-preview{
+  font-size: .9rem;
+  font-weight: 700;
+  color: #0f172a;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  padding: 6px 10px;
+  border-radius: 999px;
+  max-width: 170px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.prev-baja-otro-preview--hint{
+  color: #64748b;
+  font-weight: 700;
+}
+
+/* ===== Mini modal OTRO MOTIVO ===== */
+.prev-baja-mini-overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,.45);
+  backdrop-filter: blur(2px);
+  display: grid;
+  place-items: center;
+  z-index: 9999;
+}
+
+.prev-baja-mini-card{
+  width: min(520px, 92vw);
+  border-radius: 16px;
+  background: #fff;
+  border-top: 4px solid  var(--blue-inst-danger);
+  box-shadow: 0 18px 45px rgba(15,23,42,.18);
+  padding: 14px;
+}
+
+.prev-baja-mini-head{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.prev-baja-mini-title{
+  font-weight: 600;
+  color: #0f172a;
+  font-size: 1rem;
+}
+
+.prev-baja-mini-x{
+  border: 0;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 18px;
+  opacity: .9;
+}
+.prev-baja-mini-x:hover{ opacity: 1; }
+.prev-baja-mini-x:disabled{ opacity: .55; cursor: not-allowed; }
+
+.prev-baja-mini-textarea{
+  width: 100%;
+  min-height: 120px;
+  border-radius: 14px;
+  border: 2px solid rgba(229, 57, 53, .25);
+  padding: 12px 12px 26px;
+  font-size: .98rem;
+  line-height: 1.5;
+  color: #0f172a;
+  background: #fff;
+  resize: none;
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.prev-baja-mini-textarea:focus{
+  border-color: rgba(229, 57, 53, .45);
+  box-shadow: 0 0 0 3px rgba(229, 57, 53, .12);
+}
+.prev-baja-mini-textarea:disabled{
+  background: #f8fafc;
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+.prev-baja-mini-counter{
+  margin-top: 6px;
+  text-align: right;
+  font-size: .82rem;
+  color: #94a3b8;
+}
+
+.prev-baja-mini-actions{
+  display: flex;
+  gap: 12px;
+  justify-content:center;
+  margin-top: 12px;
 }
