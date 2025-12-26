@@ -25,6 +25,7 @@ import Previas from "./components/Previas/Previas";
 import AgregarPrevia from "./components/Previas/AgregarPrevia";
 import EditarPrevia from "./components/Previas/EditarPrevia";
 import PreviasBaja from "./components/Previas/PreviasBaja";
+import PreviasCopias from "./components/Previas/PreviasCopias";
 
 /* Cátedras */
 import Catedras from "./components/Catedras/Catedras";
@@ -39,6 +40,7 @@ import EditarMesa from "./components/MesasExamen/EditarMesa";
 
 /* 🆕 Playground del Loader (pestaña aparte para tunear el loader) */
 import LoaderPlayground from "./components/Global/LoaderPlayground";
+
 
 /* ===========================
    Utilidades de sesión
@@ -173,6 +175,7 @@ function App() {
         <Route path="/previas/agregar" element={<RutaProtegida componente={<AgregarPrevia />} />} />
         <Route path="/previas/editar/:id_previa" element={<RutaProtegida componente={<EditarPrevia />} />} />
         <Route path="/previas/baja" element={<PreviasBaja />} />
+        <Route path="/previas/copias" element={<PreviasCopias />} />
 
         {/* Cátedras (protegido) */}
         <Route path="/catedras" element={<RutaProtegida componente={<Catedras />} />} />

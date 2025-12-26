@@ -4,7 +4,7 @@
 
 header('Content-Type: application/json; charset=utf-8');
 
-// Solo POST (sin 4xx para no ensuciar consola)
+// Solo POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['exito' => false, 'mensaje' => 'Método no permitido']);
     exit;
@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $raw = file_get_contents('php://input');
 $in  = json_decode($raw, true);
 
-$dni   = isset($in['dni'])   ? preg_replace('/\D+/', '', $in['dni']) : '';
+$dni   = isset($in['dni']) ? preg_replace('/\D+/', '', $in['dni']) : '';
 $gmail = isset($in['gmail']) ? trim($in['gmail']) : '';
 
 if ($dni === '' || !preg_match('/^\d{7,9}$/', $dni)) {
@@ -32,7 +32,7 @@ try {
 
     $anioActual = (int)date('Y');
 
-    // ===== Traer materias cond=3, cond=5 y cond=6 en una sola consulta; luego separar =====
+    // ===== SOLO PREVIAS ACTIVAS (activo = 1) =====
     $sql = "
         SELECT 
             p.dni,
@@ -48,11 +48,11 @@ try {
             m.id_materia,
             m.materia,
 
-            -- Nombres del curso/división que está cursando actualmente
+            -- Curso/división que cursa actualmente
             c_cur.nombre_curso      AS cursando_curso_nombre,
             d_cur.nombre_division   AS cursando_division_nombre,
 
-            -- Nombres del curso/división asociados a la materia
+            -- Curso/división de la materia
             c_mat.nombre_curso      AS materia_curso_nombre,
             d_mat.nombre_division   AS materia_division_nombre
 
@@ -64,8 +64,10 @@ try {
         LEFT  JOIN division  AS d_mat ON d_mat.id_division = p.materia_id_division
         WHERE p.dni = :dni
           AND p.id_condicion IN (3,5,6)
+          AND p.activo = 1
         ORDER BY m.materia ASC
     ";
+
     $st = $pdo->prepare($sql);
     $st->execute([':dni' => $dni]);
     $rows = $st->fetchAll();
@@ -73,99 +75,82 @@ try {
     if (!$rows || count($rows) === 0) {
         echo json_encode([
             'exito'        => false,
-            'mensaje'      => 'No se encontraron materias previas para ese DNI.',
+            'mensaje'      => 'No se encontraron materias previas activas para ese DNI.',
             'ya_inscripto' => false
         ]);
         exit;
     }
 
-    // Cursando actual (incluye IDs y nombres) — tomamos de la 1ra fila
+    // ===== Datos del alumno (desde la primera fila) =====
     $alumnoNombre = $rows[0]['alumno'];
     $cursando = [
         'curso_id'     => isset($rows[0]['cursando_id_curso'])    ? (int)$rows[0]['cursando_id_curso']    : null,
         'division_id'  => isset($rows[0]['cursando_id_division']) ? (int)$rows[0]['cursando_id_division'] : null,
-        'curso'        => $rows[0]['cursando_curso_nombre']    ?? (isset($rows[0]['cursando_id_curso'])    ? (string)$rows[0]['cursando_id_curso']    : null),
-        'division'     => $rows[0]['cursando_division_nombre'] ?? (isset($rows[0]['cursando_id_division']) ? (string)$rows[0]['cursando_id_division'] : null),
+        'curso'        => $rows[0]['cursando_curso_nombre']    ?? null,
+        'division'     => $rows[0]['cursando_division_nombre'] ?? null,
     ];
 
-    // Map común para todos los conjuntos
+    // ===== Mapper =====
     $mapRow = function(array $r) {
         return [
             'id_materia'   => (int)$r['id_materia'],
             'materia'      => (string)$r['materia'],
-
-            'curso_id'     => isset($r['materia_id_curso'])    ? (int)$r['materia_id_curso']    : null,
-            'division_id'  => isset($r['materia_id_division']) ? (int)$r['materia_id_division'] : null,
-
-            'curso'        => $r['materia_curso_nombre']    ?? (isset($r['materia_id_curso'])    ? (string)$r['materia_id_curso']    : null),
-            'division'     => $r['materia_division_nombre'] ?? (isset($r['materia_id_division']) ? (string)$r['materia_id_division'] : null),
-
+            'curso_id'     => (int)$r['materia_id_curso'],
+            'division_id'  => (int)$r['materia_id_division'],
+            'curso'        => $r['materia_curso_nombre']    ?? null,
+            'division'     => $r['materia_division_nombre'] ?? null,
             'id_condicion' => (int)$r['id_condicion'],
-            'anio'         => isset($r['anio']) ? (int)$r['anio'] : null,
-
+            'anio'         => (int)$r['anio'],
             'inscripcion'  => (int)$r['inscripcion'],
         ];
     };
 
-    // Separar cond=3, cond=5 y cond=6
     $materias_cond3 = [];
     $materias_cond5 = [];
     $materias_cond6 = [];
 
     foreach ($rows as $r) {
-        $cond = (int)$r['id_condicion'];
-        if ($cond === 3) {
+        if ((int)$r['id_condicion'] === 3) {
             $materias_cond3[] = $mapRow($r);
-        } elseif ($cond === 5) {
+        } elseif ((int)$r['id_condicion'] === 5) {
             $materias_cond5[] = $mapRow($r);
-        } elseif ($cond === 6) {
+        } elseif ((int)$r['id_condicion'] === 6) {
             $materias_cond6[] = $mapRow($r);
         }
     }
 
-    // Conteos para saber si YA ESTÁ TODO inscripto (solo cond=3)
-    $totalCond3        = count($materias_cond3);
-    $inscriptasCond3   = array_sum(
-        array_map(
-            fn($m) => (int)$m['inscripcion'] === 1 ? 1 : 0,
-            $materias_cond3
-        )
-    );
-    $yaInscriptasTodas = ($totalCond3 > 0 && $inscriptasCond3 === $totalCond3);
-
-    // Si no hay cond=3 pero sí cond=5 o cond=6, igual devolvemos exito:true para que se visualice
-    $exito = ($totalCond3 > 0) || (count($materias_cond5) > 0) || (count($materias_cond6) > 0);
+    // ===== Inscripción =====
+    $totalCond3      = count($materias_cond3);
+    $inscriptasCond3 = array_sum(array_map(fn($m) => $m['inscripcion'] === 1 ? 1 : 0, $materias_cond3));
+    $yaInscriptas    = ($totalCond3 > 0 && $inscriptasCond3 === $totalCond3);
 
     echo json_encode([
-        'exito'            => $exito,
-        'alumno'           => [
-            'dni'         => $dni,
-            'nombre'      => $alumnoNombre,
-            'anio_actual' => $anioActual,
-            'cursando'    => $cursando,
-            // Compatibilidad: "materias" = SOLO cond=3 (inscribibles)
-            'materias'        => $materias_cond3,
-            // "Tercera materia" (solo visualización)
-            'materias_cond5'  => $materias_cond5,
-            // Nuevo: Materias pendientes (id_condicion = 6) - solo visualización
-            'materias_cond6'  => $materias_cond6,
+        'exito' => true,
+        'alumno' => [
+            'dni'              => $dni,
+            'nombre'           => $alumnoNombre,
+            'anio_actual'      => $anioActual,
+            'cursando'         => $cursando,
+            'materias'         => $materias_cond3,
+            'materias_cond5'   => $materias_cond5,
+            'materias_cond6'   => $materias_cond6,
         ],
-        'gmail'            => $gmail,
-        // true solo si TODAS las cond=3 están inscriptas
-        'ya_inscripto'     => $yaInscriptasTodas,
-        'anio_inscripcion' => $anioActual,
-        'resumen'          => [
-            'total_cond3'   => $totalCond3,
-            'inscriptas'    => $inscriptasCond3,
-            'pendientes'    => $totalCond3 - $inscriptasCond3,
-            'total_cond5'   => count($materias_cond5),
-            'total_cond6'   => count($materias_cond6),
-        ],
+        'gmail'             => $gmail,
+        'ya_inscripto'      => $yaInscriptas,
+        'anio_inscripcion'  => $anioActual,
+        'resumen' => [
+            'total_cond3' => $totalCond3,
+            'inscriptas'  => $inscriptasCond3,
+            'pendientes'  => $totalCond3 - $inscriptasCond3,
+            'total_cond5' => count($materias_cond5),
+            'total_cond6' => count($materias_cond6),
+        ]
     ]);
+
 } catch (Throwable $e) {
     echo json_encode([
         'exito'   => false,
         'mensaje' => 'Error al consultar previas.',
-        'detalle' => $e->getMessage(), // útil durante pruebas
+        'detalle' => $e->getMessage()
     ]);
 }

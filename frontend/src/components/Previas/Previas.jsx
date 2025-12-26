@@ -27,16 +27,19 @@ import {
   FaBroom,
   FaUpload,
   FaUserMinus,
-  FaList, // ✅ NUEVO (iconito opcional)
+  FaList,
 } from 'react-icons/fa';
 
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import Toast from '../Global/Toast';
+
 import InscribirModal from './modales/InscribirModal';
 import ModalInfoPrevia from './modales/ModalInfoPrevia';
 import ImportarPreviasModal from './modales/ImportarPreviasModal';
 import DarBajaPreviaModal from './modales/DarBajaPreviaModal';
+import ConfirmarCopiaModal from './modales/ConfirmarCopiaModal';
+
 import '../Global/roots.css';
 import '../Global/section-ui.css';
 import './Previas.css';
@@ -250,6 +253,13 @@ const Previas = () => {
     error: '',
   });
 
+  // ✅ Modal confirmar copia snapshot
+  const [modalCopia, setModalCopia] = useState({
+    open: false,
+    loading: false,
+    error: '',
+  });
+
   // ✅ Modal DAR DE BAJA
   const [modalBaja, setModalBaja] = useState({
     open: false,
@@ -387,6 +397,11 @@ const Previas = () => {
 
   const tablaConDatos = useMemo(() => {
     return previas.length > 0;
+  }, [previas]);
+
+  // ✅ Cantidad inscriptos (para habilitar botón copia)
+  const cantidadInscriptos = useMemo(() => {
+    return previas.filter((p) => Number(p?.inscripcion ?? 0) === 1).length;
   }, [previas]);
 
   /* ================================
@@ -588,6 +603,36 @@ const Previas = () => {
   const abrirModalLimpiar = useCallback(() => {
     setModal({ open: true, mode: 'limpiar', item: null, loading: false, error: '' });
   }, []);
+
+  // ✅ abrir modal copia
+  const abrirModalCopia = useCallback(() => {
+    setModalCopia({ open: true, loading: false, error: '' });
+  }, []);
+
+  const cancelarModalCopia = useCallback(() => {
+    if (modalCopia.loading) return;
+    setModalCopia({ open: false, loading: false, error: '' });
+  }, [modalCopia.loading]);
+
+  const confirmarGuardarCopia = useCallback(async () => {
+    try {
+      setModalCopia((m) => ({ ...m, loading: true, error: '' }));
+
+      const res = await fetch(`${BASE_URL}/api.php?action=previas_guardar_copia_inscriptos`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+
+      const json = await res.json();
+      if (!json?.exito) throw new Error(json?.mensaje || 'No se pudo guardar la copia');
+
+      setModalCopia({ open: false, loading: false, error: '' });
+      mostrarToast(`Copia guardada. Registros copiados: ${json?.copiados ?? 0}`, 'exito');
+    } catch (e) {
+      setModalCopia((m) => ({ ...m, loading: false, error: e.message || 'Error desconocido' }));
+    }
+  }, [mostrarToast]);
 
   // ✅ Abrir modal DAR DE BAJA
   const abrirModalBaja = useCallback((p) => {
@@ -873,7 +918,6 @@ const Previas = () => {
               <FaEdit />
             </button>
 
-            {/* ✅ DAR DE BAJA */}
             <button
               className="glob-iconchip is-delete"
               title="Dar de baja"
@@ -909,9 +953,6 @@ const Previas = () => {
     );
   });
 
-  /* ================================
-     Render
-  ================================= */
   const hayChips = !!(busqueda || cursoSeleccionado || divisionSeleccionada);
 
   return (
@@ -926,7 +967,6 @@ const Previas = () => {
           />
         )}
 
-        {/* Modal Confirmación */}
         <ConfirmActionModal
           open={modal.open}
           mode={modal.mode}
@@ -937,7 +977,16 @@ const Previas = () => {
           onConfirm={confirmarAccion}
         />
 
-        {/* Modal Dar de baja */}
+        {/* ✅ Modal separado en archivo */}
+        <ConfirmarCopiaModal
+          open={modalCopia.open}
+          loading={modalCopia.loading}
+          error={modalCopia.error}
+          cantidad={cantidadInscriptos}
+          onCancel={cancelarModalCopia}
+          onConfirm={confirmarGuardarCopia}
+        />
+
         <DarBajaPreviaModal
           open={modalBaja.open}
           item={modalBaja.item}
@@ -947,7 +996,6 @@ const Previas = () => {
           onConfirm={confirmarDarBaja}
         />
 
-        {/* Modal Inscribir */}
         <InscribirModal
           open={modalIns.open}
           item={modalIns.item}
@@ -958,14 +1006,12 @@ const Previas = () => {
           onCancel={cancelarInscripcion}
         />
 
-        {/* Modal Info Previa */}
         <ModalInfoPrevia
           open={modalInfo.open}
           previa={modalInfo.item}
           onClose={cerrarModalInfo}
         />
 
-        {/* Modal Importar Excel */}
         <ImportarPreviasModal
           open={modalImport}
           onClose={() => setModalImport(false)}
@@ -976,7 +1022,6 @@ const Previas = () => {
         <div className="glob-front-row-pro">
           <span className="glob-profesor-title">Gestión de Previas</span>
 
-          {/* Búsqueda */}
           <div className="glob-search-input-container">
             <input
               type="text"
@@ -994,7 +1039,6 @@ const Previas = () => {
             </button>
           </div>
 
-          {/* Filtros */}
           <div className="glob-filtros-container" ref={filtrosRef}>
             <button
               className="glob-filtros-button"
@@ -1014,7 +1058,6 @@ const Previas = () => {
 
             {mostrarFiltros && (
               <div className="glob-filtros-menu" role="menu">
-                {/* CURSO */}
                 <div className="glob-filtros-group">
                   <button
                     type="button"
@@ -1046,7 +1089,6 @@ const Previas = () => {
                   </div>
                 </div>
 
-                {/* DIVISIÓN */}
                 <div className="glob-filtros-group">
                   <button
                     type="button"
@@ -1078,7 +1120,6 @@ const Previas = () => {
                   </div>
                 </div>
 
-                {/* Mostrar Todos */}
                 <div
                   className="glob-filtros-menu-item glob-mostrar-todas"
                   onClick={() => {
@@ -1193,7 +1234,6 @@ const Previas = () => {
             </div>
           </div>
 
-          {/* TABLA (desktop) */}
           {!isMobile && (
             <div className="glob-box-table">
               <div className="glob-header" style={{ gridTemplateColumns: '1.6fr 0.7fr 1fr 1fr 0.5fr 1fr 1fr' }}>
@@ -1262,7 +1302,6 @@ const Previas = () => {
             </div>
           )}
 
-          {/* MOBILE */}
           {isMobile && (
             <div className="glob-no-data-message glob-no-data-mobile">
               <div className="glob-message-content">
@@ -1272,7 +1311,6 @@ const Previas = () => {
           )}
         </div>
 
-        {/* BOTONERA INFERIOR */}
         <div className="glob-down-container">
           <button
             className="glob-profesor-button glob-hover-effect glob-volver-atras"
@@ -1303,6 +1341,19 @@ const Previas = () => {
               <FaPlus className="glob-profesor-icon-button" />
               <p>Agregar Previa</p>
             </button>
+
+            {tab === 'inscriptos' && (
+              <button
+                className="glob-profesor-button glob-hover-effect"
+                onClick={abrirModalCopia}
+                aria-label="Guardar copia"
+                title={cantidadInscriptos > 0 ? 'Guardar copia snapshot de inscriptos' : 'No hay inscriptos para copiar'}
+                disabled={cantidadInscriptos === 0 || cargando}
+              >
+                <FaUpload className="glob-profesor-icon-button" />
+                <p>Guardar copia</p>
+              </button>
+            )}
 
             <button
               className="glob-profesor-button glob-hover-effect"
@@ -1337,7 +1388,6 @@ const Previas = () => {
               <p>Limpiar tabla</p>
             </button>
 
-            {/* ✅ NUEVO: IR A BAJAS */}
             <button
               className="glob-profesor-button glob-hover-effect"
               id='BTNBaja'
@@ -1348,6 +1398,17 @@ const Previas = () => {
               <FaList className="glob-profesor-icon-button" />
               <p>Dados de baja</p>
             </button>
+
+            <button
+              className="glob-profesor-button glob-hover-effect"
+              onClick={() => navigate('/previas/copias')}
+              aria-label="Ver copias"
+              title="Ver historial de copias (snapshot) de inscriptos"
+            >
+              <FaList className="glob-profesor-icon-button" />
+              <p>Ver copias</p>
+            </button>
+
           </div>
         </div>
       </div>

@@ -99,6 +99,17 @@ try {
         case 'previas_baja':
             include_module($MODULES_DIR . '/previas/obtener_previas_baja.php'); break;
 
+        case 'previas_guardar_copia_inscriptos':
+            include_module($MODULES_DIR . '/previas/previas_guardar_copia_inscriptos.php'); break;
+            
+        case 'previas_copias_listar':
+            include_module($MODULES_DIR . '/previas/previas_copias_listar.php'); break;
+        case 'previas_copia_detalle':
+            include_module($MODULES_DIR . '/previas/previas_copia_detalle.php'); break;
+
+        case 'previas_copias_limpiar':
+            include_module($MODULES_DIR . '/previas/previas_copias_limpiar.php'); break;
+            
         // -------- 🔬 Previas LAB (tabla de PRUEBAS) --------
         case 'previas_lab_ensure':
         case 'previas_lab_import':
