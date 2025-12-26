@@ -260,8 +260,7 @@ export default function PreviasCopias() {
               >
                 <button
                   type="button"
-                  className="glob-filtros-button"
-                  style={{ minHeight: 42 }}
+                  className="glob-filtros-button BTN-seeleccionarcp"
                   onClick={() => setOpenRuns((v) => !v)}
                   disabled={cargando || copias.length === 0}
                   title="Seleccionar copia"
@@ -315,7 +314,7 @@ export default function PreviasCopias() {
           </div>
 
           {/* Tabla */}
-          <div className="glob-box-table" style={{ marginTop: 12 }}>
+          <div className="glob-box-table">
             <div className="glob-header" style={{ gridTemplateColumns: GRID }}>
               <div className="glob-column-header">Alumno</div>
               <div className="glob-column-header">DNI</div>
@@ -335,7 +334,7 @@ export default function PreviasCopias() {
                   </div>
                 </div>
               ) : (
-                <div style={{ maxHeight: "60vh", overflow: "auto" }}>
+                <div style={{ maxHeight: "55vh", overflow: "auto" }}>
                   {detalleFiltrado.map((r, idx) => (
                     <div
                       key={`${r.snapshot_id ?? idx}`}

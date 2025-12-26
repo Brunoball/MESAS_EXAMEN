@@ -420,7 +420,7 @@ input:-webkit-autofill { background-color: transparent !important; }
   border:1px solid var(--pro-red-200); color: var(--pro-primary);
 }
 .glob-chip-clear-all:hover{
-  background: linear-gradient(135deg, var(--pro-primary-light) 0%, var(--pro-accent) 100%);
+  
   color:#fff; transform: translateY(-1px); box-shadow: var(--pro-shadow-sm);
 }
 .glob-profesores-desktop { display:inline; }

@@ -1019,3 +1019,35 @@ input:-webkit-autofill { background-color: transparent !important; }
 .prev-motivo-info:hover{
   background: rgba(37,99,235,.12);
 }
+#Btn-vercopias{background-color: var(--blue-inst-gray-700);}
+.BTN-seeleccionarcp{ color: var(--pro-primary); outline: 2px solid var(--pro-primary);}
+.glob-chip-mini{color: var(--pro-primary) !important;}
+/* chips + botón grande juntos */
+.glob-chips-with-action{
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+/* versión compacta del botón grande para que no desentone */
+.glob-chip-action{
+  height: 36px;
+  padding: 0 14px;
+}
+
+.glob-chip-action p{
+  font-size: 0.85rem;
+  margin: 0;
+}
+/* botón fijo al lado del área de chips */
+.glob-chip-action-fixed{
+  height: 36px;
+  padding: 0 14px;
+  margin-left: 10px; /* separa del bloque de chips */
+}
+
+.glob-chip-action-fixed p{
+  margin: 0;
+  font-size: .85rem;
+}

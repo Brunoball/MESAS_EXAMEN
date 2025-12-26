@@ -1173,64 +1173,69 @@ const Previas = () => {
                 </div>
               </div>
 
-              {hayChips && (
-                <div className="glob-chips-container">
-                  {busqueda && (
-                    <div className="glob-chip-mini" title="Filtro activo">
-                      <span className="glob-chip-mini-text glob-profesores-desktop">Búsqueda: {busqueda}</span>
-                      <span className="glob-chip-mini-text glob-profesores-mobile">
-                        {busqueda.length > 3 ? `${busqueda.substring(0, 3)}...` : busqueda}
-                      </span>
-                      <button
-                        className="glob-chip-mini-close"
-                        onClick={quitarBusqueda}
-                        aria-label="Quitar filtro"
-                        title="Quitar este filtro"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  )}
+{/* ✅ CHIPS + Limpiar filtros (solo si hay filtros) */}
+{hayChips && (
+  <div className="glob-chips-container">
+    {busqueda && (
+      <div className="glob-chip-mini" title="Filtro activo">
+        <span className="glob-chip-mini-text glob-profesores-desktop">Búsqueda: {busqueda}</span>
+        <span className="glob-chip-mini-text glob-profesores-mobile">
+          {busqueda.length > 3 ? `${busqueda.substring(0, 3)}...` : busqueda}
+        </span>
+        <button
+          className="glob-chip-mini-close"
+          onClick={quitarBusqueda}
+          aria-label="Quitar filtro"
+          title="Quitar este filtro"
+        >
+          ×
+        </button>
+      </div>
+    )}
 
-                  {cursoSeleccionado && (
-                    <div className="glob-chip-mini" title="Filtro activo">
-                      <span className="glob-chip-mini-text glob-profesores-desktop">Curso: {cursoSeleccionado}</span>
-                      <span className="glob-chip-mini-text glob-profesores-mobile">{cursoSeleccionado}</span>
-                      <button
-                        className="glob-chip-mini-close"
-                        onClick={quitarCurso}
-                        aria-label="Quitar filtro"
-                        title="Quitar este filtro"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  )}
+    {cursoSeleccionado && (
+      <div className="glob-chip-mini" title="Filtro activo">
+        <span className="glob-chip-mini-text glob-profesores-desktop">Curso: {cursoSeleccionado}</span>
+        <span className="glob-chip-mini-text glob-profesores-mobile">{cursoSeleccionado}</span>
+        <button className="glob-chip-mini-close" onClick={quitarCurso} title="Quitar este filtro">
+          ×
+        </button>
+      </div>
+    )}
 
-                  {divisionSeleccionada && (
-                    <div className="glob-chip-mini" title="Filtro activo">
-                      <span className="glob-chip-mini-text glob-profesores-desktop">División: {divisionSeleccionada}</span>
-                      <span className="glob-chip-mini-text glob-profesores-mobile">{divisionSeleccionada}</span>
-                      <button
-                        className="glob-chip-mini-close"
-                        onClick={quitarDivision}
-                        aria-label="Quitar filtro"
-                        title="Quitar este filtro"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  )}
+    {divisionSeleccionada && (
+      <div className="glob-chip-mini" title="Filtro activo">
+        <span className="glob-chip-mini-text glob-profesores-desktop">División: {divisionSeleccionada}</span>
+        <span className="glob-chip-mini-text glob-profesores-mobile">{divisionSeleccionada}</span>
+        <button className="glob-chip-mini-close" onClick={quitarDivision} title="Quitar este filtro">
+          ×
+        </button>
+      </div>
+    )}
 
-                  <button
-                    className="glob-chip-mini glob-chip-clear-all"
-                    onClick={limpiarTodosLosChips}
-                    title="Quitar todos los filtros"
-                  >
-                    Limpiar
-                  </button>
-                </div>
-              )}
+    <button
+      className="glob-chip-mini glob-chip-clear-all"
+      onClick={limpiarTodosLosChips}
+      title="Quitar todos los filtros"
+      disabled={cargando}
+    >
+      Limpiar filtros
+    </button>
+  </div>
+)}
+
+{/* ✅ VACÍAR TABLA (SIEMPRE VISIBLE, estética de abajo) */}
+<button
+  className="glob-profesor-button glob-hover-effect glob-btn--danger glob-chip-action-fixed"
+  onClick={abrirModalLimpiar}
+  disabled={cargando}
+  title="Vaciar completamente previas"
+>
+  <FaBroom className="glob-profesor-icon-button" />
+  <p>Vaciar tabla</p>
+</button>
+
+
             </div>
           </div>
 
@@ -1378,15 +1383,7 @@ const Previas = () => {
               <p>Importar Excel</p>
             </button>
 
-            <button
-              className="glob-profesor-button glob-hover-effect"
-              onClick={abrirModalLimpiar}
-              aria-label="Limpiar tabla"
-              title="Vaciar completamente previas"
-            >
-              <FaBroom className="glob-profesor-icon-button" />
-              <p>Limpiar tabla</p>
-            </button>
+
 
             <button
               className="glob-profesor-button glob-hover-effect"
@@ -1400,6 +1397,7 @@ const Previas = () => {
             </button>
 
             <button
+              id='Btn-vercopias'
               className="glob-profesor-button glob-hover-effect"
               onClick={() => navigate('/previas/copias')}
               aria-label="Ver copias"
