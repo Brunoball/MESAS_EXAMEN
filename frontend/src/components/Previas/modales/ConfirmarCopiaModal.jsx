@@ -48,10 +48,11 @@ const ConfirmarCopiaModal = ({
       onMouseDown={onCancel}
     >
       <div
-        className="logout-modal-container confirmar-copia-modal"
+      id="Ct_damcard"
+        className="dam-card confirmar-copia-modal "
         onMouseDown={(e) => e.stopPropagation()}
       >
-        <div className="logout-modal__icon" aria-hidden="true">
+        <div className="logout-modal__icon" aria-hidden="true" id="LogmodalIcon">
           <FaUpload />
         </div>
 
@@ -75,7 +76,7 @@ const ConfirmarCopiaModal = ({
         <div className="logout-modal-buttons">
           <button
             type="button"
-            className="logout-btn logout-btn--ghost"
+            className="dam-btn dam-btn--ghost"
             onClick={onCancel}
             ref={cancelRef}
             disabled={loading}
@@ -85,7 +86,7 @@ const ConfirmarCopiaModal = ({
 
           <button
             type="button"
-            className="logout-btn logout-btn--solid"
+            className="dam-btn dam-btn--primary"
             onClick={onConfirm}
             disabled={loading}
           >
