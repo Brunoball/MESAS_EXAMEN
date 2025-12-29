@@ -110,7 +110,9 @@ const ConfirmActionModal = ({
   useEffect(() => {
     if (!open) return;
     cancelRef.current?.focus();
-    const onKeyDown = (e) => { if (e.key === 'Escape') onCancel(); };
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') onCancel();
+    };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [open, onCancel]);
@@ -236,12 +238,13 @@ const Previas = () => {
   const [toast, setToast] = useState({
     mostrar: false,
     tipo: '',
-    mensaje: ''
+    mensaje: '',
   });
 
   const [openSecciones, setOpenSecciones] = useState({
     curso: false,
     division: false,
+    condicion: false, // ✅ NUEVO
   });
 
   // Modal confirmación (eliminar / desinscribir / limpiar)
@@ -286,8 +289,12 @@ const Previas = () => {
   // Modal de importación
   const [modalImport, setModalImport] = useState(false);
 
-  // Listas básicas (desde backend)
-  const [listas, setListas] = useState({ cursos: [], divisiones: [] });
+  // ✅ Listas básicas (desde backend) — ahora incluye condiciones
+  const [listas, setListas] = useState({
+    cursos: [],
+    divisiones: [],
+    condiciones: [],
+  });
 
   const listRef = useRef(null);
   const savedScrollOffsetRef = useRef(0);
@@ -304,6 +311,7 @@ const Previas = () => {
           busqueda: parsed.busqueda ?? '',
           cursoSeleccionado: parsed.cursoSeleccionado ?? '',
           divisionSeleccionada: parsed.divisionSeleccionada ?? '',
+          condicionSeleccionada: parsed.condicionSeleccionada ?? '', // ✅ NUEVO
           filtroActivo: parsed.filtroActivo ?? null,
         };
       } catch {}
@@ -312,6 +320,7 @@ const Previas = () => {
       busqueda: '',
       cursoSeleccionado: '',
       divisionSeleccionada: '',
+      condicionSeleccionada: '', // ✅ NUEVO
       filtroActivo: null,
     };
   });
@@ -320,7 +329,8 @@ const Previas = () => {
     busqueda,
     cursoSeleccionado,
     divisionSeleccionada,
-    filtroActivo
+    condicionSeleccionada, // ✅ NUEVO
+    filtroActivo,
   } = filtros;
 
   const busquedaDefer = useDeferredValue(busqueda);
@@ -328,7 +338,8 @@ const Previas = () => {
   const hayFiltros = !!(
     (busquedaDefer && busquedaDefer.trim() !== '') ||
     (cursoSeleccionado && cursoSeleccionado !== '') ||
-    (divisionSeleccionada && divisionSeleccionada !== '')
+    (divisionSeleccionada && divisionSeleccionada !== '') ||
+    (condicionSeleccionada && condicionSeleccionada !== '') // ✅ NUEVO
   );
 
   // Base por pestaña - ORDENADA ALFABÉTICAMENTE
@@ -352,9 +363,7 @@ const Previas = () => {
       const q = normalizar(busquedaDefer);
       resultados = resultados.filter(
         (p) =>
-          (p._alumno?.includes(q)) ||
-          (p._dni?.includes(q)) ||
-          (p._materia?.includes(q))
+          p._alumno?.includes(q) || p._dni?.includes(q) || p._materia?.includes(q)
       );
     }
 
@@ -372,6 +381,14 @@ const Previas = () => {
       );
     }
 
+    // ✅ NUEVO: filtro por condición (por NOMBRE)
+    if (condicionSeleccionada && condicionSeleccionada !== '') {
+      const condNorm = normalizar(condicionSeleccionada);
+      resultados = resultados.filter(
+        (p) => normalizar(p?.condicion_nombre ?? '') === condNorm
+      );
+    }
+
     if (filtroActivo === 'todos') {
       resultados = basePorTab;
     }
@@ -382,11 +399,15 @@ const Previas = () => {
     busquedaDefer,
     cursoSeleccionado,
     divisionSeleccionada,
-    filtroActivo
+    condicionSeleccionada, // ✅ NUEVO
+    filtroActivo,
   ]);
 
   const puedeExportar = useMemo(
-    () => (hayFiltros || filtroActivo === 'todos') && previasFiltradas.length > 0 && !cargando,
+    () =>
+      (hayFiltros || filtroActivo === 'todos') &&
+      previasFiltradas.length > 0 &&
+      !cargando,
     [hayFiltros, filtroActivo, previasFiltradas.length, cargando]
   );
 
@@ -395,9 +416,7 @@ const Previas = () => {
     [cargando, hayFiltros, filtroActivo]
   );
 
-  const tablaConDatos = useMemo(() => {
-    return previas.length > 0;
-  }, [previas]);
+  const tablaConDatos = useMemo(() => previas.length > 0, [previas]);
 
   // ✅ Cantidad inscriptos (para habilitar botón copia)
   const cantidadInscriptos = useMemo(() => {
@@ -407,13 +426,16 @@ const Previas = () => {
   /* ================================
      Animación en cascada
   ================================= */
-  const dispararCascadaUnaVez = useCallback((duracionMs) => {
-    const safeMs = 400 + (MAX_CASCADE_ITEMS - 1) * 30 + 300;
-    const total = typeof duracionMs === 'number' ? duracionMs : safeMs;
-    if (animacionActiva) return;
-    setAnimacionActiva(true);
-    window.setTimeout(() => setAnimacionActiva(false), total);
-  }, [animacionActiva]);
+  const dispararCascadaUnaVez = useCallback(
+    (duracionMs) => {
+      const safeMs = 400 + (MAX_CASCADE_ITEMS - 1) * 30 + 300;
+      const total = typeof duracionMs === 'number' ? duracionMs : safeMs;
+      if (animacionActiva) return;
+      setAnimacionActiva(true);
+      window.setTimeout(() => setAnimacionActiva(false), total);
+    },
+    [animacionActiva]
+  );
 
   const triggerCascadaConPreMask = useCallback(() => {
     setPreCascada(true);
@@ -444,11 +466,16 @@ const Previas = () => {
           _alumno: normalizar(p?.alumno ?? ''),
           _dni: String(p?.dni ?? '').toLowerCase(),
           _materia: normalizar(p?.materia_nombre ?? ''),
-          materia_curso_division: `${p.materia_curso_nombre || ''} ${p.materia_division_nombre || ''}`.trim()
+          materia_curso_division: `${p.materia_curso_nombre || ''} ${
+            p.materia_division_nombre || ''
+          }`.trim(),
         }));
         setPrevias(procesados);
       } else {
-        mostrarToast(`Error al obtener previas: ${data?.mensaje || 'desconocido'}`, 'error');
+        mostrarToast(
+          `Error al obtener previas: ${data?.mensaje || 'desconocido'}`,
+          'error'
+        );
       }
     } catch {
       mostrarToast('Error de red al obtener previas', 'error');
@@ -457,9 +484,11 @@ const Previas = () => {
     }
   }, [mostrarToast]);
 
-  useEffect(() => { cargarPrevias(); }, [cargarPrevias]);
+  useEffect(() => {
+    cargarPrevias();
+  }, [cargarPrevias]);
 
-  // Cargar listas básicas
+  // ✅ Cargar listas básicas (cursos, divisiones, condiciones) desde global
   useEffect(() => {
     const fetchListas = async () => {
       try {
@@ -468,9 +497,11 @@ const Previas = () => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();
         if (!json.exito) throw new Error(json.mensaje || 'Error al obtener listas');
+
         setListas({
           cursos: json.listas?.cursos ?? [],
           divisiones: json.listas?.divisiones ?? [],
+          condiciones: json.listas?.condiciones ?? [], // ✅ NUEVO
         });
       } catch (e) {
         console.error('Error cargando listas:', e);
@@ -500,6 +531,7 @@ const Previas = () => {
       busqueda: '',
       cursoSeleccionado: '',
       divisionSeleccionada: '',
+      condicionSeleccionada: '', // ✅ NUEVO
       filtroActivo: 'todos',
     });
     triggerCascadaConPreMask();
@@ -509,51 +541,79 @@ const Previas = () => {
     setFiltros((prev) => {
       const next = { ...prev, busqueda: valor };
       next.filtroActivo =
-        (valor?.trim() ||
-          prev.cursoSeleccionado ||
-          prev.divisionSeleccionada)
+        valor?.trim() ||
+        prev.cursoSeleccionado ||
+        prev.divisionSeleccionada ||
+        prev.condicionSeleccionada
           ? 'filtros'
           : null;
       return next;
     });
   }, []);
 
-  const handleFiltrarPorCurso = useCallback((cursoNombre) => {
-    setFiltros((prev) => {
-      const next = { ...prev, cursoSeleccionado: cursoNombre };
-      next.filtroActivo =
-        (prev.busqueda?.trim() ||
+  const handleFiltrarPorCurso = useCallback(
+    (cursoNombre) => {
+      setFiltros((prev) => {
+        const next = { ...prev, cursoSeleccionado: cursoNombre };
+        next.filtroActivo =
+          prev.busqueda?.trim() ||
           cursoNombre ||
-          prev.divisionSeleccionada)
-          ? 'filtros'
-          : null;
-      return next;
-    });
-    setMostrarFiltros(false);
-    triggerCascadaConPreMask();
-  }, [triggerCascadaConPreMask]);
+          prev.divisionSeleccionada ||
+          prev.condicionSeleccionada
+            ? 'filtros'
+            : null;
+        return next;
+      });
+      setMostrarFiltros(false);
+      triggerCascadaConPreMask();
+    },
+    [triggerCascadaConPreMask]
+  );
 
-  const handleFiltrarPorDivision = useCallback((division) => {
-    setFiltros((prev) => {
-      const next = { ...prev, divisionSeleccionada: division };
-      next.filtroActivo =
-        (prev.busqueda?.trim() ||
+  const handleFiltrarPorDivision = useCallback(
+    (division) => {
+      setFiltros((prev) => {
+        const next = { ...prev, divisionSeleccionada: division };
+        next.filtroActivo =
+          prev.busqueda?.trim() ||
           prev.cursoSeleccionado ||
-          division)
-          ? 'filtros'
-          : null;
-      return next;
-    });
-    setMostrarFiltros(false);
-    triggerCascadaConPreMask();
-  }, [triggerCascadaConPreMask]);
+          division ||
+          prev.condicionSeleccionada
+            ? 'filtros'
+            : null;
+        return next;
+      });
+      setMostrarFiltros(false);
+      triggerCascadaConPreMask();
+    },
+    [triggerCascadaConPreMask]
+  );
+
+  // ✅ NUEVO: Filtrar por condición
+  const handleFiltrarPorCondicion = useCallback(
+    (condNombre) => {
+      setFiltros((prev) => {
+        const next = { ...prev, condicionSeleccionada: condNombre };
+        next.filtroActivo =
+          prev.busqueda?.trim() ||
+          prev.cursoSeleccionado ||
+          prev.divisionSeleccionada ||
+          condNombre
+            ? 'filtros'
+            : null;
+        return next;
+      });
+      setMostrarFiltros(false);
+      triggerCascadaConPreMask();
+    },
+    [triggerCascadaConPreMask]
+  );
 
   const quitarBusqueda = useCallback(() => {
     setFiltros((prev) => {
       const next = { ...prev, busqueda: '' };
       next.filtroActivo =
-        (prev.cursoSeleccionado ||
-          prev.divisionSeleccionada)
+        prev.cursoSeleccionado || prev.divisionSeleccionada || prev.condicionSeleccionada
           ? 'filtros'
           : null;
       return next;
@@ -564,8 +624,7 @@ const Previas = () => {
     setFiltros((prev) => {
       const next = { ...prev, cursoSeleccionado: '' };
       next.filtroActivo =
-        (prev.busqueda?.trim() ||
-          prev.divisionSeleccionada)
+        prev.busqueda?.trim() || prev.divisionSeleccionada || prev.condicionSeleccionada
           ? 'filtros'
           : null;
       return next;
@@ -576,8 +635,19 @@ const Previas = () => {
     setFiltros((prev) => {
       const next = { ...prev, divisionSeleccionada: '' };
       next.filtroActivo =
-        (prev.busqueda?.trim() ||
-          prev.cursoSeleccionado)
+        prev.busqueda?.trim() || prev.cursoSeleccionado || prev.condicionSeleccionada
+          ? 'filtros'
+          : null;
+      return next;
+    });
+  }, []);
+
+  // ✅ NUEVO: quitar condición
+  const quitarCondicion = useCallback(() => {
+    setFiltros((prev) => {
+      const next = { ...prev, condicionSeleccionada: '' };
+      next.filtroActivo =
+        prev.busqueda?.trim() || prev.cursoSeleccionado || prev.divisionSeleccionada
           ? 'filtros'
           : null;
       return next;
@@ -590,15 +660,19 @@ const Previas = () => {
       busqueda: '',
       cursoSeleccionado: '',
       divisionSeleccionada: '',
+      condicionSeleccionada: '', // ✅ NUEVO
       filtroActivo: null,
     }));
   }, []);
 
   // Abrir modal acción (eliminar / desinscribir)
-  const abrirModalAccion = useCallback((p) => {
-    const mode = (tab === 'inscriptos') ? 'desinscribir' : 'eliminar';
-    setModal({ open: true, mode, item: p, loading: false, error: '' });
-  }, [tab]);
+  const abrirModalAccion = useCallback(
+    (p) => {
+      const mode = tab === 'inscriptos' ? 'desinscribir' : 'eliminar';
+      setModal({ open: true, mode, item: p, loading: false, error: '' });
+    },
+    [tab]
+  );
 
   const abrirModalLimpiar = useCallback(() => {
     setModal({ open: true, mode: 'limpiar', item: null, loading: false, error: '' });
@@ -618,11 +692,14 @@ const Previas = () => {
     try {
       setModalCopia((m) => ({ ...m, loading: true, error: '' }));
 
-      const res = await fetch(`${BASE_URL}/api.php?action=previas_guardar_copia_inscriptos`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}),
-      });
+      const res = await fetch(
+        `${BASE_URL}/api.php?action=previas_guardar_copia_inscriptos`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}),
+        }
+      );
 
       const json = await res.json();
       if (!json?.exito) throw new Error(json?.mensaje || 'No se pudo guardar la copia');
@@ -630,7 +707,11 @@ const Previas = () => {
       setModalCopia({ open: false, loading: false, error: '' });
       mostrarToast(`Copia guardada. Registros copiados: ${json?.copiados ?? 0}`, 'exito');
     } catch (e) {
-      setModalCopia((m) => ({ ...m, loading: false, error: e.message || 'Error desconocido' }));
+      setModalCopia((m) => ({
+        ...m,
+        loading: false,
+        error: e.message || 'Error desconocido',
+      }));
     }
   }, [mostrarToast]);
 
@@ -645,37 +726,44 @@ const Previas = () => {
   }, [modalBaja.loading]);
 
   // ✅ Confirmar DAR DE BAJA
-  const confirmarDarBaja = useCallback(async ({ fecha_baja, motivo_baja }) => {
-    try {
-      setModalBaja((m) => ({ ...m, loading: true, error: '' }));
+  const confirmarDarBaja = useCallback(
+    async ({ fecha_baja, motivo_baja }) => {
+      try {
+        setModalBaja((m) => ({ ...m, loading: true, error: '' }));
 
-      restorationRef.current = {
-        type: 'offset',
-        value: savedScrollOffsetRef.current || 0,
-      };
+        restorationRef.current = {
+          type: 'offset',
+          value: savedScrollOffsetRef.current || 0,
+        };
 
-      const payload = {
-        id_previa: modalBaja.item?.id_previa,
-        fecha_baja,
-        motivo_baja,
-      };
+        const payload = {
+          id_previa: modalBaja.item?.id_previa,
+          fecha_baja,
+          motivo_baja,
+        };
 
-      const res = await fetch(`${BASE_URL}/api.php?action=previa_dar_baja`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+        const res = await fetch(`${BASE_URL}/api.php?action=previa_dar_baja`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
 
-      const json = await res.json();
-      if (!json?.exito) throw new Error(json?.mensaje || 'No se pudo dar de baja');
+        const json = await res.json();
+        if (!json?.exito) throw new Error(json?.mensaje || 'No se pudo dar de baja');
 
-      await cargarPrevias();
-      setModalBaja({ open: false, item: null, loading: false, error: '' });
-      mostrarToast('Previa dada de baja', 'exito');
-    } catch (e) {
-      setModalBaja((m) => ({ ...m, loading: false, error: e.message || 'Error desconocido' }));
-    }
-  }, [modalBaja.item, cargarPrevias, mostrarToast]);
+        await cargarPrevias();
+        setModalBaja({ open: false, item: null, loading: false, error: '' });
+        mostrarToast('Previa dada de baja', 'exito');
+      } catch (e) {
+        setModalBaja((m) => ({
+          ...m,
+          loading: false,
+          error: e.message || 'Error desconocido',
+        }));
+      }
+    },
+    [modalBaja.item, cargarPrevias, mostrarToast]
+  );
 
   // Confirmar acción (eliminar / desinscribir / limpiar)
   const confirmarAccion = useCallback(async () => {
@@ -689,7 +777,9 @@ const Previas = () => {
       };
 
       if (modal.mode === 'limpiar') {
-        const res = await fetch(`${BASE_URL}/api.php?action=previas_lab_truncate`, { method: 'POST' });
+        const res = await fetch(`${BASE_URL}/api.php?action=previas_lab_truncate`, {
+          method: 'POST',
+        });
         const js = await res.json();
         if (!js?.exito) throw new Error(js?.mensaje || 'No se pudo limpiar previas');
         mostrarToast('Tabla vaciada correctamente', 'exito');
@@ -698,9 +788,7 @@ const Previas = () => {
         return;
       }
 
-      const action = modal.mode === 'desinscribir'
-        ? 'previa_desinscribir'
-        : 'previa_eliminar';
+      const action = modal.mode === 'desinscribir' ? 'previa_desinscribir' : 'previa_eliminar';
 
       const res = await fetch(`${BASE_URL}/api.php?action=${action}`, {
         method: 'POST',
@@ -727,49 +815,62 @@ const Previas = () => {
   }, [modal.loading]);
 
   // Abrir modal INSCRIBIR
-  const abrirModalInscribir = useCallback((p) => {
-    const dniActual = String(p?.dni ?? '').trim();
-    const materiasAlumno = previas.filter((x) =>
-      String(x?.dni ?? '').trim() === dniActual &&
-      Number(x?.id_condicion ?? 0) === 3 &&
-      Number(x?.inscripcion ?? 0) === 0
-    );
+  const abrirModalInscribir = useCallback(
+    (p) => {
+      const dniActual = String(p?.dni ?? '').trim();
+      const materiasAlumno = previas.filter(
+        (x) =>
+          String(x?.dni ?? '').trim() === dniActual &&
+          Number(x?.id_condicion ?? 0) === 3 &&
+          Number(x?.inscripcion ?? 0) === 0
+      );
 
-    setModalIns({
-      open: true,
-      item: p,
-      materiasAlumno,
-      loading: false,
-      error: '',
-    });
-  }, [previas]);
+      setModalIns({
+        open: true,
+        item: p,
+        materiasAlumno,
+        loading: false,
+        error: '',
+      });
+    },
+    [previas]
+  );
 
   // Confirmar INSCRIPCIÓN
-  const confirmarInscripcion = useCallback(async ({ ids }) => {
-    if (!ids || !Array.isArray(ids) || ids.length === 0) return;
-    try {
-      setModalIns((m) => ({ ...m, loading: true, error: '' }));
+  const confirmarInscripcion = useCallback(
+    async ({ ids }) => {
+      if (!ids || !Array.isArray(ids) || ids.length === 0) return;
+      try {
+        setModalIns((m) => ({ ...m, loading: true, error: '' }));
 
-      restorationRef.current = {
-        type: 'offset',
-        value: savedScrollOffsetRef.current || 0,
-      };
+        restorationRef.current = {
+          type: 'offset',
+          value: savedScrollOffsetRef.current || 0,
+        };
 
-      const res = await fetch(`${BASE_URL}/api.php?action=previa_inscribir`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ids }),
-      });
-      const json = await res.json();
-      if (!json?.exito) throw new Error(json?.mensaje || 'No se pudo inscribir');
+        const res = await fetch(`${BASE_URL}/api.php?action=previa_inscribir`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids }),
+        });
+        const json = await res.json();
+        if (!json?.exito) throw new Error(json?.mensaje || 'No se pudo inscribir');
 
-      await cargarPrevias();
-      setModalIns({ open: false, item: null, materiasAlumno: [], loading: false, error: '' });
-      mostrarToast('Alumno inscripto correctamente', 'exito');
-    } catch (e) {
-      setModalIns((m) => ({ ...m, loading: false, error: e.message || 'Error desconocido' }));
-    }
-  }, [mostrarToast, cargarPrevias]);
+        await cargarPrevias();
+        setModalIns({
+          open: false,
+          item: null,
+          materiasAlumno: [],
+          loading: false,
+          error: '',
+        });
+        mostrarToast('Alumno inscripto correctamente', 'exito');
+      } catch (e) {
+        setModalIns((m) => ({ ...m, loading: false, error: e.message || 'Error desconocido' }));
+      }
+    },
+    [mostrarToast, cargarPrevias]
+  );
 
   const cancelarInscripcion = useCallback(() => {
     if (modalIns.loading) return;
@@ -784,7 +885,8 @@ const Previas = () => {
   }, []);
 
   const exportarExcel = useCallback(() => {
-    const puede = (hayFiltros || filtroActivo === 'todos') && previasFiltradas.length > 0 && !cargando;
+    const puede =
+      (hayFiltros || filtroActivo === 'todos') && previasFiltradas.length > 0 && !cargando;
     if (!puede) {
       setToast({ mostrar: true, tipo: 'error', mensaje: 'No hay filas visibles para exportar.' });
       return;
@@ -792,28 +894,48 @@ const Previas = () => {
 
     const filas = previasFiltradas.map((p) => ({
       'ID Previa': p?.id_previa ?? '',
-      'Alumno': p?.alumno ?? '',
-      'DNI': p?.dni ?? '',
+      Alumno: p?.alumno ?? '',
+      DNI: p?.dni ?? '',
       'Año (previa)': p?.anio ?? '',
       'Curso (cursando)': p?.cursando_curso_nombre ?? '',
       'División (cursando)': p?.cursando_division_nombre ?? '',
-      'Materia': p?.materia_nombre ?? '',
+      Materia: p?.materia_nombre ?? '',
       'Curso Materia': p?.materia_curso_nombre ?? '',
       'División Materia': p?.materia_division_nombre ?? '',
-      'Condición': p?.condicion_nombre ?? '',
-      'Inscripto': Number(p?.inscripcion ?? 0) === 1 ? 'INSCRIPTO' : 'PENDIENTE',
-      'Fecha carga': formatearFechaISO(p?.fecha_carga ?? '')
+      Condición: p?.condicion_nombre ?? '',
+      Inscripto: Number(p?.inscripcion ?? 0) === 1 ? 'INSCRIPTO' : 'PENDIENTE',
+      'Fecha carga': formatearFechaISO(p?.fecha_carga ?? ''),
     }));
 
     const headers = [
-      'ID Previa','Alumno','DNI','Año (previa)','Curso (cursando)','División (cursando)',
-      'Materia','Curso Materia','División Materia','Condición','Inscripto','Fecha carga'
+      'ID Previa',
+      'Alumno',
+      'DNI',
+      'Año (previa)',
+      'Curso (cursando)',
+      'División (cursando)',
+      'Materia',
+      'Curso Materia',
+      'División Materia',
+      'Condición',
+      'Inscripto',
+      'Fecha carga',
     ];
 
     const ws = XLSX.utils.json_to_sheet(filas, { header: headers });
     ws['!cols'] = [
-      { wch: 10 },{ wch: 28 },{ wch: 14 },{ wch: 12 },{ wch: 18 },{ wch: 20 },
-      { wch: 26 },{ wch: 16 },{ wch: 18 },{ wch: 14 },{ wch: 10 },{ wch: 16 },
+      { wch: 10 },
+      { wch: 28 },
+      { wch: 14 },
+      { wch: 12 },
+      { wch: 18 },
+      { wch: 20 },
+      { wch: 26 },
+      { wch: 16 },
+      { wch: 18 },
+      { wch: 14 },
+      { wch: 10 },
+      { wch: 16 },
     ];
 
     const wb = XLSX.utils.book_new();
@@ -827,15 +949,19 @@ const Previas = () => {
     const mm = String(fecha.getMonth() + 1).padStart(2, '0');
     const dd = String(fecha.getDate()).padStart(2, '0');
 
-    const sufijo = tab === 'inscriptos' ? 'Inscriptos' : (filtroActivo === 'todos' ? 'Todos' : 'Filtrados');
+    const sufijo =
+      tab === 'inscriptos' ? 'Inscriptos' : filtroActivo === 'todos' ? 'Todos' : 'Filtrados';
     const fechaStr = `${yyyy}-${mm}-${dd}`;
     saveAs(blob, `Previas_${sufijo}_${fechaStr}(${filas.length}).xlsx`);
   }, [hayFiltros, filtroActivo, previasFiltradas, cargando, tab]);
 
-  const handleTabChange = useCallback((nuevoTab) => {
-    setTab(nuevoTab);
-    triggerCascadaConPreMask();
-  }, [triggerCascadaConPreMask]);
+  const handleTabChange = useCallback(
+    (nuevoTab) => {
+      setTab(nuevoTab);
+      triggerCascadaConPreMask();
+    },
+    [triggerCascadaConPreMask]
+  );
 
   const handleListScroll = useCallback(({ scrollOffset }) => {
     savedScrollOffsetRef.current = scrollOffset;
@@ -858,7 +984,7 @@ const Previas = () => {
       listRef.current.scrollTo(clamped);
       restorationRef.current = null;
     });
-  }, [previasFiltradas, tab, filtroActivo, busquedaDefer, cursoSeleccionado, divisionSeleccionada]);
+  }, [previasFiltradas, tab, filtroActivo, busquedaDefer, cursoSeleccionado, divisionSeleccionada, condicionSeleccionada]);
 
   /* ================================
      Fila virtualizada (desktop)
@@ -871,8 +997,7 @@ const Previas = () => {
 
     const estado = Number(p?.inscripcion ?? 0) === 1 ? 'INSCRIPTO' : 'PENDIENTE';
 
-    const mostrarBotonInscribir =
-      estado === 'PENDIENTE' && esCondicionPrevia(p);
+    const mostrarBotonInscribir = estado === 'PENDIENTE' && esCondicionPrevia(p);
 
     return (
       <div
@@ -883,12 +1008,22 @@ const Previas = () => {
           opacity: preMask ? 0 : undefined,
           transform: preMask ? 'translateY(8px)' : undefined,
         }}
-        className={`glob-row ${esFilaPar ? 'glob-even-row' : 'glob-odd-row'} ${willAnimate ? 'glob-cascade' : ''}`}
+        className={`glob-row ${esFilaPar ? 'glob-even-row' : 'glob-odd-row'} ${
+          willAnimate ? 'glob-cascade' : ''
+        }`}
       >
-        <div className="glob-column glob-column-nombre" title={p.alumno}>{p.alumno}</div>
-        <div className="glob-column glob-column-dni" title={p.dni}>{p.dni}</div>
-        <div className="glob-column" title={p.materia_nombre}>{p.materia_nombre}</div>
-        <div className="glob-column" title={p.condicion_nombre}>{p.condicion_nombre}</div>
+        <div className="glob-column glob-column-nombre" title={p.alumno}>
+          {p.alumno}
+        </div>
+        <div className="glob-column glob-column-dni" title={p.dni}>
+          {p.dni}
+        </div>
+        <div className="glob-column" title={p.materia_nombre}>
+          {p.materia_nombre}
+        </div>
+        <div className="glob-column" title={p.condicion_nombre}>
+          {p.condicion_nombre}
+        </div>
 
         <div className="glob-column" title={p.materia_curso_division}>
           {p.materia_curso_division}
@@ -953,7 +1088,7 @@ const Previas = () => {
     );
   });
 
-  const hayChips = !!(busqueda || cursoSeleccionado || divisionSeleccionada);
+  const hayChips = !!(busqueda || cursoSeleccionado || divisionSeleccionada || condicionSeleccionada);
 
   return (
     <div className="glob-profesor-container">
@@ -977,7 +1112,6 @@ const Previas = () => {
           onConfirm={confirmarAccion}
         />
 
-        {/* ✅ Modal separado en archivo */}
         <ConfirmarCopiaModal
           open={modalCopia.open}
           loading={modalCopia.loading}
@@ -1006,17 +1140,9 @@ const Previas = () => {
           onCancel={cancelarInscripcion}
         />
 
-        <ModalInfoPrevia
-          open={modalInfo.open}
-          previa={modalInfo.item}
-          onClose={cerrarModalInfo}
-        />
+        <ModalInfoPrevia open={modalInfo.open} previa={modalInfo.item} onClose={cerrarModalInfo} />
 
-        <ImportarPreviasModal
-          open={modalImport}
-          onClose={() => setModalImport(false)}
-          onSuccess={cargarPrevias}
-        />
+        <ImportarPreviasModal open={modalImport} onClose={() => setModalImport(false)} onSuccess={cargarPrevias} />
 
         {/* Header superior */}
         <div className="glob-front-row-pro">
@@ -1031,9 +1157,7 @@ const Previas = () => {
               onChange={(e) => handleBuscarChange(e.target.value)}
               disabled={cargando}
             />
-            {busqueda ? (
-              <FaTimes className="glob-clear-search-icon" onClick={quitarBusqueda} />
-            ) : null}
+            {busqueda ? <FaTimes className="glob-clear-search-icon" onClick={quitarBusqueda} /> : null}
             <button className="glob-search-button" title="Buscar">
               <FaSearch className="glob-search-icon" />
             </button>
@@ -1045,7 +1169,14 @@ const Previas = () => {
               onClick={() => {
                 setMostrarFiltros((prev) => {
                   const next = !prev;
-                  if (next) setOpenSecciones((s) => ({ ...s, curso: false, division: false }));
+                  if (next) {
+                    setOpenSecciones((s) => ({
+                      ...s,
+                      curso: false,
+                      division: false,
+                      condicion: false,
+                    }));
+                  }
                   return next;
                 });
               }}
@@ -1058,6 +1189,7 @@ const Previas = () => {
 
             {mostrarFiltros && (
               <div className="glob-filtros-menu" role="menu">
+                {/* CURSO */}
                 <div className="glob-filtros-group">
                   <button
                     type="button"
@@ -1089,6 +1221,7 @@ const Previas = () => {
                   </div>
                 </div>
 
+                {/* DIVISION */}
                 <div className="glob-filtros-group">
                   <button
                     type="button"
@@ -1120,6 +1253,38 @@ const Previas = () => {
                   </div>
                 </div>
 
+                {/* ✅ CONDICION (NUEVO) */}
+                <div className="glob-filtros-group">
+                  <button
+                    type="button"
+                    className={`glob-filtros-group-header ${openSecciones.condicion ? 'is-open' : ''}`}
+                    onClick={() => setOpenSecciones((s) => ({ ...s, condicion: !s.condicion }))}
+                    aria-expanded={openSecciones.condicion}
+                  >
+                    <span className="glob-filtros-group-title">Filtrar por condición</span>
+                    <FaChevronDown className="glob-accordion-caret" />
+                  </button>
+
+                  <div className={`glob-filtros-group-body ${openSecciones.condicion ? 'is-open' : 'is-collapsed'}`}>
+                    <div className="glob-grid-filtros">
+                      {listas.condiciones.length === 0 ? (
+                        <span className="glob-chip-mini">No hay condiciones disponibles</span>
+                      ) : (
+                        listas.condiciones.map((cnd) => (
+                          <button
+                            key={`cond-${cnd.id}-${cnd.nombre}`}
+                            className={`glob-chip-filtro ${filtros.condicionSeleccionada === cnd.nombre ? 'glob-active' : ''}`}
+                            onClick={() => handleFiltrarPorCondicion(cnd.nombre)}
+                            title={`Filtrar por condición ${cnd.nombre}`}
+                          >
+                            {cnd.nombre}
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+
                 <div
                   className="glob-filtros-menu-item glob-mostrar-todas"
                   onClick={() => {
@@ -1143,10 +1308,10 @@ const Previas = () => {
                 <div className="glob-contador-container">
                   <span className="glob-profesores-desktop">
                     {tab === 'inscriptos' ? 'Inscriptos: ' : 'Cant previas: '}
-                    {(hayFiltros || filtroActivo === 'todos') ? previasFiltradas.length : 0}
+                    {hayFiltros || filtroActivo === 'todos' ? previasFiltradas.length : 0}
                   </span>
                   <span className="glob-profesores-mobile">
-                    {(hayFiltros || filtroActivo === 'todos') ? previasFiltradas.length : 0}
+                    {hayFiltros || filtroActivo === 'todos' ? previasFiltradas.length : 0}
                   </span>
                   <FaUsers className="glob-icono-profesor" />
                 </div>
@@ -1173,69 +1338,73 @@ const Previas = () => {
                 </div>
               </div>
 
-{/* ✅ CHIPS + Limpiar filtros (solo si hay filtros) */}
-{hayChips && (
-  <div className="glob-chips-container">
-    {busqueda && (
-      <div className="glob-chip-mini" title="Filtro activo">
-        <span className="glob-chip-mini-text glob-profesores-desktop">Búsqueda: {busqueda}</span>
-        <span className="glob-chip-mini-text glob-profesores-mobile">
-          {busqueda.length > 3 ? `${busqueda.substring(0, 3)}...` : busqueda}
-        </span>
-        <button
-          className="glob-chip-mini-close"
-          onClick={quitarBusqueda}
-          aria-label="Quitar filtro"
-          title="Quitar este filtro"
-        >
-          ×
-        </button>
-      </div>
-    )}
+              {/* ✅ CHIPS + Limpiar filtros */}
+              {hayChips && (
+                <div className="glob-chips-container">
+                  {busqueda && (
+                    <div className="glob-chip-mini" title="Filtro activo">
+                      <span className="glob-chip-mini-text glob-profesores-desktop">Búsqueda: {busqueda}</span>
+                      <span className="glob-chip-mini-text glob-profesores-mobile">
+                        {busqueda.length > 3 ? `${busqueda.substring(0, 3)}...` : busqueda}
+                      </span>
+                      <button className="glob-chip-mini-close" onClick={quitarBusqueda} aria-label="Quitar filtro" title="Quitar este filtro">
+                        ×
+                      </button>
+                    </div>
+                  )}
 
-    {cursoSeleccionado && (
-      <div className="glob-chip-mini" title="Filtro activo">
-        <span className="glob-chip-mini-text glob-profesores-desktop">Curso: {cursoSeleccionado}</span>
-        <span className="glob-chip-mini-text glob-profesores-mobile">{cursoSeleccionado}</span>
-        <button className="glob-chip-mini-close" onClick={quitarCurso} title="Quitar este filtro">
-          ×
-        </button>
-      </div>
-    )}
+                  {cursoSeleccionado && (
+                    <div className="glob-chip-mini" title="Filtro activo">
+                      <span className="glob-chip-mini-text glob-profesores-desktop">Curso: {cursoSeleccionado}</span>
+                      <span className="glob-chip-mini-text glob-profesores-mobile">{cursoSeleccionado}</span>
+                      <button className="glob-chip-mini-close" onClick={quitarCurso} title="Quitar este filtro">
+                        ×
+                      </button>
+                    </div>
+                  )}
 
-    {divisionSeleccionada && (
-      <div className="glob-chip-mini" title="Filtro activo">
-        <span className="glob-chip-mini-text glob-profesores-desktop">División: {divisionSeleccionada}</span>
-        <span className="glob-chip-mini-text glob-profesores-mobile">{divisionSeleccionada}</span>
-        <button className="glob-chip-mini-close" onClick={quitarDivision} title="Quitar este filtro">
-          ×
-        </button>
-      </div>
-    )}
+                  {divisionSeleccionada && (
+                    <div className="glob-chip-mini" title="Filtro activo">
+                      <span className="glob-chip-mini-text glob-profesores-desktop">División: {divisionSeleccionada}</span>
+                      <span className="glob-chip-mini-text glob-profesores-mobile">{divisionSeleccionada}</span>
+                      <button className="glob-chip-mini-close" onClick={quitarDivision} title="Quitar este filtro">
+                        ×
+                      </button>
+                    </div>
+                  )}
 
-    <button
-      className="glob-chip-mini glob-chip-clear-all"
-      onClick={limpiarTodosLosChips}
-      title="Quitar todos los filtros"
-      disabled={cargando}
-    >
-      Limpiar filtros
-    </button>
-  </div>
-)}
+                  {/* ✅ NUEVO CHIP: CONDICION */}
+                  {condicionSeleccionada && (
+                    <div className="glob-chip-mini" title="Filtro activo">
+                      <span className="glob-chip-mini-text glob-profesores-desktop">Condición: {condicionSeleccionada}</span>
+                      <span className="glob-chip-mini-text glob-profesores-mobile">{condicionSeleccionada}</span>
+                      <button className="glob-chip-mini-close" onClick={quitarCondicion} title="Quitar este filtro">
+                        ×
+                      </button>
+                    </div>
+                  )}
 
-{/* ✅ VACÍAR TABLA (SIEMPRE VISIBLE, estética de abajo) */}
-<button
-  className="glob-profesor-button glob-hover-effect glob-btn--danger glob-chip-action-fixed"
-  onClick={abrirModalLimpiar}
-  disabled={cargando}
-  title="Vaciar completamente previas"
->
-  <FaBroom className="glob-profesor-icon-button" />
-  <p>Vaciar tabla</p>
-</button>
+                  <button
+                    className="glob-chip-mini glob-chip-clear-all"
+                    onClick={limpiarTodosLosChips}
+                    title="Quitar todos los filtros"
+                    disabled={cargando}
+                  >
+                    Limpiar filtros
+                  </button>
+                </div>
+              )}
 
-
+              {/* ✅ VACÍAR TABLA */}
+              <button
+                className="glob-profesor-button glob-hover-effect glob-btn--danger glob-chip-action-fixed"
+                onClick={abrirModalLimpiar}
+                disabled={cargando}
+                title="Vaciar completamente previas"
+              >
+                <FaBroom className="glob-profesor-icon-button" />
+                <p>Vaciar tabla</p>
+              </button>
             </div>
           </div>
 
@@ -1324,6 +1493,7 @@ const Previas = () => {
                 busqueda: '',
                 cursoSeleccionado: '',
                 divisionSeleccionada: '',
+                condicionSeleccionada: '',
                 filtroActivo: null,
               });
               localStorage.removeItem('filtros_previas');
@@ -1383,11 +1553,9 @@ const Previas = () => {
               <p>Importar Excel</p>
             </button>
 
-
-
             <button
               className="glob-profesor-button glob-hover-effect"
-              id='BTNBaja'
+              id="BTNBaja"
               onClick={() => navigate('/previas/baja')}
               aria-label="Dados de baja"
               title="Ver registros dados de baja"
@@ -1397,7 +1565,7 @@ const Previas = () => {
             </button>
 
             <button
-              id='Btn-vercopias'
+              id="Btn-vercopias"
               className="glob-profesor-button glob-hover-effect"
               onClick={() => navigate('/previas/copias')}
               aria-label="Ver copias"
@@ -1406,7 +1574,6 @@ const Previas = () => {
               <FaList className="glob-profesor-icon-button" />
               <p>Ver copias</p>
             </button>
-
           </div>
         </div>
       </div>
