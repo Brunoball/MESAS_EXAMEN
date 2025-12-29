@@ -1,0 +1,148 @@
+/* src/components/MesasExamen/modales/ModalTituloPDF.css */
+
+.mtp-backdrop{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 16px;
+}
+
+.mtp-modal{
+  width: min(720px, 100%);
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 18px 50px rgba(0,0,0,.25);
+  overflow: hidden;
+}
+
+.mtp-header{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(0,0,0,.08);
+}
+
+.mtp-title{
+  font-weight: 800;
+  font-size: 16px;
+  color: #1f2937;
+}
+
+.mtp-close{
+  border: none;
+  background: transparent;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 2px 8px;
+}
+
+.mtp-body{
+  padding: 16px;
+}
+
+.mtp-hint{
+  margin: 0 0 12px;
+  color: #4b5563;
+  font-size: 13px;
+}
+
+.mtp-row{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 680px){
+  .mtp-row{ grid-template-columns: 1fr; }
+}
+
+.mtp-field{
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mtp-label{
+  font-size: 12px;
+  color: #374151;
+  font-weight: 700;
+}
+
+.mtp-input{
+  height: 42px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,.15);
+  padding: 0 12px;
+  outline: none;
+  font-size: 14px;
+  color: #111827;
+}
+
+.mtp-input:focus{
+  border-color: rgba(0,0,0,.35);
+  box-shadow: 0 0 0 3px rgba(0,0,0,.08);
+}
+
+.mtp-input--readonly{
+  background: #f3f4f6;
+  cursor: not-allowed;
+}
+
+.mtp-preview{
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f9fafb;
+  border: 1px dashed rgba(0,0,0,.18);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.mtp-preview-label{
+  font-size: 12px;
+  font-weight: 800;
+  color: #6b7280;
+}
+
+.mtp-preview-title{
+  font-size: 13px;
+  font-weight: 900;
+  color: #111827;
+}
+
+.mtp-actions{
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 16px;
+  border-top: 1px solid rgba(0,0,0,.08);
+  background: #fff;
+}
+
+.mtp-btn{
+  border: none;
+  border-radius: 10px;
+  height: 40px;
+  padding: 0 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.mtp-btn--ghost{
+  background: #eef2f7;
+  color: #111827;
+}
+
+.mtp-btn--primary{
+  background: #111827;
+  color: #fff;
+}

@@ -1,117 +1,65 @@
 <?php
 // backend/modules/mesas/mesa_previas_candidatas.php
 //
-// Devuelve las PREVIAS (inscripcion = 1) que todavía
-// no tienen ninguna mesa asociada en `mesas`,
-// FILTRADAS para que coincidan en MATERIA con la mesa
-// (caja) desde la cual se abrió el modal.
+// Devuelve PREVIAS inscriptas (inscripcion=1) que coinciden en MATERIA
+// con la mesa destino y que NO están asignadas a ningún numero_mesa.
+// Incluye tanto:
+// - previas que NO existen en `mesas`
+// - previas que existen en `mesas` pero con numero_mesa IS NULL (sin número)
 //
-// Entrada (JSON):
-// {
-//   "numero_mesa_destino": 35,
-//   "fecha_objetivo": "2025-12-02",   // hoy NO se usan
-//   "id_turno_objetivo": 2           // pero se leen por si a futuro
-// }
+// Entrada JSON:
+// { "numero_mesa_destino": 5, "fecha_objetivo": "...", "id_turno_objetivo": 2 }
 //
 // Respuesta:
-// {
-//   "exito": true,
-//   "data": [
-//      {
-//        "id_previa": 123,
-//        "dni": "12345678",
-//        "alumno": "PEREZ, JUAN",
-//        "id_materia": 45,
-//        "materia": "BIOLOGÍA",
-//        "materia_id_curso": 3,
-//        "materia_id_division": 7,
-//        "nombre_curso": "3°",
-//        "nombre_division": "A",
-//        "curso_div": "3° A",
-//        "elegible": true,
-//        "motivo": null
-//      },
-//      ...
-//   ]
-// }
+// { exito:true, data:[ ... ] }
 
 declare(strict_types=1);
-
 header('Content-Type: application/json; charset=utf-8');
 
 try {
-    require_once __DIR__ . '/../../config/db.php'; // debe exponer $pdo (PDO)
+    require_once __DIR__ . '/../../config/db.php'; // $pdo (PDO)
 
-    // -----------------------
-    // Leer body
-    // -----------------------
     $raw = file_get_contents('php://input');
     $input = json_decode($raw ?: '[]', true);
-    if (!is_array($input)) {
-        $input = [];
+    if (!is_array($input)) $input = [];
+
+    $numeroMesaDestino = isset($input['numero_mesa_destino']) ? (int)$input['numero_mesa_destino'] : 0;
+    if ($numeroMesaDestino <= 0) {
+        echo json_encode(['exito' => true, 'data' => []], JSON_UNESCAPED_UNICODE);
+        exit;
     }
 
-    $numeroMesaDestino = isset($input['numero_mesa_destino'])
-        ? (int)$input['numero_mesa_destino']
-        : null;
-    $fechaObjetivo = $input['fecha_objetivo'] ?? null;
-    $idTurnoObjetivo = isset($input['id_turno_objetivo'])
-        ? (int)$input['id_turno_objetivo']
-        : null;
+    // ------------------------------------------------------------
+    // 0) Materia de la mesa destino (caja desde la que abrís modal)
+    // ------------------------------------------------------------
+    $sqlMesaBase = "
+        SELECT c.id_materia
+        FROM mesas me
+        INNER JOIN catedras c ON c.id_catedra = me.id_catedra
+        WHERE me.numero_mesa = :numero_mesa
+        ORDER BY me.id_mesa ASC
+        LIMIT 1
+    ";
+    $st = $pdo->prepare($sqlMesaBase);
+    $st->execute([':numero_mesa' => $numeroMesaDestino]);
+    $base = $st->fetch(PDO::FETCH_ASSOC);
 
-    // Año actual (puedes quitar este filtro si querés todo)
-    $anioActual = (int)date('Y');
-
-    // ============================================================
-    // 0) Obtener MATERIA de la mesa destino
-    //    (la caja desde la cual se abre el modal)
-    // ============================================================
-    $idMateriaMesa = null;
-
-    if ($numeroMesaDestino) {
-        // Tomamos una mesa base de ese número y su cátedra
-        $sqlMesaBase = "
-            SELECT
-                c.id_materia
-            FROM mesas AS me
-            INNER JOIN catedras AS c
-                ON c.id_catedra = me.id_catedra
-            WHERE me.numero_mesa = :numero_mesa
-            ORDER BY me.id_mesa ASC
-            LIMIT 1
-        ";
-        $stMesaBase = $pdo->prepare($sqlMesaBase);
-        $stMesaBase->execute([':numero_mesa' => $numeroMesaDestino]);
-        $mesaBase = $stMesaBase->fetch(PDO::FETCH_ASSOC);
-
-        if ($mesaBase) {
-            $idMateriaMesa = (int)$mesaBase['id_materia'];
-        } else {
-            // Si no hay mesa/cátedra para ese número, devolvemos lista vacía.
-            echo json_encode([
-                'exito' => true,
-                'data'  => [],
-            ]);
-            return;
-        }
-    } else {
-        // Sin número de mesa destino no tiene sentido la búsqueda:
-        echo json_encode([
-            'exito' => true,
-            'data'  => [],
-        ]);
-        return;
+    if (!$base) {
+        echo json_encode(['exito' => true, 'data' => []], JSON_UNESCAPED_UNICODE);
+        exit;
     }
 
-    // ============================================================
-    // 1) PREVIAS INSCRIPTAS (inscripcion = 1) SIN NINGUNA MESA,
-    //    Y QUE COINCIDAN EN MATERIA con la mesa destino
-    // ============================================================
+    $idMateriaMesa = (int)$base['id_materia'];
+
+    // ------------------------------------------------------------
+    // 1) Candidatas:
+    // - inscripcion = 1
+    // - misma materia
+    // - NO tienen asignado numero_mesa en `mesas`
+    //   (pueden no existir o existir con numero_mesa NULL)
     //
-    // LEFT JOIN con `mesas` por id_previa y filtramos
-    // donde me.id_mesa IS NULL  => previa no está en ninguna mesa.
-    // Además, filtramos por la MATERIA de la mesa destino.
-    //
+    // Además traemos (si existe) el id_mesa "sin número" para info/debug.
+    // ------------------------------------------------------------
     $sql = "
         SELECT
             p.id_previa,
@@ -121,71 +69,78 @@ try {
             p.materia_id_curso,
             p.materia_id_division,
             m.materia,
-            c.nombre_curso,
-            d.nombre_division,
+            cu.nombre_curso,
+            di.nombre_division,
             CONCAT(
-                COALESCE(c.nombre_curso, ''),
-                CASE WHEN c.nombre_curso IS NOT NULL AND d.nombre_division IS NOT NULL
-                     THEN ' '
-                     ELSE ''
-                END,
-                COALESCE(d.nombre_division, '')
-            ) AS curso_div
-        FROM previas AS p
-        INNER JOIN materias AS m
-            ON m.id_materia = p.id_materia
-        LEFT JOIN curso AS c
-            ON c.id_curso = p.materia_id_curso
-        LEFT JOIN division AS d
-            ON d.id_division = p.materia_id_division
-        LEFT JOIN mesas AS me
-            ON me.id_previa = p.id_previa
+                COALESCE(cu.nombre_curso, ''),
+                CASE WHEN cu.nombre_curso IS NOT NULL AND di.nombre_division IS NOT NULL THEN ' ' ELSE '' END,
+                COALESCE(di.nombre_division, '')
+            ) AS curso_div,
+
+            -- Si ya existe una fila en mesas con numero_mesa NULL (sin número), la mostramos
+            (
+                SELECT me0.id_mesa
+                FROM mesas me0
+                WHERE me0.id_previa = p.id_previa
+                  AND me0.numero_mesa IS NULL
+                ORDER BY me0.id_mesa ASC
+                LIMIT 1
+            ) AS id_mesa_sin_numero
+
+        FROM previas p
+        INNER JOIN materias m ON m.id_materia = p.id_materia
+        LEFT JOIN curso cu ON cu.id_curso = p.materia_id_curso
+        LEFT JOIN division di ON di.id_division = p.materia_id_division
         WHERE
             p.inscripcion = 1
-            AND p.anio = :anio_actual
-            AND me.id_mesa IS NULL
+            AND p.activo = 1
             AND p.id_materia = :id_materia_mesa
+
+            -- CLAVE: excluir solo las que ya están asignadas a un numero_mesa
+            AND NOT EXISTS (
+                SELECT 1
+                FROM mesas me2
+                WHERE me2.id_previa = p.id_previa
+                  AND me2.numero_mesa IS NOT NULL
+            )
         ORDER BY
             p.alumno ASC,
             m.materia ASC
     ";
 
     $stmt = $pdo->prepare($sql);
-    $stmt->execute([
-        ':anio_actual'     => $anioActual,
-        ':id_materia_mesa' => $idMateriaMesa,
-    ]);
-
+    $stmt->execute([':id_materia_mesa' => $idMateriaMesa]);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Normalizamos salida y agregamos `elegible`
     $out = [];
     foreach ($rows as $r) {
+        $idMesaSinNumero = $r['id_mesa_sin_numero'] !== null ? (int)$r['id_mesa_sin_numero'] : null;
+
         $out[] = [
             'id_previa'           => (int)$r['id_previa'],
-            'dni'                 => $r['dni'],
-            'alumno'              => $r['alumno'],
+            'dni'                 => (string)$r['dni'],
+            'alumno'              => (string)$r['alumno'],
             'id_materia'          => (int)$r['id_materia'],
-            'materia'             => $r['materia'],
+            'materia'             => (string)$r['materia'],
             'materia_id_curso'    => isset($r['materia_id_curso']) ? (int)$r['materia_id_curso'] : null,
             'materia_id_division' => isset($r['materia_id_division']) ? (int)$r['materia_id_division'] : null,
             'nombre_curso'        => $r['nombre_curso'] ?? null,
             'nombre_division'     => $r['nombre_division'] ?? null,
-            'curso_div'           => trim($r['curso_div'] ?? ''),
-            'elegible'            => true,  // por ahora todas elegibles
+            'curso_div'           => trim((string)($r['curso_div'] ?? '')),
+            'elegible'            => true,
             'motivo'              => null,
+
+            // info extra (no rompe tu frontend)
+            'id_mesa_sin_numero'  => $idMesaSinNumero,
         ];
     }
 
-    echo json_encode([
-        'exito' => true,
-        'data'  => $out,
-    ]);
+    echo json_encode(['exito' => true, 'data' => $out], JSON_UNESCAPED_UNICODE);
 
 } catch (Throwable $e) {
     http_response_code(500);
     echo json_encode([
         'exito'   => false,
-        'mensaje' => 'Error obteniendo previas sin mesa: ' . $e->getMessage(),
-    ]);
+        'mensaje' => 'Error obteniendo previas candidatas: ' . $e->getMessage(),
+    ], JSON_UNESCAPED_UNICODE);
 }

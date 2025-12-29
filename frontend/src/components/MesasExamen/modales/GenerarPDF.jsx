@@ -17,6 +17,9 @@ export async function generarPDFMesas({
   logoPath,
   id_grupo = null,
   agrupaciones = null, // [[12,13,14], [29], [31,32], ...]
+  // ✅ NUEVO: título dinámico
+  pdfTituloBase = "MESAS DE EXAMEN",
+  pdfTituloExtra = "", // Ej: "FEBRERO 2026"
 }) {
   /* =================== Utils =================== */
   const normalizar = (s = "") =>
@@ -123,7 +126,13 @@ export async function generarPDFMesas({
   const getNumerosDeMesas = (filas = []) => {
     const s = new Set();
     for (const r of filas || []) {
-      for (const k of ["numero_mesa", "numeroMesa", "id_mesa", "id_mesa_repr", "id"]) {
+      for (const k of [
+        "numero_mesa",
+        "numeroMesa",
+        "id_mesa",
+        "id_mesa_repr",
+        "id",
+      ]) {
         const n = parseInt(r?.[k], 10);
         if (Number.isFinite(n) && n > 0) {
           s.add(n);
@@ -140,6 +149,13 @@ export async function generarPDFMesas({
     out = out.replace(/\s{2,}/g, " ");
     return out.trim();
   };
+
+  // ✅ título final (con fallback)
+  const TITULO_FINAL = (() => {
+    const base = String(pdfTituloBase || "MESAS DE EXAMEN").trim();
+    const extra = String(pdfTituloExtra || "").trim();
+    return extra ? `${base} ${extra}` : base;
+  })();
 
   /* =================== Fetch + normalize =================== */
   try {
@@ -164,7 +180,10 @@ export async function generarPDFMesas({
       payload = { id_grupo };
     } else {
       if (!numerosNecesarios.length) {
-        notify?.({ tipo: "warning", mensaje: "No hay números de mesa para exportar." });
+        notify?.({
+          tipo: "warning",
+          mensaje: "No hay números de mesa para exportar.",
+        });
         return;
       }
       payload = { numeros_mesa: numerosNecesarios };
@@ -184,7 +203,8 @@ export async function generarPDFMesas({
     } catch {
       throw new Error(raw.slice(0, 400) || "Respuesta no JSON del servidor.");
     }
-    if (!resp.ok || !json?.exito) throw new Error(json?.mensaje || "No se pudo obtener el detalle.");
+    if (!resp.ok || !json?.exito)
+      throw new Error(json?.mensaje || "No se pudo obtener el detalle.");
 
     const subMesas = (Array.isArray(json.data) ? json.data : []).map((m) => ({
       numero_mesa: m.numero_mesa ?? null,
@@ -211,10 +231,18 @@ export async function generarPDFMesas({
     let agrupacionesEfectivas = [];
     if (Array.isArray(agrupaciones) && agrupaciones.length) {
       agrupacionesEfectivas = agrupaciones
-        .map((arr) => (arr || []).map((n) => parseInt(n, 10)).filter(Number.isFinite))
+        .map((arr) =>
+          (arr || [])
+            .map((n) => parseInt(n, 10))
+            .filter(Number.isFinite)
+        )
         .filter((a) => a.length);
     } else if (id_grupo != null) {
-      const setNums = new Set(subMesas.map((x) => parseInt(x.numero_mesa, 10)).filter(Number.isFinite));
+      const setNums = new Set(
+        subMesas
+          .map((x) => parseInt(x.numero_mesa, 10))
+          .filter(Number.isFinite)
+      );
       agrupacionesEfectivas = [Array.from(setNums).sort((a, b) => a - b)];
     } else {
       agrupacionesEfectivas = [numerosNecesarios];
@@ -222,11 +250,17 @@ export async function generarPDFMesas({
 
     // Aux: mesa lógica desde submesas de una agrupación
     const buildMesaLogicaFrom = (arr) => {
-      const fechaStar = mode(arr.map((x) => x.fecha)) || arr.find((x) => x.fecha)?.fecha || "";
-      const turnoStar = mode(arr.map((x) => x.turno)) || arr.find((x) => x.turno)?.turno || "";
-      const horaStar = mode(arr.map((x) => x.hora)) || arr.find((x) => x.hora)?.hora || ""; // ✅
-      const materiaStar = mode(arr.map((x) => x.materia)) || arr[0]?.materia || "";
-      const subNumeros = [...new Set(arr.map((x) => x.numero_mesa).filter((v) => v != null))].sort((a, b) => a - b);
+      const fechaStar =
+        mode(arr.map((x) => x.fecha)) || arr.find((x) => x.fecha)?.fecha || "";
+      const turnoStar =
+        mode(arr.map((x) => x.turno)) || arr.find((x) => x.turno)?.turno || "";
+      const horaStar =
+        mode(arr.map((x) => x.hora)) || arr.find((x) => x.hora)?.hora || ""; // ✅
+      const materiaStar =
+        mode(arr.map((x) => x.materia)) || arr[0]?.materia || "";
+      const subNumeros = [
+        ...new Set(arr.map((x) => x.numero_mesa).filter((v) => v != null)),
+      ].sort((a, b) => a - b);
 
       // Mapa Docente -> Materia -> alumnos[]
       const DOC_FALLBACK = "—";
@@ -246,7 +280,8 @@ export async function generarPDFMesas({
       const bloques = [];
       const docentes = [...mapa.keys()];
       const materiasSet = new Set();
-      for (const d of docentes) for (const mat of mapa.get(d).keys()) materiasSet.add(mat);
+      for (const d of docentes)
+        for (const mat of mapa.get(d).keys()) materiasSet.add(mat);
       const materiasOrden = [...materiasSet].sort((A, B) =>
         String(A).localeCompare(String(B), "es", { sensitivity: "base" })
       );
@@ -254,18 +289,31 @@ export async function generarPDFMesas({
       for (const mat of materiasOrden) {
         const dQueTienen = docentes
           .filter((d) => mapa.get(d).has(mat))
-          .sort((A, B) => String(A).localeCompare(String(B), "es", { sensitivity: "base" }));
+          .sort((A, B) =>
+            String(A).localeCompare(String(B), "es", { sensitivity: "base" })
+          );
         for (const d of dQueTienen) {
           const a = mapa.get(d).get(mat) || [];
-          const uniq = Array.from(new Map(a.map((x) => [x.dni || x.alumno || Math.random(), x])).values());
+          const uniq = Array.from(
+            new Map(a.map((x) => [x.dni || x.alumno || Math.random(), x])).values()
+          );
           uniq.sort((A, B) =>
-            String(A.alumno).localeCompare(String(B.alumno), "es", { sensitivity: "base" })
+            String(A.alumno).localeCompare(String(B.alumno), "es", {
+              sensitivity: "base",
+            })
           );
           bloques.push({ docente: d, materia: mat, alumnos: uniq });
         }
       }
 
-      return { fecha: fechaStar, turno: turnoStar, hora: horaStar, materia: materiaStar, subNumeros, bloques };
+      return {
+        fecha: fechaStar,
+        turno: turnoStar,
+        hora: horaStar,
+        materia: materiaStar,
+        subNumeros,
+        bloques,
+      };
     };
 
     // 4) Mesas lógicas por agrupación
@@ -278,7 +326,10 @@ export async function generarPDFMesas({
     }
 
     if (!mesasLogicas.length) {
-      notify?.({ tipo: "warning", mensaje: "No hay datos para las agrupaciones seleccionadas." });
+      notify?.({
+        tipo: "warning",
+        mensaje: "No hay datos para las agrupaciones seleccionadas.",
+      });
       return;
     }
 
@@ -318,7 +369,9 @@ export async function generarPDFMesas({
     let logoW = LOGO_BOX,
       logoH = LOGO_BOX;
     try {
-      logoImg = await loadHTMLImage(logoPath || `${window.location.origin}/img/Escudo.png`);
+      logoImg = await loadHTMLImage(
+        logoPath || `${window.location.origin}/img/Escudo.png`
+      );
       const sz = fitImage(logoImg, LOGO_BOX, LOGO_BOX);
       logoW = sz.w;
       logoH = sz.h;
@@ -332,22 +385,32 @@ export async function generarPDFMesas({
 
     // Anchos de columnas (escala al ancho útil)
     const usableW = pageW - ML * 2;
-    const COLS = { HORA: 90, ESPACIO: 170, ESTUDIANTE: 210, DNI: 80, CURSO: 70, DOCENTES: 90 };
+    const COLS = {
+      HORA: 90,
+      ESPACIO: 170,
+      ESTUDIANTE: 210,
+      DNI: 80,
+      CURSO: 70,
+      DOCENTES: 90,
+    };
     const sumCols = Object.values(COLS).reduce((a, b) => a + b, 0);
     const scale = usableW / sumCols;
     for (const k of Object.keys(COLS)) COLS[k] = Math.floor(COLS[k] * scale);
 
+    // ✅ HEADER con título dinámico
     const drawPageHeader = () => {
       if (logoImg) doc.addImage(logoImg, "PNG", ML, MTOP, logoW, logoH);
 
       doc.setFont("helvetica", "bold");
       doc.setFontSize(FT_TITLE);
       const titleY = MTOP + Math.max(18, Math.ceil(logoH * 0.5));
-      doc.text("MESAS DE EXAMEN FEBRERO 2026", pageW / 2, titleY, { align: "center" });
+      doc.text(TITULO_FINAL, pageW / 2, titleY, { align: "center" });
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(FT_SUB);
-      doc.text('IPET N° 50 "Ing. Emilio F. Olmos"', pageW / 2, titleY + 14, { align: "center" });
+      doc.text('IPET N° 50 "Ing. Emilio F. Olmos"', pageW / 2, titleY + 14, {
+        align: "center",
+      });
 
       const lineY = MTOP + HEADER_H - 6;
       doc.setDrawColor(0);
@@ -358,7 +421,10 @@ export async function generarPDFMesas({
     // Caption por mesa
     const drawMesaCaption = (mesa, y) => {
       const { dia, mes, anio } = NOMBRE_MES(mesa.fecha);
-      const fechaTxt = `${DIA_SEMANA(mesa.fecha)} ${String(dia).padStart(2, "0")} ${mes} ${anio}`.trim();
+      const fechaTxt = `${DIA_SEMANA(mesa.fecha)} ${String(dia).padStart(
+        2,
+        "0"
+      )} ${mes} ${anio}`.trim();
 
       const horaTxt = HORA_DESDE_DB(mesa.hora, mesa.turno);
       const turnoTxt = `${String(mesa.turno || "").toUpperCase()} · ${horaTxt}`;
@@ -385,10 +451,14 @@ export async function generarPDFMesas({
     const buildBody = (mesa) => {
       const { dia, mes } = NOMBRE_MES(mesa.fecha);
       const horaTxt = HORA_DESDE_DB(mesa.hora, mesa.turno);
-      const HORA =
-        `${DIA_SEMANA(mesa.fecha)}\n${String(dia).padStart(2, "0")}\n${mes}\n${String(mesa.turno || "").toUpperCase()}\n${horaTxt}`;
+      const HORA = `${DIA_SEMANA(mesa.fecha)}\n${String(dia).padStart(
+        2,
+        "0"
+      )}\n${mes}\n${String(mesa.turno || "").toUpperCase()}\n${horaTxt}`;
 
-      const nRowsPorBloque = mesa.bloques.map((b) => Math.max(1, b.alumnos.length));
+      const nRowsPorBloque = mesa.bloques.map((b) =>
+        Math.max(1, b.alumnos.length)
+      );
       const totalRows = nRowsPorBloque.reduce((a, b) => a + b, 0);
 
       // Segmentos contiguos por MATERIA
@@ -414,7 +484,8 @@ export async function generarPDFMesas({
         accMat += n;
         rowCursor += n;
       }
-      if (curMat !== null) segMateria.push({ materia: curMat, startRow: startMat, rowSpan: accMat });
+      if (curMat !== null)
+        segMateria.push({ materia: curMat, startRow: startMat, rowSpan: accMat });
 
       // Segmentos contiguos por DOCENTE
       const segDocente = [];
@@ -439,7 +510,8 @@ export async function generarPDFMesas({
         accDoc += n;
         rowCursor2 += n;
       }
-      if (curDoc !== null) segDocente.push({ docente: curDoc, startRow: startDoc, rowSpan: accDoc });
+      if (curDoc !== null)
+        segDocente.push({ docente: curDoc, startRow: startDoc, rowSpan: accDoc });
 
       const materiaStart = new Map(segMateria.map((s) => [s.startRow, s]));
       const docenteStart = new Map(segDocente.map((s) => [s.startRow, s]));
@@ -504,9 +576,18 @@ export async function generarPDFMesas({
           {
             content: HORA,
             rowSpan: 1,
-            styles: { halign: "center", valign: "middle", fontStyle: "bold", fontSize: FT_BODY - 0.5 },
+            styles: {
+              halign: "center",
+              valign: "middle",
+              fontStyle: "bold",
+              fontSize: FT_BODY - 0.5,
+            },
           },
-          { content: mesa.materia || "—", rowSpan: 1, styles: { halign: "left", valign: "middle", fontStyle: "bold" } },
+          {
+            content: mesa.materia || "—",
+            rowSpan: 1,
+            styles: { halign: "left", valign: "middle", fontStyle: "bold" },
+          },
           "—",
           "—",
           limpiarCurso("—"),
@@ -517,14 +598,17 @@ export async function generarPDFMesas({
       return body;
     };
 
-    // ✅ Estimación simple de altura de una mesa para decidir salto de página.
-    // No necesita ser perfecta: con esto evitás que autoTable “corte” cuando sí entraba.
+    // Estimación simple de altura de una mesa para decidir salto de página
     const estimateMesaHeight = (mesa) => {
-      const nRows = (mesa.bloques || []).reduce((acc, b) => acc + Math.max(1, (b?.alumnos || []).length), 0) || 1;
-      const rowH = Math.max(11, FT_BODY + PAD * 2 + 2); // aproximación
+      const nRows =
+        (mesa.bloques || []).reduce(
+          (acc, b) => acc + Math.max(1, (b?.alumnos || []).length),
+          0
+        ) || 1;
+      const rowH = Math.max(11, FT_BODY + PAD * 2 + 2);
       const headH = Math.max(16, FT_HEAD + PAD * 2 + 3);
       const captionH = 20;
-      const extra = 10; // líneas / respiros
+      const extra = 10;
       return captionH + headH + nRows * rowH + extra;
     };
 
@@ -532,28 +616,22 @@ export async function generarPDFMesas({
     drawPageHeader();
     let currentY = CONTENT_TOP;
 
-    // Espacio mínimo para no dejar head huérfano
     const CAPTION_HEIGHT = 20;
     const HEAD_APPROX = 18;
-    const MIN_TABLE_BLOCK = CAPTION_HEIGHT + HEAD_APPROX + MIN_ROWS_AFTER_HEAD * 12;
+    const MIN_TABLE_BLOCK = CAPTION_HEIGHT + HEAD_APPROX + 2 * 12;
 
     for (let idxMesa = 0; idxMesa < mesasLogicas.length; idxMesa++) {
       const mesa = mesasLogicas[idxMesa];
 
-      // 1) Si no hay espacio ni para caption + head + 2 filas => nueva página
       if (currentY > pageH - BOTTOM_SAFE - MIN_TABLE_BLOCK) {
         doc.addPage();
         drawPageHeader();
         currentY = CONTENT_TOP;
       }
 
-      // 2) ✅ Si la mesa completa NO entra en el espacio restante => nueva página
-      // (esto es lo que te faltaba para que no se “corte en cualquier lado”)
       const remaining = pageH - BOTTOM_SAFE - currentY;
       const approxMesaH = estimateMesaHeight(mesa);
 
-      // Si entra justo, la dejamos. Si no entra, la pasamos entera a la próxima página.
-      // OJO: si la mesa es más grande que una hoja, igual se va a partir (inevitable).
       const maxBlockPerPage = pageH - BOTTOM_SAFE - CONTENT_TOP;
       const mesaEsMasGrandeQueUnaHoja = approxMesaH > maxBlockPerPage;
 
@@ -563,19 +641,12 @@ export async function generarPDFMesas({
         currentY = CONTENT_TOP;
       }
 
-      // Caption
       currentY = drawMesaCaption(mesa, currentY);
 
-      // Tabla
       autoTable(doc, {
         startY: currentY,
         margin: { top: CONTENT_TOP, bottom: BOTTOM_SAFE, left: ML, right: ML },
-
-        // ✅ CLAVE: evita partir la tabla si puede entrar completa en una página.
-        // Si no entra en el espacio restante, autoTable arranca en la hoja siguiente.
         pageBreak: "avoid",
-
-        // Esta ayuda a evitar cortes feos; si una fila (muy alta) no entra, pasa de página.
         rowPageBreak: "avoid",
 
         styles: {
@@ -610,7 +681,6 @@ export async function generarPDFMesas({
           5: { cellWidth: COLS.DOCENTES, halign: "left" },
         },
 
-        // Header por página (cuando autoTable agrega páginas por ser muy largo)
         didDrawPage: () => drawPageHeader(),
       });
 
@@ -623,9 +693,20 @@ export async function generarPDFMesas({
     const yyyy = d.getFullYear();
     const mm = String(d.getMonth() + 1).padStart(2, "0");
     const dd = String(d.getDate()).padStart(2, "0");
-    doc.save(`MesasDeExamen_${yyyy}-${mm}-${dd}.pdf`);
+
+    const safeExtra = String(pdfTituloExtra || "")
+      .trim()
+      .replace(/[\\/:*?"<>|]/g, "-"); // por Windows
+    const nombreArchivo = safeExtra
+      ? `MesasDeExamen_${safeExtra}_${yyyy}-${mm}-${dd}.pdf`
+      : `MesasDeExamen_${yyyy}-${mm}-${dd}.pdf`;
+
+    doc.save(nombreArchivo);
   } catch (e) {
     console.error("Error generando PDF:", e);
-    notify?.({ tipo: "error", mensaje: e.message || "No se pudo exportar PDF." });
+    notify?.({
+      tipo: "error",
+      mensaje: e.message || "No se pudo exportar PDF.",
+    });
   }
 }

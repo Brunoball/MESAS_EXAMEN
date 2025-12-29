@@ -37,6 +37,7 @@ import FullScreenLoader from "../Global/FullScreenLoader";
 import ModalCrearMesas from "./modales/ModalCrearMesas";
 import ModalEliminarMesas from "./modales/ModalEliminarMesas";
 import ModalEliminarMesa from "./modales/ModalEliminarMesa";
+import ModalTituloPDF from "./modales/ModalTituloPDF"; // ✅ NUEVO IMPORT
 
 import { generarPDFMesas } from "./modales/GenerarPDF";
 import escudo from "../../imagenes/Escudo.png";
@@ -70,7 +71,7 @@ function useDebounce(value, delay = 220) {
 }
 
 /* ================================
-   Helpers para “Detalle (como PDF)”
+   Helpers para "Detalle (como PDF)"
 ================================ */
 const mode = (arr = []) => {
   const counts = new Map();
@@ -155,7 +156,7 @@ const limpiarCurso = (s) =>
     .trim();
 
 /**
- * Construye “mesas lógicas” (igual que el PDF) a partir del detalle del backend.
+ * Construye "mesas lógicas" (igual que el PDF) a partir del detalle del backend.
  *
  * AHORA con fallbackPorNumero:
  *  - Si en el detalle viene alguna mesa sin fecha/turno/hora,
@@ -236,7 +237,7 @@ function buildMesasLogicas({ detalle, agrupaciones, id_grupo, fallbackPorNumero 
     );
 
     // Mapa Docente -> Materia -> alumnos[]
-    const DOC_FALLBACK = "—";
+    const DOC_FALLBACK = "-";
     const mapa = new Map();
     const add = (doc, mat, al) => {
       if (!mapa.has(doc)) mapa.set(doc, new Map());
@@ -365,6 +366,11 @@ const MesasExamen = () => {
   // modal eliminar individual
   const [abrirEliminarUno, setAbrirEliminarUno] = useState(false);
   const [mesaAEliminar, setMesaAEliminar] = useState(null);
+
+  // ✅ Modal título PDF (antes de exportar)
+  const [abrirTituloPDF, setAbrirTituloPDF] = useState(false);
+  // guardamos la acción a ejecutar cuando confirmen
+  const exportActionRef = useRef(null);
 
   // Toast
   const [toast, setToast] = useState(null);
@@ -919,11 +925,11 @@ const MesasExamen = () => {
         const docentes =
           Array.isArray(m.docentes) && m.docentes.length
             ? m.docentes
-            : ["—"];
+            : ["-"];
         const alumnos =
           Array.isArray(m.alumnos) && m.alumnos.length
             ? m.alumnos
-            : [{ alumno: "—", dni: "—", curso: "—" }];
+            : [{ alumno: "-", dni: "-", curso: "-" }];
 
         for (const d of docentes) {
           for (const a of alumnos) {
@@ -934,10 +940,10 @@ const MesasExamen = () => {
               Turno: turno || "",
               Hora: horaCalc,
               "Espacio Curricular": materia || "",
-              Docente: d || "—",
-              Estudiante: a?.alumno || "—",
-              DNI: a?.dni || "—",
-              Curso: limpiarCursoX(a?.curso || "—"),
+              Docente: d || "-",
+              Estudiante: a?.alumno || "-",
+              DNI: a?.dni || "-",
+              Curso: limpiarCursoX(a?.curso || "-"),
               _sortFechaISO: fechaISO || "9999-12-31",
               _sortTurnoRank: turnoRank(turno),
             });
@@ -1128,6 +1134,12 @@ const MesasExamen = () => {
       }
     }, 150);
     return () => clearTimeout(timer);
+  }, []);
+
+  // ✅ Función para pedir título y exportar
+  const pedirTituloYExportar = useCallback((fnExport) => {
+    exportActionRef.current = fnExport;
+    setAbrirTituloPDF(true);
   }, []);
 
   /* ======================
@@ -1494,7 +1506,7 @@ const MesasExamen = () => {
                     startDoc = 0;
                   let rowCursor2 = 0;
                   for (let i = 0; i < mesa.bloques.length; i++) {
-                    const doc = mesa.bloques[i].docente || "—";
+                    const doc = mesa.bloques[i].docente || "-";
                     const n = nRowsPorBloque[i];
                     if (curDoc === null) {
                       curDoc = doc;
@@ -1548,9 +1560,9 @@ const MesasExamen = () => {
                     for (let i = 0; i < n; i++) {
                       const a =
                         bloque.alumnos[i] || {
-                          alumno: "—",
-                          dni: "—",
-                          curso: "—",
+                          alumno: "-",
+                          dni: "-",
+                          curso: "-",
                         };
                       const celdas = [];
 
@@ -1620,7 +1632,7 @@ const MesasExamen = () => {
                           >
                             <div className="docente-cell-content">
                               <span className="docente-nombre">
-                                {String(dStart.docente || "—")}
+                                {String(dStart.docente || "-")}
                               </span>
                             </div>
                           </td>
@@ -1668,14 +1680,14 @@ const MesasExamen = () => {
                           )}`}
                         </td>
                         <td className="pdf-materia-cell">
-                          {mesa.materia || "—"}
+                          {mesa.materia || "-"}
                         </td>
-                        <td className="pdf-td-left col-estudiante">—</td>
-                        <td className="pdf-td-center col-dni">—</td>
-                        <td className="pdf-td-center col-curso">—</td>
+                        <td className="pdf-td-left col-estudiante">-</td>
+                        <td className="pdf-td-center col-dni">-</td>
+                        <td className="pdf-td-center col-curso">-</td>
                         <td className="pdf-docente-cell">
                           <div className="docente-cell-content">
-                            <span className="docente-nombre">—</span>
+                            <span className="docente-nombre">-</span>
                           </div>
                         </td>
                       </tr>
@@ -1706,7 +1718,7 @@ const MesasExamen = () => {
                           <div className="pdf-subinfo">{sub}</div>
                           <div className="pdf-subinfo">
                             <strong>N° de mesa:</strong>{" "}
-                            {mesa.subNumeros.join(" • ") || "—"}
+                            {mesa.subNumeros.join(" • ") || "-"}
                           </div>
                         </div>
                       </div>
@@ -1865,32 +1877,26 @@ const MesasExamen = () => {
               onClick={() => {
                 if (!filasFiltradas.length) return;
 
-                const agrupaciones = filasFiltradas.map((g) =>
-                  [
-                    g.numero_mesa_1,
-                    g.numero_mesa_2,
-                    g.numero_mesa_3,
-                    g.numero_mesa_4,
-                  ]
-                    .filter((n) => n != null)
-                    .map(Number)
-                );
+                pedirTituloYExportar(({ tituloBase, tituloExtra }) => {
+                  const agrupaciones = filasFiltradas.map((g) =>
+                    [g.numero_mesa_1, g.numero_mesa_2, g.numero_mesa_3, g.numero_mesa_4]
+                      .filter((n) => n != null)
+                      .map(Number)
+                  );
 
-                const setNums = new Set();
-                for (const arr of agrupaciones)
-                  for (const n of arr) setNums.add(n);
-                const numerosOrdenados = Array.from(setNums).sort(
-                  (a, b) => a - b
-                );
+                  const setNums = new Set();
+                  for (const arr of agrupaciones) for (const n of arr) setNums.add(n);
+                  const numerosOrdenados = Array.from(setNums).sort((a, b) => a - b);
 
-                generarPDFMesas({
-                  mesasFiltradas: numerosOrdenados.map((n) => ({
-                    numero_mesa: n,
-                  })),
-                  agrupaciones,
-                  baseUrl: BASE_URL,
-                  notify,
-                  logoPath: escudo,
+                  generarPDFMesas({
+                    mesasFiltradas: numerosOrdenados.map((n) => ({ numero_mesa: n })),
+                    agrupaciones,
+                    baseUrl: BASE_URL,
+                    notify,
+                    logoPath: escudo,
+                    pdfTituloBase: tituloBase,   // ✅
+                    pdfTituloExtra: tituloExtra, // ✅
+                  });
                 });
               }}
               disabled={!filasFiltradas.length}
@@ -1992,6 +1998,22 @@ const MesasExamen = () => {
               mensaje: mensaje || "No se pudo eliminar la mesa.",
             })
           }
+        />
+      )}
+
+      {/* ✅ Modal para elegir título antes de exportar PDF */}
+      {abrirTituloPDF && (
+        <ModalTituloPDF
+          open={abrirTituloPDF}
+          onClose={() => setAbrirTituloPDF(false)}
+          tituloBase="MESAS DE EXAMEN"
+          defaultExtra=""
+          onConfirm={({ tituloBase, tituloExtra }) => {
+            setAbrirTituloPDF(false);
+            const fn = exportActionRef.current;
+            exportActionRef.current = null;
+            if (typeof fn === "function") fn({ tituloBase, tituloExtra });
+          }}
         />
       )}
 
