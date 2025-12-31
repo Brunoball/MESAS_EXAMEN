@@ -1195,3 +1195,37 @@ input:-webkit-autofill { background-color: transparent !important; }
 .glob-profesor-button:disabled .glob-profesor-icon-button {
   opacity: 0.8;
 }
+/* Items del dropdown: todos iguales */
+.glob-filtros-menu-item{
+  width: 100%;
+  border: none;
+  background: #fff;
+  color: var(--pro-primary-dark);
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+  border-bottom: 1px solid var(--pro-red-100);
+}
+
+.glob-filtros-menu-item:last-child{
+  border-bottom: none;
+}
+
+/* Hover igual para todos */
+.glob-filtros-menu-item:hover{
+  background: var(--pro-primary);
+  color: #fff;
+}
+
+/* ✅ Seleccionado = “hover activado” fijo */
+.glob-filtros-menu-item.is-selected{
+  background: var(--pro-primary);
+  color: #fff;
+  font-weight: 700;
+}
+
+/* Mantener igual si pasás el mouse por el seleccionado */
+.glob-filtros-menu-item.is-selected:hover{
+  background: var(--pro-primary);
+  color: #fff;
+}

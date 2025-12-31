@@ -65,7 +65,8 @@ export default function PreviasCopias() {
       setCargando(true);
       const res = await fetch(`${BASE_URL}/api.php?action=previas_copias_listar`);
       const json = await res.json();
-      if (!json?.exito) throw new Error(json?.mensaje || "No se pudieron obtener las copias");
+      if (!json?.exito)
+        throw new Error(json?.mensaje || "No se pudieron obtener las copias");
 
       const lista = json?.copias || [];
       setCopias(lista);
@@ -184,7 +185,11 @@ export default function PreviasCopias() {
 
       mostrarToast(`Copias eliminadas: ${json?.eliminados ?? 0}`, "exito");
     } catch (e) {
-      setModalLimpiar((m) => ({ ...m, loading: false, error: e.message || "Error desconocido" }));
+      setModalLimpiar((m) => ({
+        ...m,
+        loading: false,
+        error: e.message || "Error desconocido",
+      }));
     }
   }, [cargarCopias, mostrarToast]);
 
@@ -229,7 +234,7 @@ export default function PreviasCopias() {
             {busqueda ? (
               <FaTimes className="glob-clear-search-icon" onClick={() => setBusqueda("")} />
             ) : null}
-            <button className="glob-search-button" title="Buscar">
+            <button className="glob-search-button" title="Buscar" type="button">
               <FaSearch className="glob-search-icon" />
             </button>
           </div>
@@ -266,7 +271,14 @@ export default function PreviasCopias() {
                   title="Seleccionar copia"
                 >
                   <FaCalendarAlt className="glob-icon-button" />
-                  <span style={{ maxWidth: 380, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  <span
+                    style={{
+                      maxWidth: 380,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
                     {textoRunSeleccionado}
                   </span>
                   <FaChevronDown className={`glob-chevron-icon ${openRuns ? "glob-rotate" : ""}`} />
@@ -280,11 +292,12 @@ export default function PreviasCopias() {
                   >
                     {copias.map((c) => {
                       const active = c.snapshot_run_id === runSeleccionado?.snapshot_run_id;
+
                       return (
                         <button
                           key={c.snapshot_run_id}
                           type="button"
-                          className={`glob-filtros-menu-item ${active ? "glob-mostrar-todas" : ""}`}
+                          className={`glob-filtros-menu-item ${active ? "is-selected" : ""}`}
                           onClick={() => {
                             setRunSeleccionado(c);
                             setBusqueda("");
@@ -334,7 +347,7 @@ export default function PreviasCopias() {
                   </div>
                 </div>
               ) : (
-                <div style={{ maxHeight: "55vh", overflow: "auto" }}>
+                <div style={{ maxHeight: "55vh", overflow: "auto", width: "100%" }}>
                   {detalleFiltrado.map((r, idx) => (
                     <div
                       key={`${r.snapshot_id ?? idx}`}
@@ -368,6 +381,7 @@ export default function PreviasCopias() {
             onClick={() => navigate("/previas")}
             aria-label="Volver"
             title="Volver"
+            type="button"
           >
             <FaArrowLeft className="glob-profesor-icon-button" />
             <p>Volver Atrás</p>
@@ -381,6 +395,7 @@ export default function PreviasCopias() {
             title="Eliminar todas las copias guardadas"
             disabled={cargando || copias.length === 0}
             style={{ background: "var(--danger, #d9534f)" }}
+            type="button"
           >
             <FaTrash className="glob-profesor-icon-button" />
             <p>Eliminar registros</p>
